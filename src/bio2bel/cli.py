@@ -14,8 +14,8 @@ modules = {
 }
 
 commands = {
-    entry: module.main
-    for entry, module in modules.items()
+    entry: mod.main
+    for entry, mod in modules.items()
 }
 
 main = click.Group(commands=commands)
@@ -30,9 +30,12 @@ def util():
 @click.pass_context
 def deploy(ctx):
     """Runs all deploy commands"""
-    for name, module in modules.items():
-        click.echo('Deploying {}'.format(name))
-        module.deploy.invoke(ctx)
+    for name, mod in modules.items():
+        try:
+            click.echo('Deploying {}'.format(name))
+            mod.deploy.invoke(ctx)
+        except:
+            click.echo('No deploy function found for {}'.format(name))
 
 
 if __name__ == '__main__':
