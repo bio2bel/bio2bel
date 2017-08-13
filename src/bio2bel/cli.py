@@ -3,15 +3,21 @@
 """Aggregate CLI for all Bio2BEL projects"""
 
 import importlib
+import logging
 
 import click
 
 from . import entries
 
-modules = {
-    entry: importlib.import_module('bio2bel_{}'.format(entry)).cli
-    for entry in entries
-}
+log = logging.getLogger(__name__)
+
+modules = {}
+
+for entry in entries:
+    try:
+        modules[entry] = importlib.import_module('bio2bel_{}'.format(entry)).cli
+    except:
+        log.warning('%s has no CLI', entry)
 
 commands = {
     entry: mod.main
