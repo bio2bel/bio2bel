@@ -10,6 +10,9 @@ PACKAGES = setuptools.find_packages(where='src')
 META_PATH = os.path.join('src', 'bio2bel', '__init__.py')
 INSTALL_REQUIRES = []
 ENTRY_POINTS = {
+    'console_scripts': [
+        'bio2bel = bio2bel.cli:main',
+    ]
 }
 
 HERE = os.path.abspath(os.path.dirname(__file__))
