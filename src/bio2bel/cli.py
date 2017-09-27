@@ -12,17 +12,26 @@ from . import entries
 log = logging.getLogger(__name__)
 
 modules = {}
+commands = {}
 
 for entry in entries:
     try:
-        modules[entry] = importlib.import_module('bio2bel_{}'.format(entry)).cli
+        bio2bel_module = importlib.import_module('bio2bel_{}'.format(entry))
+    except:
+        log.warning("can't import module: %s", entry)
+        continue
+
+    try:
+        modules[entry] = bio2bel_module.cli
     except:
         log.warning('%s has no CLI', entry)
+        continue
 
-commands = {
-    entry: mod.main
-    for entry, mod in modules.items()
-}
+    try:
+        commands[entry] = modules[entry].main
+    except:
+        log.warning('%s has no command: main', entry)
+        continue
 
 main = click.Group(commands=commands)
 
