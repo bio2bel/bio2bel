@@ -9,7 +9,7 @@ python:
 env:
   matrix:
     - TOXENV=rst-lint
-    - TOXENV=check-manifest
+    - TOXENV=manifest
     - TOXENV=docs
     - TOXENV=py
 

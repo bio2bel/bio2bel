@@ -1,4 +1,5 @@
 graft src
+graft tests
 
 recursive-include docs/source *.py
 recursive-include docs/source *.rst
