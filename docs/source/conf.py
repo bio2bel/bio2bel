@@ -180,8 +180,14 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
-
-
-
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'sqlalchemy': ('https://docs.sqlalchemy.org/en/latest', None),
+}
+
+autodoc_member_order = 'bysource'
+autoclass_content = 'both'
+
+if os.environ.get('READTHEDOCS', None):
+    tags.add('readthedocs')
