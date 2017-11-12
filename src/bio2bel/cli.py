@@ -14,6 +14,7 @@ cli_modules = {}
 main_commands = {}
 deploy_commands = {}
 populate_commands = {}
+drop_commands = {}
 web_commands = {}
 
 for entry_point in iter_entry_points(group='bio2bel', name=None):
@@ -51,6 +52,11 @@ for entry_point in iter_entry_points(group='bio2bel', name=None):
         log.debug('no command bio2bel_%s.cli:populate', entry)
 
     try:
+        drop_commands[entry] = cli_modules[entry].drop
+    except AttributeError:
+        log.debug('no command bio2bel_%s.cli:drop', entry)
+
+    try:
         web_commands[entry] = cli_modules[entry].web
     except AttributeError:
         log.debug('no command bio2bel_%s.cli:web', entry)
@@ -63,7 +69,7 @@ def util():
     """Run all commands"""
 
 
-@util.command()
+@util.command(help='Populate: {}'.format(', '.join(sorted(populate_commands))))
 @click.pass_context
 def populate(ctx):
     """Runs all populate commands"""
@@ -72,10 +78,17 @@ def populate(ctx):
         command.invoke(ctx)
 
 
-@util.command()
+@util.command(help='Drop: {}'.format(', '.join(sorted(drop_commands))))
+@click.pass_context
+def drop(ctx):
+    for name, command in drop_commands.items():
+        click.echo('dropping {}'.format(name))
+        command.invoke(ctx)
+
+
+@util.command(help='Deploy: {}'.format(', '.join(sorted(deploy_commands))))
 @click.pass_context
 def deploy(ctx):
-    """Runs all deploy commands"""
     for name, command in deploy_commands.items():
         click.echo('deploying {}'.format(name))
         command.invoke(ctx)
