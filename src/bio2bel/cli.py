@@ -6,52 +6,56 @@ import importlib
 import logging
 
 import click
-
-from . import entries
+from pkg_resources import VersionConflict, iter_entry_points
 
 log = logging.getLogger(__name__)
 
-modules = {}
-commands = {}
+cli_modules = {}
+main_commands = {}
 deploy_commands = {}
 populate_commands = {}
 web_commands = {}
 
-for entry in entries:
-    try:  # TODO can be replaced by entry_point.resolve()
-        bio2bel_module = importlib.import_module('bio2bel_{}'.format(entry))
-    except ImportError:
-        log.exception("can't import bio2bel_%s", entry)
+for entry_point in iter_entry_points(group='bio2bel', name=None):
+    entry = entry_point.name
+
+    try:
+        bio2bel_module = entry_point.load()
+    except VersionConflict:
+        log.warning('Version conflict in %s', entry)
         continue
 
     try:
-        modules[entry] = importlib.import_module('bio2bel_{}.cli'.format(entry))
-    except ImportError:
-        log.warning('no submodule bio2bel_%s.cli', entry)
-        continue
+        cli_modules[entry] = bio2bel_module.cli
+    except AttributeError:
+        try:
+            cli_modules[entry] = importlib.import_module('bio2bel_{}.cli'.format(entry))
+        except ImportError:
+            log.warning('no submodule bio2bel_%s.cli', entry)
+            continue
 
     try:
-        commands[entry] = modules[entry].main
+        main_commands[entry] = cli_modules[entry].main
     except NameError:
         log.warning('no command group bio2bel_%s.cli:main', entry)
         continue
 
     try:
-        deploy_commands[entry] = modules[entry].deploy
+        deploy_commands[entry] = cli_modules[entry].deploy
     except AttributeError:
         log.debug('no command bio2bel_%s.cli:deploy', entry)
 
     try:
-        populate_commands[entry] = modules[entry].populate
+        populate_commands[entry] = cli_modules[entry].populate
     except AttributeError:
         log.debug('no command bio2bel_%s.cli:populate', entry)
 
     try:
-        web_commands[entry] = modules[entry].web
+        web_commands[entry] = cli_modules[entry].web
     except AttributeError:
         log.debug('no command bio2bel_%s.cli:web', entry)
 
-main = click.Group(commands=commands)
+main = click.Group(commands=main_commands)
 
 
 @main.group()
