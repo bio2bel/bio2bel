@@ -1,23 +1,27 @@
 sudo: false
 cache: pip
-
 language: python
-
 python:
-  - 3.6
-
+- 3.6
 env:
   matrix:
-    - TOXENV=rst-lint
-    - TOXENV=manifest
-    - TOXENV=docs
-    - TOXENV=py
-
+  - TOXENV=rst-lint
+  - TOXENV=manifest
+  - TOXENV=docs
+  - TOXENV=py
 install:
-  - pip install tox
-
+- pip install tox
 script:
-  - tox
-
+- tox
 notifications:
   slack: pybel:n2KbWKBum3musnBg3L76gGwq
+deploy:
+  provider: pypi
+  user: cthoyt
+  password:
+    secure: R4HDfpKCjaAjdCIp6eZmgnk9qbGWWkncBLmor/j0mRQalXAVViivOE2PtyoyxvwyFTSbsn894p70IiRKahLbmBD2Xz07cCFYcfysS/v67SGrCF8+O0Zo/C0TyBVCoTPNtdAUpFi5Ddg7Sdn2G9j/zjFWp/NO/9ZN/xVBHf5+fR3bFPvUd7FU+vOwOFmRei90c4bn0Z52VVg9aoQPLRNe9ErWDrH35bKbHMDNG2rfNH4WdACDEA04+pUChFdfF3R30GdZMXKJpMttG6NT/4V1dv+kEpV191WWPO6Bs+5vNvQ9PVA8ttzUZ8ApLoX1ecX7v7jF7a1eyNofZNDGocSrXOIrsB5OjfdWfHkEjbRNvZsBEklnS/WluwwuHbPCBua9K4AfAsRNlfnjUseaOF5bXp6LOlcYGQB8IICEgT3I8ZLvb5PRd4NVZK7W7y0Mb/0XImzDvU/Txa13I/ATp5R0opSA+aqFpeVuFssIvWUXRCAJxg05VVw+8p2iOf8rSMRdGwVq8f2XfX/tswGfgxSq3tuFgzQeqyDT/sjHgMjj2V9UYsJgyPbPdLt90LiOD2rr7JuRvxZaLPJWyZyjrjP2OsRLHhfsS6g1ZZ1mj+FKkEl/l9CVz0kZ2KSTSJfKAJOX2JJK9MaNOSTYlHBcMlsQQu5Al0t12pjktUaZbsUteZc=
+  distributions: "sdist bdist_wheel"
+  on:
+    tags: true
+    repo: bio2bel/bio2bel
+    branch: master
