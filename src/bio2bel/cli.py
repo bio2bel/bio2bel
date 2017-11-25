@@ -4,9 +4,12 @@
 
 import importlib
 import logging
+import sys
 
 import click
 from pkg_resources import VersionConflict, iter_entry_points
+
+from .constants import DEFAULT_CACHE_CONNECTION
 
 log = logging.getLogger(__name__)
 
@@ -62,6 +65,7 @@ for entry_point in iter_entry_points(group='bio2bel', name=None):
         log.debug('no command bio2bel_%s.cli:web', entry)
 
 main = click.Group(commands=main_commands)
+main.help = "Bio2BEL Command Line Utilities on {}".format(sys.executable)
 
 
 @main.group()
@@ -81,6 +85,7 @@ def populate(ctx):
 @util.command(help='Drop: {}'.format(', '.join(sorted(drop_commands))))
 @click.pass_context
 def drop(ctx):
+    """Runs all drop commands"""
     for name, command in drop_commands.items():
         click.echo('dropping {}'.format(name))
         command.invoke(ctx)
@@ -88,10 +93,33 @@ def drop(ctx):
 
 @util.command(help='Deploy: {}'.format(', '.join(sorted(deploy_commands))))
 @click.pass_context
-def deploy(ctx):
+def deploy(ctx, connection):
+    """Runs all deploy commands"""
     for name, command in deploy_commands.items():
         click.echo('deploying {}'.format(name))
         command.invoke(ctx)
+
+
+@util.command()
+@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+def web(connection):
+    """Runs a combine web interface"""
+    from bio2bel.web.application import create_application
+    app = create_application(connection=connection)
+    app.run(host='0.0.0.0', port=5000)
+
+
+@util.command()
+def web_registered():
+    """Prints the registered web services"""
+    from bio2bel.web.application import web_modules, add_admins
+    click.echo('Web Modules:')
+    for m in sorted(web_modules):
+        click.echo(m)
+
+    click.echo('Web Admin Interfaces:')
+    for m, f in sorted(add_admins.items()):
+        click.echo('{} - {}'.format(m, f))
 
 
 if __name__ == '__main__':

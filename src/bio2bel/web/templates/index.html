@@ -1,0 +1,35 @@
+{% extends "bootstrap/base.html" %}
+
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/fixes.html" as fixes %}
+{% import "bootstrap/utils.html" as util %}
+
+{% block title %}Bio2BEL{% endblock %}
+
+{% block content %}
+    <div class="container" style="margin-top: 50px">
+
+        {{ util.flashed_messages(dismissible=True, container=False) }}
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Bio2BEL Databases</h3>
+            </div>
+            <div class="panel-body">
+                <p>
+                    The following databases have been registered with Bio2BEL.
+                </p>
+            </div>
+            <ul class="list-group">
+                {% for entry in entries %}
+                    <li class="list-group-item">
+                        <a href="{{ entry }}">{{ entry }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+
+

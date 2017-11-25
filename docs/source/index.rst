@@ -30,6 +30,14 @@ Bio2BEL uses the entry points loader to find packages.
 
 where ``ENTRY_POINTS`` is passed to the ``entry_points`` argument of ``setuptools.setup``.
 
+Table of Contents
+=================
+
+.. toctree::
+   :maxdepth: 2
+
+   configuration
+
 Indices and tables
 ==================
 
