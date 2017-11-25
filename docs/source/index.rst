@@ -15,20 +15,24 @@ All Bio2BEL projects should have a similar structure. In the top level, there sh
 
 How to Register
 ===============
-Bio2BEL uses the entry points loader to find packages.
+Bio2BEL uses the entry points loader to find packages in combination with setuptools's ``entry_points`` argument.
 
 .. code-block:: python
 
-   ENTRY_POINTS = {
-       'bio2bel': [
-           'chembl = bio2bel_chembl',
-       ],
-       'console_scripts': [
-           'bio2bel_chembl = bio2bel_chembl.cli:main',
-       ]
-   }
+   import setuptools
 
-where ``ENTRY_POINTS`` is passed to the ``entry_points`` argument of ``setuptools.setup``.
+   setuptools.setup(
+      ...
+      entry_points={
+          'bio2bel': [
+              'chembl = bio2bel_chembl',
+          ],
+          'console_scripts': [
+              'bio2bel_chembl = bio2bel_chembl.cli:main',
+          ]
+      }
+      ...
+   )
 
 Table of Contents
 =================
