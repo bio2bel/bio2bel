@@ -5,6 +5,7 @@
 import importlib
 import logging
 import sys
+import time
 
 import click
 from pkg_resources import VersionConflict, iter_entry_points
@@ -74,28 +75,54 @@ def util():
 
 
 @util.command(help='Populate: {}'.format(', '.join(sorted(populate_commands))))
+@click.option('-s', '--skip', multiple=True, help='Modules to skip')
+@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 @click.pass_context
-def populate(ctx):
+def populate(ctx, skip, connection):
     """Runs all populate commands"""
-    for name, command in populate_commands.items():
-        click.echo('populating {}'.format(name))
-        command.invoke(ctx)
+    skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
+    for idx, (name, command) in enumerate(sorted(populate_commands.items()), start=1):
+        if name in skip:
+            click.echo('skipping {}'.format(name))
+            continue
+
+        click.echo('{} [{}/{}] populating {}'.format(time.strftime('%H:%M'), idx, len(populate_commands), name))
+
+        try:
+            command.invoke(ctx)
+        except:
+            click.echo('{} error during population of {}. skipping.'.format(time.strftime('%H:%M'), name))
+            continue
+
+        click.echo('{} finished populating {}'.format(time.strftime('%H:%M'), name))
 
 
 @util.command(help='Drop: {}'.format(', '.join(sorted(drop_commands))))
+@click.option('-s', '--skip', multiple=True, help='Modules to skip')
+@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 @click.pass_context
-def drop(ctx):
+def drop(ctx, skip):
     """Runs all drop commands"""
-    for name, command in drop_commands.items():
+    skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
+    for name, command in sorted(drop_commands.items()):
+        if name in skip:
+            click.echo('skipping {}'.format(name))
+            continue
         click.echo('dropping {}'.format(name))
         command.invoke(ctx)
 
 
 @util.command(help='Deploy: {}'.format(', '.join(sorted(deploy_commands))))
+@click.option('-s', '--skip', multiple=True, help='Modules to skip')
+@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 @click.pass_context
-def deploy(ctx, connection):
+def deploy(ctx, skip, connection):
     """Runs all deploy commands"""
-    for name, command in deploy_commands.items():
+    skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
+    for name, command in sorted(deploy_commands.items()):
+        if name in skip:
+            click.echo('skipping {}'.format(name))
+            continue
         click.echo('deploying {}'.format(name))
         command.invoke(ctx)
 
