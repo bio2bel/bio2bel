@@ -7,6 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from bio2bel.constants import DEFAULT_CACHE_CONNECTION
 from bio2bel.manager import Manager as BaseManager
+from bio2bel.testing import TemporaryConnectionMixin
 
 
 class TestManagerFailures(unittest.TestCase):
@@ -42,6 +43,11 @@ class TestConnectionLoading(unittest.TestCase):
     def test_manager_passes(self):
         manager = self.make_manager()
         self.assertEqual(DEFAULT_CACHE_CONNECTION, manager.connection)
+
+
+class TestTemporaryConnection(TemporaryConnectionMixin):
+    def test_connection(self):
+        self.assertIsInstance(self.connection, str)
 
 
 if __name__ == '__main__':
