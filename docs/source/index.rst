@@ -41,6 +41,7 @@ Table of Contents
    :maxdepth: 2
 
    configuration
+   projects
 
 Indices and tables
 ==================
