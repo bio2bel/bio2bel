@@ -98,6 +98,6 @@ def get_connection(module_name, connection=None):
         return DEFAULT_CACHE_CONNECTION
 
     default_connection = config.get(config.default_section, 'connection')
-    log.info('load default connection string from %s'.format(default_connection))
+    log.info('load default connection string from %s', default_connection)
 
     return default_connection
