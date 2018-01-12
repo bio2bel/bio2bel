@@ -21,7 +21,7 @@ CLASSIFIERS = [
     'Topic :: Scientific/Engineering :: Bio-Informatics'
 ]
 INSTALL_REQUIRES = [
-    'sqlalchemy',
+    'sqlalchemy==1.1.15',
     'click',
 ]
 ENTRY_POINTS = {
