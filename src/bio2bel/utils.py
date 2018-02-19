@@ -21,7 +21,6 @@ def get_data_dir(module_name):
     os.makedirs(data_dir, exist_ok=True)
     return data_dir
 
-
 def get_connection(module_name, connection=None):
     """Return the SQLAlchemy connection string if it is set
 

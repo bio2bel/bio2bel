@@ -13,6 +13,7 @@ from pkg_resources import VersionConflict, iter_entry_points
 from .constants import DEFAULT_CACHE_CONNECTION
 
 log = logging.getLogger(__name__)
+logging.getLogger('bio2bel.utils').setLevel(logging.WARNING)
 
 cli_modules = {}
 main_commands = {}
@@ -69,18 +70,13 @@ main = click.Group(commands=main_commands)
 main.help = "Bio2BEL Command Line Utilities on {}".format(sys.executable)
 
 
-@main.group()
-def util():
-    """Run all commands"""
-
-
-@util.command(help='Populate: {}'.format(', '.join(sorted(populate_commands))))
-@click.option('-s', '--skip', multiple=True, help='Modules to skip')
-@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+@main.command(help='Populate: {}'.format(', '.join(sorted(populate_commands))))
+@click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 @click.pass_context
-def populate(ctx, skip, connection):
+def populate(ctx, skip):
     """Runs all populate commands"""
     skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
+
     for idx, (name, command) in enumerate(sorted(populate_commands.items()), start=1):
         if name in skip:
             click.echo('skipping {}'.format(name))
@@ -90,44 +86,46 @@ def populate(ctx, skip, connection):
 
         try:
             command.invoke(ctx)
-        except:
-            click.echo('{} error during population of {}. skipping.'.format(time.strftime('%H:%M'), name))
+        except Exception:
+            log.exception('error during population of %s', name)
             continue
 
         click.echo('{} finished populating {}'.format(time.strftime('%H:%M'), name))
 
 
-@util.command(help='Drop: {}'.format(', '.join(sorted(drop_commands))))
-@click.option('-s', '--skip', multiple=True, help='Modules to skip')
-@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+@main.command(help='Drop: {}'.format(', '.join(sorted(drop_commands))))
+@click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 @click.pass_context
 def drop(ctx, skip):
     """Runs all drop commands"""
     skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
+
     for name, command in sorted(drop_commands.items()):
         if name in skip:
             click.echo('skipping {}'.format(name))
             continue
+
         click.echo('dropping {}'.format(name))
         command.invoke(ctx)
 
 
-@util.command(help='Deploy: {}'.format(', '.join(sorted(deploy_commands))))
-@click.option('-s', '--skip', multiple=True, help='Modules to skip')
-@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+@main.command(help='Deploy: {}'.format(', '.join(sorted(deploy_commands))))
+@click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 @click.pass_context
-def deploy(ctx, skip, connection):
+def deploy(ctx, skip):
     """Runs all deploy commands"""
     skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
+
     for name, command in sorted(deploy_commands.items()):
         if name in skip:
             click.echo('skipping {}'.format(name))
             continue
+
         click.echo('deploying {}'.format(name))
         command.invoke(ctx)
 
 
-@util.command()
+@main.command()
 @click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 def web(connection):
     """Runs a combine web interface"""
@@ -136,7 +134,7 @@ def web(connection):
     app.run(host='0.0.0.0', port=5000)
 
 
-@util.command()
+@main.command()
 def web_registered():
     """Prints the registered web services"""
     from bio2bel.web.application import web_modules, add_admins
