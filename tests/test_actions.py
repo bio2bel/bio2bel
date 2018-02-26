@@ -1,6 +1,3 @@
-# 1. need to mock the get_connection function to return a test database
-
-
 # -*- coding: utf-8 -*-
 
 import logging
