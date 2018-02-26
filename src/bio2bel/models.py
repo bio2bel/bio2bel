@@ -78,5 +78,11 @@ class Action(Base):
         cls._store_helper(cls.make_drop, resource)
 
 
+def store_populate(resource):
+    Action.store_populate(resource)
+
+def store_drop(resource):
+    Action.store_drop(resource)
+
 if __name__ == '__main__':
     Action.store_populate('hgnc')

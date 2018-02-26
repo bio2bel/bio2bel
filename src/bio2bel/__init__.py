@@ -2,6 +2,8 @@
 
 from pkg_resources import iter_entry_points
 
+from .models import store_drop, store_populate
+
 GROUP_NAME = 'bio2bel'
 
 # Allow `from bio2bel.ext import *`
