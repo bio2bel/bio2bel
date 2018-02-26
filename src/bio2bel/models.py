@@ -19,6 +19,25 @@ TABLE_PREFIX = 'bio2bel'
 ACTION_TABLE_NAME = '{}_action'.format(TABLE_PREFIX)
 
 
+def _make_session():
+    connection = get_global_connection()
+
+    engine = create_engine(connection)
+    Base.metadata.create_all(engine, checkfirst=True)
+
+    Session = sessionmaker(bind=engine)
+    return Session()
+
+
+def _store_helper(make_method, resource):
+    session = _make_session()
+
+    model = make_method(resource)
+    session.add(model)
+    session.commit()
+    session.close()
+
+
 class Action(Base):
     """Represents an update, dropping, population, etc. to the database"""
     __tablename__ = ACTION_TABLE_NAME
@@ -41,21 +60,6 @@ class Action(Base):
         return Action(resource=resource.lower(), action='drop')
 
     @classmethod
-    def _store_helper(cls, make_method, resource):
-        connection = get_global_connection()
-
-        engine = create_engine(connection)
-        Base.metadata.create_all(engine, checkfirst=True)
-
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        model = make_method(resource)
-        session.add(model)
-        session.commit()
-        session.close()
-
-    @classmethod
     def store_populate(cls, resource):
         """Stores a drop event
 
@@ -64,7 +68,7 @@ class Action(Base):
         >>> from bio2bel.models import Action
         >>> Action.store_populate('hgnc')
         """
-        cls._store_helper(cls.make_populate, resource)
+        return _store_helper(cls.make_populate, resource)
 
     @classmethod
     def store_drop(cls, resource):
@@ -75,14 +79,31 @@ class Action(Base):
         >>> from bio2bel.models import Action
         >>> Action.store_drop('hgnc')
         """
-        cls._store_helper(cls.make_drop, resource)
+        return _store_helper(cls.make_drop, resource)
+
+    @classmethod
+    def ls(cls):
+        """Get all actions
+
+        :rtype: list[Action]
+        """
+        session = _make_session()
+        actions = session.query(cls).all()
+        session.close()
+        return actions
+
+    def __str__(self):
+        return '{}: {} at {}'.format(self.resource, self.action, self.created)
 
 
 def store_populate(resource):
     Action.store_populate(resource)
 
+
 def store_drop(resource):
     Action.store_drop(resource)
 
+
 if __name__ == '__main__':
     Action.store_populate('hgnc')
+    print(list(map(str, Action.ls())))
