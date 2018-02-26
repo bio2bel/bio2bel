@@ -105,7 +105,7 @@ def get_connection(module_name, connection=None):
     return default_connection
 
 
-def bio2bel_populater(resource):
+def bio2bel_populater(resource, session=None):
     """Apply this decorator to a function so Bio2BEL's database gets populated automatically
 
     :param str resource: The name of the Bio2BEL package to populate
@@ -121,7 +121,7 @@ def bio2bel_populater(resource):
     def wrap_bio2bel_func(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            Action.store_populate(resource)
+            Action.store_populate(resource, session=session)
             return f(*args, **kwargs)
 
         return wrapped

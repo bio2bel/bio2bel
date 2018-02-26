@@ -29,8 +29,8 @@ def _make_session():
     return Session()
 
 
-def _store_helper(make_method, resource):
-    session = _make_session()
+def _store_helper(make_method, resource, session=None):
+    session = session or _make_session()
 
     model = make_method(resource)
     session.add(model)
@@ -60,7 +60,7 @@ class Action(Base):
         return Action(resource=resource.lower(), action='drop')
 
     @classmethod
-    def store_populate(cls, resource):
+    def store_populate(cls, resource, session=None):
         """Stores a drop event
 
         :param str resource: The normalized name of the resource to store
@@ -68,10 +68,10 @@ class Action(Base):
         >>> from bio2bel.models import Action
         >>> Action.store_populate('hgnc')
         """
-        return _store_helper(cls.make_populate, resource)
+        return _store_helper(cls.make_populate, resource, session=session)
 
     @classmethod
-    def store_drop(cls, resource):
+    def store_drop(cls, resource, session=None):
         """Stores a drop event
 
         :param str resource: The normalized name of the resource to store
@@ -79,15 +79,15 @@ class Action(Base):
         >>> from bio2bel.models import Action
         >>> Action.store_drop('hgnc')
         """
-        return _store_helper(cls.make_drop, resource)
+        return _store_helper(cls.make_drop, resource, session=session)
 
     @classmethod
-    def ls(cls):
+    def ls(cls, session=None):
         """Get all actions
 
         :rtype: list[Action]
         """
-        session = _make_session()
+        session = session or _make_session()
         actions = session.query(cls).all()
         session.close()
         return actions
@@ -102,8 +102,3 @@ def store_populate(resource):
 
 def store_drop(resource):
     Action.store_drop(resource)
-
-
-if __name__ == '__main__':
-    Action.store_populate('hgnc')
-    print(list(map(str, Action.ls())))
