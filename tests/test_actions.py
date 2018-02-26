@@ -41,7 +41,7 @@ class TestActions(unittest.TestCase):
 
         @bio2bel_populater('test', session=self.session)
         def populate_something():
-            pass
+            """A dummy function that represents a population function. May even be a class function."""
 
         populate_something()
 
