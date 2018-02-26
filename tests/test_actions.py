@@ -4,13 +4,13 @@ import logging
 import os
 import tempfile
 import unittest
-from unittest import mock
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from bio2bel.models import Action, Base
 from bio2bel.utils import bio2bel_populater
+from tests.constants import MockConnectionMixin
 
 log = logging.getLogger(__name__)
 
@@ -51,26 +51,9 @@ class TestActions(unittest.TestCase):
         self.assertEqual('test', action.resource)
 
 
-class TestActionMock(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        """Create temporary file"""
-        cls.fd, cls.path = tempfile.mkstemp()
-        cls.connection = 'sqlite:///' + cls.path
-
-        def mock_get_global_connection():
-            return cls.connection
-
-        cls.patch = mock.patch('bio2bel.models.get_global_connection', mock_get_global_connection)
-
-    @classmethod
-    def tearDownClass(cls):
-        """Closes the connection in the manager and deletes the temporary database"""
-        os.close(cls.fd)
-        os.remove(cls.path)
-
+class TestActionMock(MockConnectionMixin):
     def test_decorator(self):
-        with self.patch:
+        with self.mock_global_connection:
             self.assertEqual(0, len(Action.ls()), msg='should not already have entries')
 
             @bio2bel_populater('test')

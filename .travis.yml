@@ -5,10 +5,11 @@ python:
 - 3.6
 env:
   matrix:
-  - TOXENV=rst-lint
-  - TOXENV=manifest
-  - TOXENV=docs
   - TOXENV=py
+  - TOXENV=docs
+  - TOXENV=manifest
+  - TOXENV=rst-lint
+
 install:
 - pip install tox
 script:

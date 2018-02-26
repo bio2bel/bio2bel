@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import os
 from configparser import ConfigParser
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -10,8 +10,10 @@ BIO2BEL_DIR = os.environ.get('BIO2BEL_DIRECTORY', os.path.join(os.path.expanduse
 os.makedirs(BIO2BEL_DIR, exist_ok=True)
 
 DEFAULT_CONFIG_PATH = os.path.join(BIO2BEL_DIR, 'config.ini')
-DEFAULT_CACHE_NAME = 'bio2bel.db'
-DEFAULT_CACHE_PATH = os.path.join(BIO2BEL_DIR, DEFAULT_CACHE_NAME)
+
+UNCONFIGURED_CACHE_NAME = 'bio2bel.db'
+UNCONFIGURED_CACHE_PATH = os.path.join(BIO2BEL_DIR, UNCONFIGURED_CACHE_NAME)
+UNCONFIGURED_CACHE_CONNECTION = 'sqlite:///' + UNCONFIGURED_CACHE_PATH
 
 
 def get_global_connection():
@@ -30,7 +32,7 @@ def get_global_connection():
         log.info('creating config file: %s', DEFAULT_CONFIG_PATH)
         config_writer = ConfigParser()
         with open(DEFAULT_CONFIG_PATH, 'w') as f:
-            config_writer.set(config_writer.default_section, 'connection', DEFAULT_CACHE_CONNECTION)
+            config_writer.set(config_writer.default_section, 'connection', UNCONFIGURED_CACHE_CONNECTION)
             config_writer.write(f)
 
     log.info('fetching global bio2bel config from %s', DEFAULT_CONFIG_PATH)
@@ -38,8 +40,8 @@ def get_global_connection():
     config.read(DEFAULT_CONFIG_PATH)
 
     if not config.has_option(config.default_section, 'connection'):
-        log.info('creating default connection string %s', DEFAULT_CACHE_CONNECTION)
-        return 'sqlite:///' + DEFAULT_CACHE_PATH
+        log.info('creating default connection string %s', UNCONFIGURED_CACHE_CONNECTION)
+        return UNCONFIGURED_CACHE_CONNECTION
 
     default_connection = config.get(config.default_section, 'connection')
     log.info('load default connection string from %s', default_connection)
