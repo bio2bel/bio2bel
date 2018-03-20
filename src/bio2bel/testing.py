@@ -27,4 +27,3 @@ class TemporaryConnectionMixin(unittest.TestCase):
         """Closes the connection to the database and removes the files created for it"""
         os.close(cls.fd)
         os.remove(cls.path)
-

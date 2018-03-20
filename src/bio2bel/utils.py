@@ -5,6 +5,8 @@ import os
 from configparser import ConfigParser
 from functools import wraps
 
+import click
+
 from .constants import BIO2BEL_DIR, DEFAULT_CACHE_CONNECTION, DEFAULT_CONFIG_PATH
 from .models import Action
 
@@ -31,8 +33,10 @@ def get_connection(module_name, connection=None):
 
     1. Return the connection if given as a parameter
     2. Check the environment for BIO2BEL_{module_name}_CONNECTION
-    3. Look in the bio2bel config file for module-specific connection. Create if doesn't exist. Check the module-specific section for ``connection``
-    4. Look in the bio2bel module folder for a config file. Don't create if doesn't exist. Check the default section for ``connection``
+    3. Look in the bio2bel config file for module-specific connection. Create if doesn't exist. Check the
+       module-specific section for ``connection``
+    4. Look in the bio2bel module folder for a config file. Don't create if doesn't exist. Check the default section
+       for ``connection``
     5. Check the environment for BIO2BEL_CONNECTION
     6. Check the bio2bel config file for default
     7. Fall back to standard default cache connection
@@ -109,6 +113,7 @@ def bio2bel_populater(resource, session=None):
     """Apply this decorator to a function so Bio2BEL's database gets populated automatically
 
     :param str resource: The name of the Bio2BEL package to populate
+    :param Optional[sqlalchemy.orm.Session] session: A pre-built session
 
     Usage:
     >>> from bio2bel.utils import bio2bel_populater
@@ -127,3 +132,60 @@ def bio2bel_populater(resource, session=None):
         return wrapped
 
     return wrap_bio2bel_func
+
+
+def add_management_to_cli(main):
+    """Adds populate and drop functions to main click function
+
+    :param main: A click-decorated main function
+    """
+
+    @main.command()
+    @click.pass_obj
+    def populate(manager):
+        """Populates the database"""
+        manager.populate()
+
+    @main.command()
+    @click.option('-y', '--yes', is_flag=True)
+    @click.pass_obj
+    def drop(manager, yes):
+        """Drops database"""
+        if yes or click.confirm('Drop everything?'):
+            manager.drop_all()
+
+
+def build_cli(manager_cls, default_connection_getter=None, create_application=None):
+    """
+
+    :param str stylized_name
+    :param AbstractManager manager_cls: A Manager class
+    :param default_connection_getter: A function that returns the default connection string
+    :type default_connection_getter: Optional[() -> str]
+    :param create_application: Function to create the application
+    :type create_application: (Optional[str or AbstractManager], Optional[str] -> flask.Flask)
+    :return: The main function for click
+    """
+
+    if default_connection_getter is None:
+        default_connection_getter = lambda: get_connection(manager_cls.module_name)
+
+    @click.group(
+        help='Default connection at {}'.format(manager_cls.module_name, default_connection_getter()))
+    @click.option('-c', '--connection', help='Defaults to {}'.format(default_connection_getter()))
+    @click.pass_context
+    def main(ctx, connection):
+        logging.basicConfig(level=10, format="%(asctime)s - %(levelname)s - %(message)s")
+        ctx.obj = manager_cls(connection=connection)
+
+    add_management_to_cli(main)
+
+    if create_application is not None:
+        @main.command()
+        @click.pass_obj
+        def web(manager):
+            """Run the web app"""
+            app = create_application(connection=manager, url='/')
+            app.run(host='0.0.0.0', port=5000)
+
+    return main

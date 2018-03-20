@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Bio2BEL database model"""
+"""Bio2BEL database models"""
 
 import datetime
 import logging
@@ -20,22 +20,34 @@ ACTION_TABLE_NAME = '{}_action'.format(TABLE_PREFIX)
 
 
 def _make_session():
+    """Makes a session
+
+    :rtype: sqlalchemy.orm.Session
+    """
     connection = get_global_connection()
 
     engine = create_engine(connection)
     Base.metadata.create_all(engine, checkfirst=True)
 
-    Session = sessionmaker(bind=engine)
-    return Session()
+    session_cls = sessionmaker(bind=engine)
+    return session_cls()
 
 
 def _store_helper(make_method, resource, session=None):
+    """
+    :param make_method: Either :meth:`Action.make_populate` or :meth:`Action.make_drop`
+    :param str resource: The lowercase name of the resource. Ex: 'interpro'
+    :param Optional[sqlalchemy.orm.Session] session: A pre-built session
+    :rtype: Action
+    """
     session = session or _make_session()
 
     model = make_method(resource)
     session.add(model)
     session.commit()
     session.close()
+
+    return model
 
 
 class Action(Base):
@@ -64,6 +76,10 @@ class Action(Base):
         """Stores a drop event
 
         :param str resource: The normalized name of the resource to store
+        :param Optional[sqlalchemy.orm.Session] session: A pre-built session
+        :rtype: Action
+
+        Example:
 
         >>> from bio2bel.models import Action
         >>> Action.store_populate('hgnc')
@@ -75,6 +91,10 @@ class Action(Base):
         """Stores a drop event
 
         :param str resource: The normalized name of the resource to store
+        :param Optional[sqlalchemy.orm.Session] session: A pre-built session
+        :rtype: Action
+
+        Example:
 
         >>> from bio2bel.models import Action
         >>> Action.store_drop('hgnc')
@@ -85,6 +105,7 @@ class Action(Base):
     def ls(cls, session=None):
         """Get all actions
 
+        :param Optional[sqlalchemy.orm.Session] session: A pre-built session
         :rtype: list[Action]
         """
         session = session or _make_session()
@@ -96,9 +117,29 @@ class Action(Base):
         return '{}: {} at {}'.format(self.resource, self.action, self.created)
 
 
-def store_populate(resource):
-    Action.store_populate(resource)
+def store_populate(resource, session=None):
+    """Stores a populate action
+
+    :param str resource: The name of the resource to store
+    :param Optional[sqlalchemy.orm.Session] session: A pre-built session
+    :rtype: Action
+
+    Example:
+
+    >>> from bio2bel.models import store_populate
+    >>> store_populate('hgnc')
+    """
+    return Action.store_populate(resource, session=session)
 
 
-def store_drop(resource):
-    Action.store_drop(resource)
+def store_drop(resource, session=None):
+    """Stores a drop action
+
+    :param str resource: The name of the resource to store
+    :param Optional[sqlalchemy.orm.Session] session: A pre-built session
+    :rtype: Action
+
+    >>> from bio2bel.models import store_drop
+    >>> store_drop('hgnc')
+    """
+    return Action.store_drop(resource, session=session)

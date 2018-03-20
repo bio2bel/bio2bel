@@ -1,0 +1,17 @@
+[run]
+branch = True
+source = bio2bel
+omit =
+    tests/*
+    docs/*
+
+[paths]
+source =
+    src/pybel
+    .tox/*/lib/python*/site-packages/bio2bel
+
+[report]
+show_missing = True
+exclude_lines =
+    def __str__
+    def __repr__
