@@ -23,7 +23,7 @@ def setup():
 setup()
 del setup  # Do a bit of cleanup. Not sure if it's necessary, but Flask did...
 
-__version__ = '0.0.2-dev'
+__version__ = '0.0.2'
 
 __title__ = 'bio2bel'
 __description__ = "A package for converting biological stuff to BEL"
