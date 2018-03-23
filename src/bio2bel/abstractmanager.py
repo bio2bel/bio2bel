@@ -81,14 +81,14 @@ class AbstractManager(ABC):
         self.base.metadata.drop_all(self.engine, checkfirst=check_first)
 
     @classmethod
-    def ensure(cls, connection=None, **kwargs):
+    def ensure(cls, connection=None):
         """Checks and allows for a Manager to be passed to the function.
 
         :param connection: can be either a already build manager or a connection string to build a manager with.
         :type connection: Optional[str or AbstractManager]
         """
         if connection is None or isinstance(connection, str):
-            return cls(connection=connection, **kwargs)
+            return cls(connection=connection)
 
         if isinstance(connection, cls):
             return connection
