@@ -35,6 +35,8 @@ class Model(TestBase):
 
 
 class Manager(AbstractManager):
+    """Manager for running tests"""
+
     module_name = 'test'
 
     @property

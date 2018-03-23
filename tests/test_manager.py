@@ -72,6 +72,24 @@ class TestManagerFailures(unittest.TestCase):
             Manager()
 
 
+class TestManagerEnsure(TemporaryConnectionMixin):
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            tests.constants.Manager.ensure(connection=5)
+
+    def test_build(self):
+        m = tests.constants.Manager.ensure(connection=self.connection)
+        self.assertIsInstance(m, tests.constants.Manager)
+
+    def test_pass_through(self):
+        m = tests.constants.Manager(connection=self.connection)
+        self.assertIsInstance(m, tests.constants.Manager)
+
+        m2 = tests.constants.Manager.ensure(connection=m)
+        self.assertIsInstance(m, tests.constants.Manager)
+        self.assertEqual(m, m2)
+
+
 class TestConnectionLoading(TemporaryConnectionMixin):
     def setUp(self):
         super(TestConnectionLoading, self).setUp()

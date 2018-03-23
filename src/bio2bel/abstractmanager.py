@@ -79,3 +79,18 @@ class AbstractManager(ABC):
     def drop_all(self, check_first=True):
         """Create the empty database (tables)"""
         self.base.metadata.drop_all(self.engine, checkfirst=check_first)
+
+    @classmethod
+    def ensure(cls, connection=None, **kwargs):
+        """Checks and allows for a Manager to be passed to the function.
+
+        :param connection: can be either a already build manager or a connection string to build a manager with.
+        :type connection: Optional[str or AbstractManager]
+        """
+        if connection is None or isinstance(connection, str):
+            return cls(connection=connection, **kwargs)
+
+        if isinstance(connection, cls):
+            return connection
+
+        raise TypeError('passed invalid type: {}'.format(connection.__class__.__name__))
