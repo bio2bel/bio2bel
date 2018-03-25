@@ -96,6 +96,9 @@ class TestConnectionLoading(TemporaryConnectionMixin):
 
         self.manager = tests.constants.Manager(connection=self.connection)
 
+    def test_repr(self):
+        self.assertEqual('<TestManager url={}>'.format(self.connection), repr(self.manager))
+
     def test_connection(self):
         self.assertIsInstance(self.connection, str)
 
