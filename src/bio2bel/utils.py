@@ -116,6 +116,7 @@ def bio2bel_populater(resource, session=None):
     :param Optional[sqlalchemy.orm.Session] session: A pre-built session
 
     Usage:
+
     >>> from bio2bel.utils import bio2bel_populater
     >>>
     >>> @bio2bel_populater('hgnc')
@@ -156,9 +157,8 @@ def add_management_to_cli(main):
 
 
 def build_cli(manager_cls, default_connection_getter=None, create_application=None):
-    """
+    """Builds a :mod:`click` CLI main function.
 
-    :param str stylized_name
     :param AbstractManager manager_cls: A Manager class
     :param default_connection_getter: A function that returns the default connection string
     :type default_connection_getter: Optional[() -> str]
@@ -179,6 +179,14 @@ def build_cli(manager_cls, default_connection_getter=None, create_application=No
         ctx.obj = manager_cls(connection=connection)
 
     add_management_to_cli(main)
+
+    if hasattr(manager_cls, 'to_bel_graph'):
+        @main.command()
+        @click.pass_obj
+        def to_bel(manager):
+            graph = manager.to_bel_graph()
+            click.echo(graph)
+            # TODO do something with this
 
     if create_application is not None:
         @main.command()

@@ -40,8 +40,11 @@ Table of Contents
 .. toctree::
    :maxdepth: 2
 
-   configuration
    projects
+   abstractmanager
+   utils
+   testing
+
 
 Indices and tables
 ==================

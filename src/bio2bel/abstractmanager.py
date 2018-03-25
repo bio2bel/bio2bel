@@ -40,8 +40,9 @@ class AbstractManager(ABC):
 
     def __init__(self, connection=None, check_first=True):
         """
-        :param Optional[str] connection:
-        :param bool check_first:
+        :param Optional[str] connection: SQLAlchemy connection string
+        :param bool check_first: Defaults to True, don't issue CREATEs for tables already present
+         in the target database. Defers to :meth:`bio2bel.abstractmanager.AbstractManager.create_all`
         """
         if not self.module_name or not isinstance(self.module_name, str):
             raise Bio2BELMissingNameError('module_name class variable not set on {}'.format(self.__class__.__name__))
@@ -78,11 +79,19 @@ class AbstractManager(ABC):
         """Populate method should be overridden"""
 
     def create_all(self, check_first=True):
-        """Create the empty database (tables)"""
+        """Create the empty database (tables)
+
+        :param bool check_first: Defaults to True, don't issue CREATEs for tables already present
+         in the target database. Defers to :meth:`sqlalchemy.sql.schema.MetaData.create_all`
+        """
         self.base.metadata.create_all(self.engine, checkfirst=check_first)
 
     def drop_all(self, check_first=True):
-        """Create the empty database (tables)"""
+        """Create the empty database (tables)
+
+        :param bool check_first: Defaults to True, only issue DROPs for tables confirmed to be
+          present in the target database. Defers to :meth:`sqlalchemy.sql.schema.MetaData.drop_all`
+        """
         self.base.metadata.drop_all(self.engine, checkfirst=check_first)
 
     def _count_model(self, model):
