@@ -157,23 +157,17 @@ def add_management_to_cli(main):
             manager.drop_all()
 
 
-def build_cli(manager_cls, default_connection_getter=None, create_application=None):
+def build_cli(manager_cls, create_application=None):
     """Builds a :mod:`click` CLI main function.
 
     :param AbstractManager manager_cls: A Manager class
-    :param default_connection_getter: A function that returns the default connection string
-    :type default_connection_getter: Optional[() -> str]
     :param create_application: Function to create the application
     :type create_application: (Optional[str or AbstractManager], Optional[str] -> flask.Flask)
     :return: The main function for click
     """
 
-    if default_connection_getter is None:
-        default_connection_getter = lambda: get_connection(manager_cls.module_name)
-
-    @click.group(
-        help='Default connection at {}'.format(manager_cls.module_name, default_connection_getter()))
-    @click.option('-c', '--connection', help='Defaults to {}'.format(default_connection_getter()))
+    @click.group(help='Default connection at {}'.format(manager_cls.module_name, manager_cls.get_connection()))
+    @click.option('-c', '--connection', help='Defaults to {}'.format(manager_cls.get_connection()))
     @click.pass_context
     def main(ctx, connection):
         logging.basicConfig(level=10, format="%(asctime)s - %(levelname)s - %(message)s")

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from bio2bel.utils import get_connection
+from .utils import get_connection
 
 
 class Bio2BELMissingNameError(TypeError):
@@ -50,11 +50,21 @@ class AbstractManager(ABC):
         if self.module_name != self.module_name.lower():
             raise Bio2BELModuleCaseError('module_name class variable should be lowercase')
 
-        self.connection = get_connection(self.module_name, connection=connection)
+        self.connection = self.get_connection(connection=connection)
         self.engine = create_engine(self.connection)
         self.session_maker = sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
         self.session = scoped_session(self.session_maker)
         self.create_all(check_first=check_first)
+
+    @classmethod
+    def get_connection(cls, connection=None):
+        """Gets the default connection string by wrapping :func:`bio2bel.utils.get_connection` and passing
+        :data:`module_name` to it.
+
+        :param Optional[str] connection: A custom connection to pass through
+        :rtype: str
+        """
+        return get_connection(cls.module_name, connection=connection)
 
     @property
     @abstractmethod
