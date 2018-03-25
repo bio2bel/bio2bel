@@ -19,6 +19,8 @@ class Bio2BELModuleCaseError(TypeError):
 class AbstractManager(ABC):
     """Managers handle the database construction, population and querying.
 
+    :cvar str module_name: The name of the module represented by this manager
+
     Needs several hooks/absract methods to be set/overridden, but ultimately reduces redundant code
 
     Example for InterPro:
@@ -94,3 +96,9 @@ class AbstractManager(ABC):
             return connection
 
         raise TypeError('passed invalid type: {}'.format(connection.__class__.__name__))
+
+    def __repr__(self):
+        return '<{module_name}Manager url={url}>'.format(
+            module_name=self.module_name.capitalize(),
+            url=self.engine.url
+        )
