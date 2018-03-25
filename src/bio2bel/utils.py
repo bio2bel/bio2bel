@@ -2,6 +2,7 @@
 
 import logging
 import os
+import sys
 from configparser import ConfigParser
 from functools import wraps
 
@@ -180,13 +181,18 @@ def build_cli(manager_cls, default_connection_getter=None, create_application=No
 
     add_management_to_cli(main)
 
-    if hasattr(manager_cls, 'to_bel_graph'):
+    if hasattr(manager_cls, 'to_bel_file'):
+        @main.command()
+        @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
+        @click.pass_obj
+        def to_bel(manager, output):
+            manager.to_bel_file(output)
+
+    if hasattr(manager_cls, 'upload_bel'):
         @main.command()
         @click.pass_obj
         def to_bel(manager):
-            graph = manager.to_bel_graph()
-            click.echo(graph)
-            # TODO do something with this
+            manager.upload_bel()
 
     if create_application is not None:
         @main.command()
