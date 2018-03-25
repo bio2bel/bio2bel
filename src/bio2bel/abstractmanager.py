@@ -63,15 +63,15 @@ class AbstractManager(ABC):
 
         :rtype: sqlalchemy.ext.declarative.api.DeclarativeMeta
 
-        Example:
+        How to build an instance of :class:`sqlalchemy.ext.declarative.api.DeclarativeMeta`:
 
         >>> from sqlalchemy.ext.declarative import declarative_base
-        >>> from bio2bel.abstractmanager import AbstractManager
         >>> Base = declarative_base()
-        >>> class Manager(AbstractManager):
-        >>>     def base(self):
-        >>>         return Base
-        >>>     ...
+
+        Then just override this abstractmethod like:
+
+        >>> def base(self):
+        >>>     return Base
         """
 
     @abstractmethod
