@@ -21,7 +21,7 @@ class AbstractManager(ABC):
 
     :cvar str module_name: The name of the module represented by this manager
 
-    Needs several hooks/absract methods to be set/overridden, but ultimately reduces redundant code
+    Needs several hooks/abstract methods to be set/overridden, but ultimately reduces redundant code
 
     Example for InterPro:
 
@@ -30,7 +30,10 @@ class AbstractManager(ABC):
     >>> Base = declarative_base()
     >>> class Manager(AbstractManager):
     >>>     module_name = 'interpro'
-    >>>
+    >>>     def base(self):
+    >>>         return Base
+    >>>     def populate(self):
+    >>>         ...
     """
     #: This represents the module name. Needs to be lower case
     module_name = ...
@@ -55,7 +58,7 @@ class AbstractManager(ABC):
     @property
     @abstractmethod
     def base(self):
-        """Returns the abstract base
+        """Returns the abstract base. Usually sufficient to return an instance that is module-level.
 
         :rtype: sqlalchemy.ext.declarative.api.DeclarativeMeta
 
