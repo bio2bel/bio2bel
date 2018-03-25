@@ -46,6 +46,9 @@ class Manager(AbstractManager):
     def get_model_by_model_id(self, model_id):
         return self.session.query(Model).filter(Model.model_id == model_id).one_or_none()
 
+    def count_model(self):
+        return self._count_model(Model)
+
     def populate(self):
         """Won't implement this, but at least override it"""
         models = [

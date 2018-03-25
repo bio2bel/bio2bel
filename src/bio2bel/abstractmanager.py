@@ -82,6 +82,14 @@ class AbstractManager(ABC):
         """Create the empty database (tables)"""
         self.base.metadata.drop_all(self.engine, checkfirst=check_first)
 
+    def _count_model(self, model):
+        """Helps count the number of a given model in the database
+
+        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
+        :rtype: int
+        """
+        return self.session.query(model).count()
+
     @classmethod
     def ensure(cls, connection=None):
         """Checks and allows for a Manager to be passed to the function.

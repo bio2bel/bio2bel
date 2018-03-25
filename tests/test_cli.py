@@ -21,7 +21,7 @@ class TestCli(MockConnectionMixin):
         self.runner.invoke(self.main, args)
 
         manager = Manager(connection=self.connection)
-        self.assertEqual(5, manager.session.query(Model).count())
+        self.assertEqual(5, manager.count_model())
 
         args = [
             '--connection',
@@ -32,4 +32,4 @@ class TestCli(MockConnectionMixin):
         self.runner.invoke(self.main, args)
 
         with self.assertRaises(OperationalError):
-            manager.session.query(Model).count()
+            manager.count_model()
