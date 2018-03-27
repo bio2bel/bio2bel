@@ -180,12 +180,14 @@ def build_cli(manager_cls, create_application=None):
         @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
         @click.pass_obj
         def to_bel(manager, output):
+            """Writes BEL Script"""
             manager.to_bel_file(output)
 
     if hasattr(manager_cls, 'upload_bel'):
         @main.command()
         @click.pass_obj
-        def to_bel(manager):
+        def upload_bel(manager):
+            """Uploads BEL to network store"""
             manager.upload_bel()
 
     if create_application is not None:
