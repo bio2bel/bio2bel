@@ -168,7 +168,7 @@ def build_cli(manager_cls):
     @click.option('-c', '--connection', help='Defaults to {}'.format(manager_cls.get_connection()))
     @click.pass_context
     def main(ctx, connection):
-        logging.basicConfig(level=10, format="%(asctime)s - %(levelname)s - %(message)s")
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
         ctx.obj = manager_cls(connection=connection)
 
     add_management_to_cli(main)
