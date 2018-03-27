@@ -188,6 +188,14 @@ def build_cli(manager_cls):
             """Uploads BEL to network store"""
             manager.upload_bel()
 
+    if hasattr(manager_cls, 'summarize'):
+        @main.command()
+        @click.pass_obj
+        def summarize(manager):
+            """Summarizes the contents of the database"""
+            for name, count in sorted(manager.summarize().items()):
+                click.echo('{}: {}'.format(name.capitalize(), count))
+
     @main.command()
     @click.option('-v', '--debug', is_flag=True)
     @click.option('-p', '--port')
