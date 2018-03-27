@@ -192,10 +192,13 @@ def build_cli(manager_cls, create_application=None):
 
     if create_application is not None:
         @main.command()
+        @click.option('-v', '--debug', is_flag=True)
+        @click.option('-p', '--port')
+        @click.option('-h', '--host')
         @click.pass_obj
-        def web(manager):
+        def web(manager, debug, port, host):
             """Run the web app"""
             app = create_application(connection=manager, url='/')
-            app.run(host='0.0.0.0', port=5000)
+            app.run(debug=debug, host=host, port=port)
 
     return main
