@@ -157,12 +157,10 @@ def add_management_to_cli(main):
             manager.drop_all()
 
 
-def build_cli(manager_cls, create_application=None):
+def build_cli(manager_cls):
     """Builds a :mod:`click` CLI main function.
 
     :param AbstractManager manager_cls: A Manager class
-    :param create_application: Function to create the application
-    :type create_application: (Optional[str or AbstractManager], Optional[str] -> flask.Flask)
     :return: The main function for click
     """
 
@@ -190,15 +188,14 @@ def build_cli(manager_cls, create_application=None):
             """Uploads BEL to network store"""
             manager.upload_bel()
 
-    if create_application is not None:
-        @main.command()
-        @click.option('-v', '--debug', is_flag=True)
-        @click.option('-p', '--port')
-        @click.option('-h', '--host')
-        @click.pass_obj
-        def web(manager, debug, port, host):
-            """Run the web app"""
-            app = create_application(connection=manager, url='/')
-            app.run(debug=debug, host=host, port=port)
+    @main.command()
+    @click.option('-v', '--debug', is_flag=True)
+    @click.option('-p', '--port')
+    @click.option('-h', '--host')
+    @click.pass_obj
+    def web(manager, debug, port, host):
+        """Run the web app"""
+        app = manager.get_flask_admin_app(url='/')
+        app.run(debug=debug, host=host, port=port)
 
     return main

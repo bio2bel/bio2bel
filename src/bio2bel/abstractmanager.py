@@ -132,3 +132,39 @@ class AbstractManager(ABC):
             module_name=self.module_name.capitalize(),
             url=self.engine.url
         )
+
+    def _add_admin(self, app, **kwargs):
+        """Adds a Flask Admin interface to an application
+
+        :param flask.Flask app: A Flask application
+        :param session:
+        :param kwargs:
+        :rtype: flask_admin.Admin
+        """
+        if not self.flask_admin_models:
+            raise TypeError
+
+        from flask_admin import Admin
+        from flask_admin.contrib.sqla import ModelView
+
+        admin = Admin(app, **kwargs)
+
+        for Model in self.flask_admin_models:
+            admin.add_view(ModelView(Model, self.session))
+
+        return admin
+
+    def get_flask_admin_app(self, url=None):
+        """Creates a Flask application
+
+        :type url: Optional[str]
+        :rtype: flask.Flask
+        """
+        if not self.flask_admin_models:
+            raise TypeError
+
+        from flask import Flask
+
+        app = Flask(__name__)
+        self._add_admin(app, url=(url or '/'))
+        return app
