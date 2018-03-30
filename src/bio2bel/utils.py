@@ -168,7 +168,8 @@ def build_cli(manager_cls):
     @click.option('-c', '--connection', help='Defaults to {}'.format(manager_cls.get_connection()))
     @click.pass_context
     def main(ctx, connection):
-        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        logging.getLogger('bio2bel.utils').setLevel(logging.WARNING)
         ctx.obj = manager_cls(connection=connection)
 
     add_management_to_cli(main)
