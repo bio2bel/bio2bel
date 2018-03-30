@@ -38,6 +38,9 @@ class AbstractManager(ABC):
     #: This represents the module name. Needs to be lower case
     module_name = ...
 
+    #: Represents a list of SQLAlchemy classes to make a Flask-Admin interface
+    flask_admin_models = ...
+
     def __init__(self, connection=None, check_first=True):
         """
         :param Optional[str] connection: SQLAlchemy connection string
