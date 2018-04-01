@@ -253,7 +253,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
                 ...
 
     **Exporting to BEL (Optional)**
-    
+
     If a function named ``to_bel`` is implemented that returns a :class:`pybel.BELGraph`, then the manager and CLI
     will have access to several other functions that would rely on this.
     """

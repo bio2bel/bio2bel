@@ -38,7 +38,9 @@ class MockConnectionMixin(TemporaryConnectionMixin):
 
     @classmethod
     def setUpClass(cls):
-        """Create temporary file"""
+        """Adds two class-level variables: ``mock_global_connection`` and ``mock_module_connection`` that can be
+        used as context managers to mock the bio2bel connection getter functions."""
+
         super(MockConnectionMixin, cls).setUpClass()
 
         def mock_connection():
@@ -90,8 +92,7 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
 def make_temporary_cache_class_mixin(manager_cls):
     """Builds a testing class that has a Bio2BEL manager instance ready to go
 
-    :param  manager_cls: A Bio2BEL manager
-    :type manager_cls: (str -> AbstractManager)
+    :param type[bio2bel.AbstractManager] manager_cls: A Bio2BEL manager
     :rtype: type[AbstractTemporaryCacheClassMixin]
     """
 
