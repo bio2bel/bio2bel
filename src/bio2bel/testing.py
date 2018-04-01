@@ -38,7 +38,8 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
 
     @classmethod
     def setUpClass(cls):
-        if not cls.Manager:
+        """Sets up the class with the given manager and allows an optional populate hook to be overridden"""
+        if cls.Manager is ...:
             raise Bio2BELTestMissingManagerError('no manager class defined')
 
         super(AbstractTemporaryCacheClassMixin, cls).setUpClass()
