@@ -7,7 +7,7 @@ omit =
 
 [paths]
 source =
-    src/pybel
+    src/bio2bel
     .tox/*/lib/python*/site-packages/bio2bel
 
 [report]
