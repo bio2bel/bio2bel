@@ -11,8 +11,7 @@ from bio2bel.abstractmanager import (
     Bio2BELModuleCaseError,
 )
 from bio2bel.models import Action
-from bio2bel.testing import AbstractTemporaryCacheClassMixin, TemporaryConnectionMixin
-from tests.constants import MockConnectionMixin
+from bio2bel.testing import AbstractTemporaryCacheClassMixin, MockConnectionMixin, TemporaryConnectionMixin
 
 
 class TestManagerFailures(unittest.TestCase):

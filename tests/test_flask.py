@@ -5,7 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from bio2bel import AbstractManager, Bio2BELMissingModelsError
 from bio2bel.abstractmanager import AbstractManagerFlaskMixin
-from tests.constants import MockConnectionMixin
+from bio2bel.testing import MockConnectionMixin
 
 
 class TestFailure(MockConnectionMixin):

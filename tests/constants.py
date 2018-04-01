@@ -1,35 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from unittest import mock
 
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 from bio2bel.abstractmanager import AbstractManager
-from bio2bel.testing import TemporaryConnectionMixin
 
 log = logging.getLogger(__name__)
-
-
-class MockConnectionMixin(TemporaryConnectionMixin):
-    """Allows for testing with a consistent connection without changing the configuration"""
-
-    @classmethod
-    def setUpClass(cls):
-        """Create temporary file"""
-        super(MockConnectionMixin, cls).setUpClass()
-
-        def mock_connection():
-            """Returns the connection enclosed by this class
-
-            :rtype: str
-            """
-            return cls.connection
-
-        cls.mock_global_connection = mock.patch('bio2bel.models.get_global_connection', mock_connection)
-        cls.mock_module_connection = mock.patch('bio2bel.utils.get_connection', mock_connection)
-
 
 TestBase = declarative_base()
 

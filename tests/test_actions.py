@@ -9,8 +9,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from bio2bel.models import Action, Base
+from bio2bel.testing import MockConnectionMixin
 from bio2bel.utils import bio2bel_populater
-from tests.constants import MockConnectionMixin
 
 log = logging.getLogger(__name__)
 

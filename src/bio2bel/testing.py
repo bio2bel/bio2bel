@@ -4,6 +4,7 @@ import logging
 import os
 import tempfile
 import unittest
+from unittest import mock
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +32,25 @@ class TemporaryConnectionMixin(unittest.TestCase):
         """Closes the connection to the database and removes the files created for it"""
         os.close(cls.fd)
         os.remove(cls.path)
+
+
+class MockConnectionMixin(TemporaryConnectionMixin):
+    """Allows for testing with a consistent connection without changing the configuration"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create temporary file"""
+        super(MockConnectionMixin, cls).setUpClass()
+
+        def mock_connection():
+            """Returns the connection enclosed by this class
+
+            :rtype: str
+            """
+            return cls.connection
+
+        cls.mock_global_connection = mock.patch('bio2bel.models.get_global_connection', mock_connection)
+        cls.mock_module_connection = mock.patch('bio2bel.utils.get_connection', mock_connection)
 
 
 class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
