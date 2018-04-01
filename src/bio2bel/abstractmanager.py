@@ -146,8 +146,8 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
     :class:`abc.ABC` and is therefore an abstract class, there are a few class variables, functions, and properties
     that need to be overridden.
 
-    Overriding the Module Name
-    --------------------------
+    **Overriding the Module Name**
+
     First, the class-level variable ``module_name`` must be set to a string corresponding to the name of the data
     source.
 
@@ -169,8 +169,8 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
         class Manager(AbstractManager):
             module_name = MODULE_NAME
 
-    Setting the Declarative Base
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    **Setting the Declarative Base**
+
     Building on the previous example, the abstract property :data:`bio2bel.AbstractManager.base` must be overridden
     to return the value from your :func:`sqlalchemy.ext.declarative.declarative_base`. We chose to make this an
     instance-level property instead of a class-level variable so each manager could have its own information about
@@ -208,8 +208,8 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
             def base(self):
                 return Base
 
-    Populating the Database
-    ~~~~~~~~~~~~~~~~~~~~~~~
+    **Populating the Database**
+
     Deciding how to populate the database using your SQLAlchemy models is incredibly creative and can't be given a good
     example without checking real code. See the previously mentioned `implementation of a Manager <https://github.com/bio2bel/mirtarbase/blob/master/src/bio2bel_mirtarbase/manager.py>`_.
 
@@ -229,9 +229,9 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
             def populate(self):
                 ...
 
-    Preparing Flask Admin (Optional)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    This class also contains a funciton to build a :mod:`flask` application for easy viewing of the contents of the
+    **Preparing Flask Admin (Optional)**
+
+    This class also contains a function to build a :mod:`flask` application for easy viewing of the contents of the
     database. Besides installing the optional requirements with ``python3 -m pip install flask flask-admin``, all
     that's necessary to make this available is to override the class variable ``flask_admin_models``.
 
@@ -251,6 +251,11 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
 
             def populate(self):
                 ...
+
+    **Exporting to BEL (Optional)**
+    
+    If a function named ``to_bel`` is implemented that returns a :class:`pybel.BELGraph`, then the manager and CLI
+    will have access to several other functions that would rely on this.
     """
 
     @classmethod

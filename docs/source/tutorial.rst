@@ -138,7 +138,7 @@ This directly enables the Bio2BEL CLI to operate using the package's cli so it's
 ``bio2bel mirtarbase populate`` or ``bio2bel mirtarbase drop``.
 
 Additionally, a command-line interaface should be registered as well called ``bio2bel__mirtarbase`` that directly
-points to the ``main`` function in ``cli.py`
+points to the ``main`` function in ``cli.py``.
 
 .. code-block:: python
 
