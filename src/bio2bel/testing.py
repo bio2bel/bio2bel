@@ -55,8 +55,8 @@ class MockConnectionMixin(TemporaryConnectionMixin):
 class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
     """Allows for testing with a consistent connection and creation of a manager class wrapping that connection.
 
-    Requires :cvar:`Manager` to be overriden with the class corresponding to the manager to be used that is a subclass
-    of :class:`bio2bel.AbstractManager.
+    Requires the class variable `Manager` to be overriden with the class corresponding to the manager to be used that
+    is a subclass of :class:`bio2bel.AbstractManager.
     """
     Manager = ...
 
