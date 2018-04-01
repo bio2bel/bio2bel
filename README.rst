@@ -1,5 +1,5 @@
-Bio2BEL |build| |coverage| |docs|
-=================================
+Bio2BEL |build| |coverage| |docs| |zenodo|
+==========================================
 Bio2BEL is a project aimed at bringing biological databases and other structured knowledge sources in a wide variety
 of schemata into the unified framework of `Biological Expression Language <http://http://openbel.org/>`_.
 
@@ -43,3 +43,6 @@ or check the `installation instructions <http://bio2bel.readthedocs.io/en/latest
 
 .. |pypi_license| image:: https://img.shields.io/pypi/l/bio2bel.svg
     :alt: Apache 2.0 License
+
+.. |zenodo| image:: https://zenodo.org/badge/99800349.svg
+    :target: https://zenodo.org/badge/latestdoi/99800349
