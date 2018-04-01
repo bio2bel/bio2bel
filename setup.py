@@ -24,6 +24,10 @@ INSTALL_REQUIRES = [
     'sqlalchemy==1.1.15',
     'click',
 ]
+TESTS_REQUIRE = [
+    'flask',
+    'flask-admin',
+]
 ENTRY_POINTS = {
     'console_scripts': [
         'bio2bel = bio2bel.cli:main',
@@ -75,5 +79,6 @@ if __name__ == '__main__':
         packages=PACKAGES,
         package_dir={'': 'src'},
         install_requires=INSTALL_REQUIRES,
+        tests_require=TESTS_REQUIRE,
         entry_points=ENTRY_POINTS,
     )
