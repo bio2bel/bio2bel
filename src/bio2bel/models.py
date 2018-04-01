@@ -109,37 +109,6 @@ class Action(Base):
         :rtype: list[Action]
         """
         session = session or _make_session()
-        actions = session.query(cls).all()
+        actions = session.query(cls).order_by(Action.created.desc()).all()
         session.close()
         return actions
-
-    def __str__(self):
-        return '{}: {} at {}'.format(self.resource, self.action, self.created)
-
-
-def store_populate(resource, session=None):
-    """Stores a populate action
-
-    :param str resource: The name of the resource to store
-    :param Optional[sqlalchemy.orm.Session] session: A pre-built session
-    :rtype: Action
-
-    Example:
-
-    >>> from bio2bel.models import store_populate
-    >>> store_populate('hgnc')
-    """
-    return Action.store_populate(resource, session=session)
-
-
-def store_drop(resource, session=None):
-    """Stores a drop action
-
-    :param str resource: The name of the resource to store
-    :param Optional[sqlalchemy.orm.Session] session: A pre-built session
-    :rtype: Action
-
-    >>> from bio2bel.models import store_drop
-    >>> store_drop('hgnc')
-    """
-    return Action.store_drop(resource, session=session)

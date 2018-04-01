@@ -57,7 +57,7 @@ def get_connection(module_name, connection=None):
     bio2bel_module_env = 'BIO2BEL_{}_CONNECTION'.format(module_name.upper())
     bio2bel_module_env_value = os.environ.get(bio2bel_module_env)
     if bio2bel_module_env_value is not None:
-        log.info('loaded connection from environment (%s): %s', bio2bel_module_env, bio2bel_module_env_value)
+        log.debug('loaded connection from environment (%s): %s', bio2bel_module_env, bio2bel_module_env_value)
         return bio2bel_module_env_value
 
     # 4. Check the global Bio2BEL configuration for module-specific connection information
@@ -68,8 +68,8 @@ def get_connection(module_name, connection=None):
         global_config.read(DEFAULT_CONFIG_PATH)
         if global_config.has_option(module_name, 'connection'):
             global_module_connection = global_config.get(module_name, 'connection')
-            log.info('loading connection string from global configuration (%s): %s', DEFAULT_CONFIG_PATH,
-                     global_module_connection)
+            log.debug('loading connection string from global configuration (%s): %s', DEFAULT_CONFIG_PATH,
+                      global_module_connection)
             return global_module_connection
 
     # 5. Check if there is module-specific configuration
@@ -78,34 +78,34 @@ def get_connection(module_name, connection=None):
         local_config.read(module_config_path)
         if local_config.has_option(local_config.default_section, 'connection'):
             local_module_connection = local_config.get(local_config.default_section, 'connection')
-            log.info('loading connection string from local configuration (%s)', module_config_path,
-                     local_module_connection)
+            log.debug('loading connection string from local configuration (%s)', module_config_path,
+                      local_module_connection)
             return local_module_connection
 
     # 6. Check if there is a global connection
     global_environ_connection = os.environ.get('BIO2BEL_CONNECTION')
     if global_environ_connection is not None:
-        log.info('loading global bio2bel connection from environ: %s', global_environ_connection)
+        log.debug('loading global bio2bel connection from environ: %s', global_environ_connection)
         return global_environ_connection
 
     # 7. Use the global configuration file's global default cache connection string
     if not os.path.exists(DEFAULT_CONFIG_PATH):
-        log.info('creating config file: %s', DEFAULT_CONFIG_PATH)
+        log.debug('creating config file: %s', DEFAULT_CONFIG_PATH)
         config_writer = ConfigParser()
         with open(DEFAULT_CONFIG_PATH, 'w') as f:
             config_writer.set(config_writer.default_section, 'connection', DEFAULT_CACHE_CONNECTION)
             config_writer.write(f)
 
-    log.info('fetching global bio2bel config from %s', DEFAULT_CONFIG_PATH)
+    log.debug('fetching global bio2bel config from %s', DEFAULT_CONFIG_PATH)
     config = ConfigParser()
     config.read(DEFAULT_CONFIG_PATH)
 
     if not config.has_option(config.default_section, 'connection'):
-        log.info('creating default connection string %s', DEFAULT_CACHE_CONNECTION)
+        log.debug('creating default connection string %s', DEFAULT_CACHE_CONNECTION)
         return DEFAULT_CACHE_CONNECTION
 
     default_connection = config.get(config.default_section, 'connection')
-    log.info('load default connection string from %s', default_connection)
+    log.debug('load default connection string from %s', default_connection)
 
     return default_connection
 
@@ -174,20 +174,35 @@ def build_cli(manager_cls):
 
     add_management_to_cli(main)
 
-    if hasattr(manager_cls, 'to_bel_file'):
+    if hasattr(manager_cls, 'flask_admin_models') and manager_cls.flask_admin_models:
+        @main.command()
+        @click.option('-v', '--debug', is_flag=True)
+        @click.option('-p', '--port')
+        @click.option('-h', '--host')
+        @click.pass_obj
+        def web(manager, debug, port, host):
+            """Run the web app"""
+            app = manager.get_flask_admin_app(url='/')
+            app.run(debug=debug, host=host, port=port)
+
+    if hasattr(manager_cls, 'to_bel'):
         @main.command()
         @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
         @click.pass_obj
         def to_bel(manager, output):
             """Writes BEL Script"""
-            manager.to_bel_file(output)
+            from pybel import to_bel
+            graph = manager.to_bel()
+            to_bel(graph, output)
 
-    if hasattr(manager_cls, 'upload_bel'):
         @main.command()
+        @click.option('-c', '--connection')
         @click.pass_obj
-        def upload_bel(manager):
+        def upload_bel(manager, connection):
             """Uploads BEL to network store"""
-            manager.upload_bel()
+            from pybel import to_database
+            graph = manager.to_bel()
+            to_database(graph, connection=connection)
 
     if hasattr(manager_cls, 'summarize'):
         @main.command()
@@ -196,15 +211,5 @@ def build_cli(manager_cls):
             """Summarizes the contents of the database"""
             for name, count in sorted(manager.summarize().items()):
                 click.echo('{}: {}'.format(name.capitalize(), count))
-
-    @main.command()
-    @click.option('-v', '--debug', is_flag=True)
-    @click.option('-p', '--port')
-    @click.option('-h', '--host')
-    @click.pass_obj
-    def web(manager, debug, port, host):
-        """Run the web app"""
-        app = manager.get_flask_admin_app(url='/')
-        app.run(debug=debug, host=host, port=port)
 
     return main

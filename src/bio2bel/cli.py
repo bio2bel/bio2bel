@@ -11,9 +11,10 @@ import click
 from pkg_resources import VersionConflict, iter_entry_points
 
 from .constants import DEFAULT_CACHE_CONNECTION
+from .models import Action
 
 log = logging.getLogger(__name__)
-logging.getLogger('bio2bel.utils').setLevel(logging.WARNING)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 cli_modules = {}
 main_commands = {}
@@ -29,6 +30,9 @@ for entry_point in iter_entry_points(group='bio2bel', name=None):
         bio2bel_module = entry_point.load()
     except VersionConflict:
         log.warning('Version conflict in %s', entry)
+        continue
+    except Exception:
+        log.warning('Issue with importing module %s', entry)
         continue
 
     try:
@@ -145,6 +149,13 @@ def web_registered():
     click.echo('Web Admin Interfaces:')
     for m, f in sorted(add_admins.items()):
         click.echo('{} - {}'.format(m, f))
+
+
+@main.command()
+def actions():
+    """List actions"""
+    for action in Action.ls():
+        click.echo('{} {} {}'.format(action.created, action.action, action.resource))
 
 
 if __name__ == '__main__':

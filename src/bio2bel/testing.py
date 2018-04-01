@@ -7,7 +7,9 @@ import unittest
 
 log = logging.getLogger(__name__)
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
+
+class Bio2BELTestMissingManagerError(TypeError):
+    """Raised when no manager class was defined"""
 
 
 class TemporaryConnectionMixin(unittest.TestCase):
@@ -34,13 +36,13 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
 
     @classmethod
     def setUpClass(cls):
-        """Create temporary file"""
         if not cls.Manager:
-            raise TypeError('no manager class defined')
+            raise Bio2BELTestMissingManagerError('no manager class defined')
 
         super(AbstractTemporaryCacheClassMixin, cls).setUpClass()
 
         cls.manager = cls.Manager(connection=cls.connection)
+        cls.populate()
 
     @classmethod
     def tearDownClass(cls):
@@ -49,12 +51,17 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
 
         super(AbstractTemporaryCacheClassMixin, cls).tearDownClass()
 
+    @classmethod
+    def populate(cls):
+        """A stub that can be overridden to populate the manager"""
+
 
 def make_temporary_cache_class_mixin(manager_cls):
-    """
-    :param  manager_cls:
+    """Builds a testing class that has a Bio2BEL manager instance ready to go
+
+    :param  manager_cls: A Bio2BEL manager
     :type manager_cls: (str -> AbstractManager)
-    :rtype: AbstractTemporaryCacheClassMixin
+    :rtype: type[AbstractTemporaryCacheClassMixin]
     """
 
     class TemporaryCacheClassMixin(AbstractTemporaryCacheClassMixin):

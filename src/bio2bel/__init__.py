@@ -2,7 +2,8 @@
 
 from pkg_resources import iter_entry_points
 
-from .models import store_drop, store_populate
+from . import abstractmanager
+from .abstractmanager import *
 
 GROUP_NAME = 'bio2bel'
 
@@ -35,4 +36,4 @@ __email__ = 'charles.hoyt@scai.fraunhofer.de'
 __license__ = 'Apache 2.0 License'
 __copyright__ = 'Copyright (c) 2017-2018 Charles Tapley Hoyt'
 
-__all__ = entries
+__all__ = entries + abstractmanager.__all__
