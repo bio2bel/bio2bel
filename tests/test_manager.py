@@ -6,7 +6,10 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.declarative import declarative_base
 
 import tests.constants
-from bio2bel.abstractmanager import AbstractManager, Bio2BELMissingNameError, Bio2BELModuleCaseError
+from bio2bel.abstractmanager import (
+    AbstractManager, Bio2BELMissingNameError,
+    Bio2BELModuleCaseError,
+)
 from bio2bel.testing import TemporaryConnectionMixin
 
 
@@ -92,8 +95,8 @@ class TestManagerEnsure(TemporaryConnectionMixin):
 
 class TestConnectionLoading(TemporaryConnectionMixin):
     def setUp(self):
-        super(TestConnectionLoading, self).setUp()
-
+        """Sets up the temporary database and makes a manager"""
+        super().setUp()
         self.manager = tests.constants.Manager(connection=self.connection)
 
     def test_repr(self):

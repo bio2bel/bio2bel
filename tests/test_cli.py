@@ -4,7 +4,7 @@ from click.testing import CliRunner
 from sqlalchemy.exc import OperationalError
 
 from bio2bel.utils import build_cli
-from tests.constants import Manager, MockConnectionMixin, Model
+from tests.constants import Manager, MockConnectionMixin
 
 
 class TestCli(MockConnectionMixin):

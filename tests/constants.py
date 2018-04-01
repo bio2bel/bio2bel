@@ -50,7 +50,7 @@ class Manager(AbstractManager):
         return self._count_model(Model)
 
     def populate(self):
-        """Won't implement this, but at least override it"""
+        """Adds five models to the store"""
         models = [
             Model(model_id='MODEL{}'.format(model_id))
             for model_id in range(5)
