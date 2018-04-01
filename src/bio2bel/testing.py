@@ -20,6 +20,8 @@ class TemporaryConnectionMixin(unittest.TestCase):
         """Creates a temporary file to use as a persistent database throughout tests in this class. Subclasses of
         :class:`TemporaryCacheClsMixin` can extend :func:`TemporaryCacheClsMixin.setUpClass` to populate the database
         """
+        super(TemporaryConnectionMixin, cls).setUpClass()
+
         cls.fd, cls.path = tempfile.mkstemp()
         cls.connection = 'sqlite:///' + cls.path
         log.info('test database at %s', cls.connection)
