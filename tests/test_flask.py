@@ -3,7 +3,8 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
-from bio2bel import AbstractManager, Bio2BELMissingModelsError
+from bio2bel import AbstractManager
+from bio2bel.exc import Bio2BELMissingModelsError
 from bio2bel.abstractmanager import AbstractManagerFlaskMixin
 from bio2bel.testing import MockConnectionMixin
 

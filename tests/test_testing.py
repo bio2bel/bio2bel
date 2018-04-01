@@ -3,9 +3,9 @@
 import unittest
 
 from bio2bel.testing import (
-    AbstractTemporaryCacheClassMixin, Bio2BELTestMissingManagerError,
-    make_temporary_cache_class_mixin,
+    AbstractTemporaryCacheClassMixin, make_temporary_cache_class_mixin,
 )
+from bio2bel.exc import Bio2BELTestMissingManagerError
 from tests.constants import Manager
 
 

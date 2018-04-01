@@ -7,9 +7,9 @@ from sqlalchemy.ext.declarative import declarative_base
 
 import tests.constants
 from bio2bel.abstractmanager import (
-    AbstractManager, Bio2BELMissingNameError,
-    Bio2BELModuleCaseError,
+    AbstractManager,
 )
+from bio2bel.exc import Bio2BELMissingNameError, Bio2BELModuleCaseError
 from bio2bel.models import Action
 from bio2bel.testing import AbstractTemporaryCacheClassMixin, MockConnectionMixin, TemporaryConnectionMixin
 

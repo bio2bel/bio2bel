@@ -6,11 +6,10 @@ import tempfile
 import unittest
 from unittest import mock
 
+from .exc import Bio2BELTestMissingManagerError
+from .abstractmanager import AbstractManager
+
 log = logging.getLogger(__name__)
-
-
-class Bio2BELTestMissingManagerError(TypeError):
-    """Raised when no manager class was defined"""
 
 
 class TemporaryConnectionMixin(unittest.TestCase):
@@ -54,13 +53,22 @@ class MockConnectionMixin(TemporaryConnectionMixin):
 
 
 class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
+    """Allows for testing with a consistent connection and creation of a manager class wrapping that connection.
+
+    Requires :cvar:`Manager` to be overriden with the class corresponding to the manager to be used that is a subclass
+    of :class:`bio2bel.AbstractManager.
+    """
     Manager = ...
 
     @classmethod
     def setUpClass(cls):
         """Sets up the class with the given manager and allows an optional populate hook to be overridden"""
         if cls.Manager is ...:
-            raise Bio2BELTestMissingManagerError('no manager class defined')
+            raise Bio2BELTestMissingManagerError('Must override class variable "Manager" with subclass of '
+                                                 'bio2bel.AbstractManager')
+
+        if not issubclass(cls.Manager, AbstractManager):
+            raise TypeError('Manager must be a subclass of bio2bel.AbstractManager')
 
         super(AbstractTemporaryCacheClassMixin, cls).setUpClass()
 

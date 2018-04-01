@@ -5,26 +5,12 @@ from abc import ABC, abstractmethod
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from .exc import Bio2BELMissingModelsError, Bio2BELMissingNameError, Bio2BELModuleCaseError
 from .models import Action
 from .utils import get_connection
 
-__all__ = [
-    'Bio2BELMissingNameError',
-    'Bio2BELModuleCaseError',
-    'Bio2BELMissingModelsError',
-    'AbstractManager',
-]
+__all__ = ['AbstractManager', ]
 
-
-class Bio2BELMissingNameError(TypeError):
-    """Raised when an abstract manager is subclassed and instantiated without overriding the module name"""
-
-
-class Bio2BELModuleCaseError(TypeError):
-    """Raised when the module name in a subclassed and instantiated manager is not all lowercase"""
-
-class Bio2BELMissingModelsError(TypeError):
-    """Raises when trying to build a flask admin app with no models defined"""
 
 class AbstractManagerConnectionMixin(object):
     """Represents the connection-building aspect of the abstract manager. Minimally requires the definition of the
@@ -62,7 +48,7 @@ class AbstractManagerConnectionMixin(object):
     @classmethod
     def get_connection(cls, connection=None):
         """Gets the default connection string by wrapping :func:`bio2bel.utils.get_connection` and passing
-        :data:`module_name` to it.
+        this class's :data:`module_name` to it.
 
         :param Optional[str] connection: A custom connection to pass through
         :rtype: str
@@ -70,7 +56,8 @@ class AbstractManagerConnectionMixin(object):
         return get_connection(cls.module_name, connection=connection)
 
 
-class AbstractManagerBase(ABC, AbstractManagerConnectionMixin):
+class AbstractManagerBase(ABC, AbstractManagerConnectionMixin):  # TODO write docstring
+    """"""
 
     def __init__(self, connection=None, check_first=True):
         """
@@ -88,13 +75,15 @@ class AbstractManagerBase(ABC, AbstractManagerConnectionMixin):
 
         :rtype: sqlalchemy.ext.declarative.api.DeclarativeMeta
 
-        How to build an instance of :class:`sqlalchemy.ext.declarative.api.DeclarativeMeta`:
+        How to build an instance of :class:`sqlalchemy.ext.declarative.api.DeclarativeMeta` by using
+        :func:`sqlalchemy.ext.declarative.declarative_base`:
 
         >>> from sqlalchemy.ext.declarative import declarative_base
         >>> Base = declarative_base()
 
-        Then just override this abstractmethod like:
+        Then just override this abstract property like:
 
+        >>> @property
         >>> def base(self):
         >>>     return Base
         """
@@ -135,9 +124,10 @@ class AbstractManagerFlaskMixin(AbstractManagerConnectionMixin):
         return admin
 
     def get_flask_admin_app(self, url=None):
-        """Creates a Flask application
+        """Creates a Flask application if this class has defined the :data:`flask_admin_models` variable a list of
+        model classes.
 
-        :type url: Optional[str]
+        :param Optional[str] url: Optional mount point of the admin application. Defaults to ``'/'``.
         :rtype: flask.Flask
         """
         from flask import Flask
@@ -148,38 +138,127 @@ class AbstractManagerFlaskMixin(AbstractManagerConnectionMixin):
 
 
 class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
-    """Managers handle the database construction, population and querying.
+    """This is a base class for implementing your own Bio2BEL manager.
 
-    :cvar str module_name: The name of the module represented by this manager
+    It already includes functions to handle configuration, construction of a connection to a database using SQLAlchemy,
+    creation of the tables defined by your own :func:`sqlalchemy.ext.declarative.declarative_base`, and has hooks to
+    override that populate and make simple queries to the database. Since :class:`AbstractManager` inherits from
+    :class:`abc.ABC` and is therefore an abstract class, there are a few class variables, functions, and properties
+    that need to be overridden.
 
-    Needs several hooks/abstract methods to be set/overridden, but ultimately reduces redundant code
+    Overriding the Module Name
+    --------------------------
+    First, the class-level variable ``module_name`` must be set to a string corresponding to the name of the data
+    source.
 
-    Example for InterPro:
+    .. code-block:: python
 
-    >>> from sqlalchemy.ext.declarative import declarative_base
-    >>> from bio2bel.abstractmanager import AbstractManager
-    >>> Base = declarative_base()
-    >>> class Manager(AbstractManager):
-    >>>     module_name = 'interpro'
-    >>>
-    >>>     @property
-    >>>     def base(self):
-    >>>         return Base
-    >>>
-    >>>     def populate(self):
-    >>>         ...
+        from bio2bel import AbstractManager
 
-    Bio2BEL managers can be used as a context manager to automatically clean up the connection resources at the end of
-    the context, as well:
+        class Manager(AbstractManager):
+            module_name = 'mirtarbase'  # note: use lower case module names
 
-    >>> manager = Manager()
-    >>> with manager:
-    >>>     # Create models, query them, make commits
+    In general, this should also correspond to the same value as ``MODULE_NAME`` set in ``constants.py`` and can also
+    be set with an assignment to this value
+
+    .. code-block:: python
+
+        from bio2bel import AbstractManager
+        from .constants import MODULE_NAME
+
+        class Manager(AbstractManager):
+            module_name = MODULE_NAME
+
+    Setting the Declarative Base
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Building on the previous example, the abstract property :data:`bio2bel.AbstractManager.base` must be overridden
+    to return the value from your :func:`sqlalchemy.ext.declarative.declarative_base`. We chose to make this an
+    instance-level property instead of a class-level variable so each manager could have its own information about
+    connections to the database.
+
+    As a minimal example:
+
+    .. code-block:: python
+
+        from bio2bel import AbstractManager
+        from sqlalchemy.ext.declarative import declarative_base
+
+        Base = declarative_base()
+
+        class Manager(AbstractManager):
+            module_name = 'mirtarbase'  # note: use lower case module names
+
+            @property
+            def base(self):
+                return Base
+
+
+    In general, the models should be defined in a module called ``models.py`` so the ``Base`` can also be imported.
+
+    .. code-block:: python
+
+        from bio2bel import AbstractManager
+        from .constants import MODULE_NAME
+        from .models import Base
+
+        class Manager(AbstractManager):
+            module_name = MODULE_NAME
+
+            @property
+            def base(self):
+                return Base
+
+    Populating the Database
+    ~~~~~~~~~~~~~~~~~~~~~~~
+    Deciding how to populate the database using your SQLAlchemy models is incredibly creative and can't be given a good
+    example without checking real code. See the previously mentioned `implementation of a Manager <https://github.com/bio2bel/mirtarbase/blob/master/src/bio2bel_mirtarbase/manager.py>`_.
+
+    .. code-block:: python
+
+        from bio2bel import AbstractManager
+        from .constants import MODULE_NAME
+        from .models import Base
+
+        class Manager(AbstractManager):
+            module_name = MODULE_NAME
+
+            @property
+            def base(self):
+                return Base
+
+            def populate(self):
+                ...
+
+    Preparing Flask Admin (Optional)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This class also contains a funciton to build a :mod:`flask` application for easy viewing of the contents of the
+    database. Besides installing the optional requirements with ``python3 -m pip install flask flask-admin``, all
+    that's necessary to make this available is to override the class variable ``flask_admin_models``.
+
+    .. code-block:: python
+
+        from bio2bel import AbstractManager
+        from .constants import MODULE_NAME
+        from .models import Base, Evidence, Interaction, Mirna, Species, Target
+
+        class Manager(AbstractManager):
+            module_name = MODULE_NAME
+            flask_admin_models = [Evidence, Interaction, Mirna, Species, Target]
+
+            @property
+            def base(self):
+                return Base
+
+            def populate(self):
+                ...
     """
 
     @classmethod
     def ensure(cls, connection=None):
-        """Checks and allows for a Manager to be passed to the function.
+        """Allows a manager to be build from a string, or a pre-built manager to be passed through.
+
+        This function is a polymorphic constructor inspired by the
+        `Factory Method <https://en.wikipedia.org/wiki/Factory_method_pattern>`_
 
         :param connection: can be either a already build manager or a connection string to build a manager with.
         :type connection: Optional[str or AbstractManager]

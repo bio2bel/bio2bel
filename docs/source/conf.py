@@ -184,6 +184,7 @@ texinfo_documents = [
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'sqlalchemy': ('https://docs.sqlalchemy.org/en/latest', None),
+    'flask': ('http://flask.pocoo.org/docs/', None),
 }
 
 autodoc_member_order = 'bysource'
