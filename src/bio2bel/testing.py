@@ -6,8 +6,8 @@ import tempfile
 import unittest
 from unittest import mock
 
-from .exc import Bio2BELTestMissingManagerError
 from .abstractmanager import AbstractManager
+from .exc import Bio2BELManagerTypeError, Bio2BELTestMissingManagerError
 
 log = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
                                                  'bio2bel.AbstractManager')
 
         if not issubclass(cls.Manager, AbstractManager):
-            raise TypeError('Manager must be a subclass of bio2bel.AbstractManager')
+            raise Bio2BELManagerTypeError('Manager must be a subclass of bio2bel.AbstractManager')
 
         super(AbstractTemporaryCacheClassMixin, cls).setUpClass()
 

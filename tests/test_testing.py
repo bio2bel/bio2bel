@@ -2,10 +2,10 @@
 
 import unittest
 
+from bio2bel.exc import Bio2BELManagerTypeError, Bio2BELTestMissingManagerError
 from bio2bel.testing import (
     AbstractTemporaryCacheClassMixin, make_temporary_cache_class_mixin,
 )
-from bio2bel.exc import Bio2BELTestMissingManagerError
 from tests.constants import Manager
 
 
@@ -18,6 +18,21 @@ class TestBuild(unittest.TestCase):
                 self.assertTrue(True)
 
         with self.assertRaises(Bio2BELTestMissingManagerError):
+            TestMixin.setUpClass()
+
+    def test_manager_wrong_type(self):
+        """Test that an incorrectly built AbstractTemporaryCacheClassMixin won't run"""
+
+        class RandomClass(object):
+            pass
+
+        class TestMixin(AbstractTemporaryCacheClassMixin):
+            Manager = RandomClass
+
+            def test_dummy(self):
+                self.assertTrue(True)
+
+        with self.assertRaises(Bio2BELManagerTypeError):
             TestMixin.setUpClass()
 
 
