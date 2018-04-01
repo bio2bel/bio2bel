@@ -13,12 +13,18 @@ log = logging.getLogger(__name__)
 
 
 class MockConnectionMixin(TemporaryConnectionMixin):
+    """Allows for testing with a consistent connection without changing the configuration"""
+
     @classmethod
     def setUpClass(cls):
         """Create temporary file"""
         super(MockConnectionMixin, cls).setUpClass()
 
         def mock_connection():
+            """Returns the connection enclosed by this class
+
+            :rtype: str
+            """
             return cls.connection
 
         cls.mock_global_connection = mock.patch('bio2bel.models.get_global_connection', mock_connection)
@@ -44,9 +50,18 @@ class Manager(AbstractManager):
         return TestBase
 
     def get_model_by_model_id(self, model_id):
+        """Gets a model if it exists by its identifier
+
+        :param str model_id: A Model identifier
+        :rtype: Optional[Model]
+        """
         return self.session.query(Model).filter(Model.model_id == model_id).one_or_none()
 
     def count_model(self):
+        """Counts the test model
+
+        :rtype: int
+        """
         return self._count_model(Model)
 
     def populate(self):
