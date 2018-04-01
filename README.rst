@@ -40,8 +40,8 @@ Clone the repository from `GitHub <https://github.com/bio2bel/bio2bel>`_ and ins
     :target: https://codecov.io/gh/bio2bel/bio2bel?branch=master
     :alt: Coverage Status
 
-.. |docs| image:: http://bio2bel.readthedocs.io/en/latest/
-    :target: http://bio2bel.readthedocs.io/projects/bio2bel/en/latest/?badge=latest
+.. |docs| image:: http://readthedocs.org/projects/bio2bel/badge/?version=latest
+    :target: http://bio2bel.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
 .. |python_versions| image:: https://img.shields.io/pypi/pyversions/bio2bel.svg
