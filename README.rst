@@ -3,27 +3,18 @@ Bio2BEL |build| |coverage| |docs|
 Bio2BEL is a project aimed at bringing biological databases and other structured knowledge sources in a wide variety
 of schemata into the unified framework of `Biological Expression Language <http://http://openbel.org/>`_.
 
+Two important places to look:
+
+- `How to make a Bio2BEL Repository <http://bio2bel.readthedocs.io/en/latest/tutorial.html>`_
+- `How to use the CLI <http://bio2bel.readthedocs.io/en/latest/cli.html>`_
+
 Installation |pypi_version| |python_versions| |pypi_license|
 ------------------------------------------------------------
-Easiest
-~~~~~~~
-Download the latest stable code from `PyPI <https://pypi.org/bio2bel>`_ with:
-
-.. code-block:: sh
+Download the latest stable code from `PyPI <https://pypi.org/project/bio2bel>`_ with:
 
    $ python3 -m pip install bio2bel
 
-Get the Latest
-~~~~~~~~~~~~~~~
-Download the most recent code from `GitHub <https://github.com/bio2bel/bio2bel>`_ with:
-
-.. code-block:: sh
-
-   $ python3 -m pip install git+https://github.com/bio2bel/bio2bel.git
-
-For Developers
-~~~~~~~~~~~~~~
-Clone the repository from `GitHub <https://github.com/bio2bel/bio2bel>`_ and install in editable mode with:
+or check the `installation instructions <http://bio2bel.readthedocs.io/en/latest/#installation>`_.
 
 .. code-block:: sh
 
