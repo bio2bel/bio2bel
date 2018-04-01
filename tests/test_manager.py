@@ -10,7 +10,9 @@ from bio2bel.abstractmanager import (
     AbstractManager, Bio2BELMissingNameError,
     Bio2BELModuleCaseError,
 )
-from bio2bel.testing import TemporaryConnectionMixin
+from bio2bel.models import Action
+from bio2bel.testing import AbstractTemporaryCacheClassMixin, TemporaryConnectionMixin
+from tests.constants import MockConnectionMixin
 
 
 class TestManagerFailures(unittest.TestCase):
@@ -93,11 +95,23 @@ class TestManagerEnsure(TemporaryConnectionMixin):
         self.assertEqual(m, m2)
 
 
-class TestConnectionLoading(TemporaryConnectionMixin):
-    def setUp(self):
-        """Sets up the temporary database and makes a manager"""
-        super().setUp()
-        self.manager = tests.constants.Manager(connection=self.connection)
+class TestConnectionDropping(MockConnectionMixin, AbstractTemporaryCacheClassMixin):
+    Manager = tests.constants.Manager
+
+    def test_no_exist(self):
+        """Checks if the database gets dropped that stuff breaks"""
+
+        with self.mock_global_connection:  # don't want to worry about that drop_app hook
+            self.assertEqual(0, Action.count())
+            self.manager.drop_all()
+            self.assertEqual(1, Action.count())
+
+        with self.assertRaises(OperationalError):
+            self.manager.get_model_by_model_id(5)
+
+
+class TestConnectionLoading(AbstractTemporaryCacheClassMixin):
+    Manager = tests.constants.Manager
 
     def test_repr(self):
         self.assertEqual('<TestManager url={}>'.format(self.connection), repr(self.manager))
@@ -107,13 +121,6 @@ class TestConnectionLoading(TemporaryConnectionMixin):
 
     def test_manager_passes(self):
         self.assertEqual(self.connection, self.manager.connection)
-
-    def test_no_exist(self):
-        """Checks if the database gets dropped that stuff breaks"""
-        self.manager.drop_all()
-
-        with self.assertRaises(OperationalError):
-            self.manager.get_model_by_model_id(5)
 
     def test_get_missing_model(self):
         self.manager.populate()

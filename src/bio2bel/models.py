@@ -112,3 +112,15 @@ class Action(Base):
         actions = session.query(cls).order_by(Action.created.desc()).all()
         session.close()
         return actions
+
+    @classmethod
+    def count(cls, session=None):
+        """Counts all actions
+
+        :param Optional[sqlalchemy.orm.Session] session: A pre-built session
+        :rtype: int
+        """
+        session = session or _make_session()
+        count = session.query(cls).count()
+        session.close()
+        return count
