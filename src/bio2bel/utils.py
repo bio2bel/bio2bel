@@ -147,7 +147,7 @@ def make_downloader(url, path):
     :param str url: The URL of some data
     :param str path: The path of the cached data, or where data is cached if it does not already exist
     :return: A function that downloads the data and returns the path of the data
-    :rtype: (Optional[bool]) -> str
+    :rtype: (bool -> str)
     """
 
     def download_data(force_download=False):
