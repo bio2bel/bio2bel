@@ -4,6 +4,7 @@ import logging
 import os
 from configparser import ConfigParser
 from functools import wraps
+from urllib.request import urlretrieve
 
 from .constants import BIO2BEL_DIR, DEFAULT_CACHE_CONNECTION, DEFAULT_CONFIG_PATH
 from .models import Action
@@ -14,6 +15,7 @@ __all__ = [
     'get_data_dir',
     'get_connection',
     'bio2bel_populater',
+    'make_downloader',
 ]
 
 
@@ -137,3 +139,29 @@ def bio2bel_populater(resource, session=None):
         return wrapped
 
     return wrap_bio2bel_func
+
+
+def make_downloader(url, path):
+    """Makes a function that downloads the data for you, or uses a cached version at the given path
+
+    :param str url: The URL of some data
+    :param str path: The path of the cached data, or where data is cached if it does not already exist
+    :return: A function that downloads the data and returns the path of the data
+    :rtype: (Optional[bool]) -> str
+    """
+
+    def download_data(force_download=False):
+        """Downloads the data
+
+        :param bool force_download: If true, overwrites a previously cached file
+        :rtype: str
+        """
+        if os.path.exists(path) and not force_download:
+            log.info('using cached data at %s', path)
+        else:
+            log.info('downloading %s to %s', url, path)
+            urlretrieve(url, path)
+
+        return path
+
+    return download_data
