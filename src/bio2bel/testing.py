@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+"""This module has tools for quickly writing unit tests with :mod:`unittest` that involve the usage of a mock data with
+a Bio2BEL manager."""
+
 import logging
 import os
 import tempfile
