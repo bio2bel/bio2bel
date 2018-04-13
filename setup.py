@@ -25,7 +25,14 @@ CLASSIFIERS = [
 INSTALL_REQUIRES = [
     'sqlalchemy==1.1.15',
     'click',
+    'pandas',
 ]
+EXTRAS_REQUIRE = {
+    'web': [
+        'flask',
+        'flask-admin',
+    ],
+}
 TESTS_REQUIRE = [
     'flask',
     'flask-admin',
@@ -75,7 +82,7 @@ if __name__ == '__main__':
         url=find_meta('url'),
         author=find_meta('author'),
         author_email=find_meta('email'),
-        maintainer=find_meta('author'),
+        maintainer='Charles Tapley Hoyt',
         maintainer_email=find_meta('email'),
         license=find_meta('license'),
         classifiers=CLASSIFIERS,
@@ -83,6 +90,7 @@ if __name__ == '__main__':
         packages=PACKAGES,
         package_dir={'': 'src'},
         install_requires=INSTALL_REQUIRES,
+        extras_require=EXTRAS_REQUIRE,
         tests_require=TESTS_REQUIRE,
         entry_points=ENTRY_POINTS,
     )
