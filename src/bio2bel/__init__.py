@@ -45,6 +45,7 @@ from pkg_resources import iter_entry_points
 from . import abstractmanager, cli_utils, utils
 from .abstractmanager import *
 from .cli_utils import *
+from .downloading import *
 from .utils import *
 
 GROUP_NAME = 'bio2bel'

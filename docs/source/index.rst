@@ -17,9 +17,9 @@ Table of Contents
    :caption: Reference
    :name: reference
 
+   downloading
    utils
    testing
-
 
 Indices and tables
 ==================
