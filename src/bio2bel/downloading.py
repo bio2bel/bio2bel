@@ -53,9 +53,9 @@ def make_df_getter(data_url, data_path, **kwargs):
     download_function = make_downloader(data_url, data_path)
 
     def get_df(url=None, cache=True, force_download=False):
-        """Gets the modifications site flat file
+        """Gets the data as a pandas DataFrame
 
-        :param Optional[str] url: The URL (or file path) to download. Defaults to the ChEBI data.
+        :param Optional[str] url: The URL (or file path) to download.
         :param bool cache: If true, the data is downloaded to the file system, else it is loaded from the internet
         :param bool force_download: If true, overwrites a previously cached file
         :rtype: pandas.DataFrame
