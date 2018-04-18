@@ -295,7 +295,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
           present in the target database. Defers to :meth:`sqlalchemy.sql.schema.MetaData.drop_all`
         """
         self.base.metadata.drop_all(self.engine, checkfirst=check_first)
-        Action.store_drop(self.module_name)
+        Action.store_drop(self.module_name, session=self.session)
 
     def __repr__(self):
         return '<{module_name}Manager url={url}>'.format(
