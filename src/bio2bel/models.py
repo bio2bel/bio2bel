@@ -40,7 +40,8 @@ def _store_helper(make_method, resource, session=None):
     :param Optional[sqlalchemy.orm.Session] session: A pre-built session
     :rtype: Action
     """
-    session = session or _make_session()
+    if session is None:
+        session = _make_session()
 
     model = make_method(resource)
     session.add(model)
