@@ -17,9 +17,17 @@ def add_management_to_cli(main):
     """
 
     @main.command()
+    @click.option('--reset', is_flag=True)
     @click.pass_obj
-    def populate(manager):
+    def populate(manager, reset):
         """Populates the database"""
+
+        if reset:
+            log.info('Deleting the previous instance of the database')
+            manager.drop_all()
+            log.info('Creating new models')
+            manager.create_all()
+
         manager.populate()
 
     @main.command()
