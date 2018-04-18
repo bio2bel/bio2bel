@@ -280,13 +280,29 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
     def populate(self, *args, **kwargs):
         """Populate method should be overridden"""
 
+    def _get_query(self, model):
+        """Gets a query for the given model using this manager's session
+
+        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
+        :return: a SQLAlchemy query
+        """
+        return self.session.query(model)
+
     def _count_model(self, model):
         """Helps count the number of a given model in the database
 
         :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
         :rtype: int
         """
-        return self.session.query(model).count()
+        return self._get_query(model).count()
+
+    def _list_model(self, model):
+        """Helps get all instances of the model in the database
+
+        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
+        :rtype: list
+        """
+        return self._get_query(model).all()
 
     def drop_all(self, check_first=True):
         """Create the empty database (tables)
