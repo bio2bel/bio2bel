@@ -9,6 +9,10 @@ from functools import wraps
 from sqlalchemy import and_, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from .cli_utils import (
+    add_cli_drop, add_cli_flask, add_cli_populate, add_cli_summarize, add_cli_to_bel,
+    add_cli_to_bel_namespace,
+)
 from .exc import Bio2BELMissingModelsError, Bio2BELMissingNameError, Bio2BELModuleCaseError
 from .models import Action, create_all
 from .utils import get_connection
@@ -209,7 +213,53 @@ class _QueryMixin(AbstractManagerConnectionMixin):
         return self._get_query(model).all()
 
 
-class AbstractManager(_FlaskMixin, _NamespaceMixin, _QueryMixin, AbstractManagerABC):
+class _CliMixin(AbstractManagerConnectionMixin):
+    """Functions for building a CLI"""
+
+    @classmethod
+    def _get_cli_main(cls):
+        """Build a :mod:`click` CLI main function.
+
+        :param Type[AbstractManager] cls: A Manager class
+        :return: The main function for click
+        """
+        import click
+
+        @click.group(help='Default connection at {}'.format(cls.get_connection()))
+        @click.option('-c', '--connection', help='Defaults to {}'.format(cls.get_connection()))
+        @click.pass_context
+        def main(ctx, connection):
+            """Bio2BEL CLI."""
+            logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+            logging.getLogger('bio2bel.utils').setLevel(logging.WARNING)
+            ctx.obj = cls(connection=connection)
+
+        return main
+
+    @classmethod
+    def get_cli(cls):
+        """Gets a :mod:`click` main function to use as a command line interface."""
+        main = cls._get_cli_main()
+
+        add_cli_populate(main)
+        add_cli_drop(main)
+
+        if hasattr(cls, 'flask_admin_models') and cls.flask_admin_models:
+            add_cli_flask(main)
+
+        if hasattr(cls, 'to_bel'):
+            add_cli_to_bel(main)
+
+        if hasattr(cls, 'upload_bel_namespace'):
+            add_cli_to_bel_namespace(main)
+
+        if hasattr(cls, 'summarize'):
+            add_cli_summarize(main)
+
+        return main
+
+
+class AbstractManager(_FlaskMixin, _NamespaceMixin, _QueryMixin, _CliMixin, AbstractManagerABC):
     """This is a base class for implementing your own Bio2BEL manager.
 
     It already includes functions to handle configuration, construction of a connection to a database using SQLAlchemy,

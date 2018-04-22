@@ -79,17 +79,16 @@ Command Line Interfaces like:
     def command_1()
         pass
 
-However, if you've properly implemented an AbstractManager, then :func:`bio2bel.build_cli` can be used to generate the
-main function and automatically implement several commands.
+However, if you've properly implemented an AbstractManager, then you can use :meth:`AbstractManager.get_cli` to
+generate the main function and automatically implement several commands.
 
 .. code-block:: python
 
     # /src/bio2bel_mirtarbase/cli.py
 
     from .manager import Manager
-    from bio2bel import build_cli
 
-    main = build_cli(Manager)
+    main = Manager.get_cli()
 
     if __name__ == '__main__':
         main()

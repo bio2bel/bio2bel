@@ -5,13 +5,19 @@ import sys
 
 import click
 
-__all__ = ['build_cli']
-
+__all__ = [
+    'add_cli_populate',
+    'add_cli_drop',
+    'add_cli_flask',
+    'add_cli_summarize',
+    'add_cli_to_bel',
+    'add_cli_to_bel_namespace',
+]
 log = logging.getLogger(__name__)
 
 
-def add_management_to_cli(main):
-    """Adds populate and drop functions to main click function
+def add_cli_populate(main):
+    """Add a ``populate`` command to main :mod:`click` function.
 
     :param main: A click-decorated main function
     """
@@ -30,6 +36,15 @@ def add_management_to_cli(main):
 
         manager.populate()
 
+    return populate
+
+
+def add_cli_drop(main):
+    """Add a ``drop`` command to main :mod:`click` function.
+
+    :param main: A click-decorated main function
+    """
+
     @main.command()
     @click.option('-y', '--yes', is_flag=True)
     @click.pass_obj
@@ -38,67 +53,60 @@ def add_management_to_cli(main):
         if yes or click.confirm('Drop everything?'):
             manager.drop_all()
 
+    return drop
 
-def build_cli(manager_cls):
-    """Builds a :mod:`click` CLI main function.
 
-    :param Type[AbstractManager] manager_cls: A Manager class
-    :return: The main function for click
+def add_cli_flask(main):
+    """Add a ``web`` comand main :mod:`click` function.
+
+    :param main: A click-decorated main function
     """
 
-    @click.group(help='Default connection at {}'.format(manager_cls.module_name, manager_cls.get_connection()))
-    @click.option('-c', '--connection', help='Defaults to {}'.format(manager_cls.get_connection()))
-    @click.pass_context
-    def main(ctx, connection):
-        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        logging.getLogger('bio2bel.utils').setLevel(logging.WARNING)
-        ctx.obj = manager_cls(connection=connection)
+    @main.command()
+    @click.option('-v', '--debug', is_flag=True)
+    @click.option('-p', '--port')
+    @click.option('-h', '--host')
+    @click.pass_obj
+    def web(manager, debug, port, host):
+        """Run the web app."""
+        app = manager.get_flask_admin_app(url='/')
+        app.run(debug=debug, host=host, port=port)
 
-    add_management_to_cli(main)
+    return web
 
-    if hasattr(manager_cls, 'flask_admin_models') and manager_cls.flask_admin_models:
-        @main.command()
-        @click.option('-v', '--debug', is_flag=True)
-        @click.option('-p', '--port')
-        @click.option('-h', '--host')
-        @click.pass_obj
-        def web(manager, debug, port, host):
-            """Run the web app"""
-            app = manager.get_flask_admin_app(url='/')
-            app.run(debug=debug, host=host, port=port)
 
-    if hasattr(manager_cls, 'to_bel'):
-        @main.command()
-        @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
-        @click.pass_obj
-        def to_bel(manager, output):
-            """Writes BEL Script"""
-            from pybel import to_bel
-            graph = manager.to_bel()
-            to_bel(graph, output)
+def add_cli_to_bel(main):
+    @main.command()
+    @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
+    @click.pass_obj
+    def to_bel(manager, output):
+        """Write as BEL Script."""
+        from pybel import to_bel
+        graph = manager.to_bel()
+        to_bel(graph, output)
 
-        @main.command()
-        @click.option('-c', '--connection')
-        @click.pass_obj
-        def upload_bel(manager, connection):
-            """Uploads BEL to network store"""
-            from pybel import to_database
-            graph = manager.to_bel()
-            to_database(graph, connection=connection)
+    @main.command()
+    @click.option('-c', '--connection')
+    @click.pass_obj
+    def upload_bel(manager, connection):
+        """Upload BEL to network store."""
+        from pybel import to_database
+        graph = manager.to_bel()
+        to_database(graph, connection=connection)
 
-    if hasattr(manager_cls, 'upload_bel_namespace'):
-        @main.command()
-        @click.pass_obj
-        def upload_bel_namespace(manager):
-            """Uploads names/identifiers to terminology store"""
-            manager.upload_bel_namespace()
 
-    if hasattr(manager_cls, 'summarize'):
-        @main.command()
-        @click.pass_obj
-        def summarize(manager):
-            """Summarizes the contents of the database"""
-            for name, count in sorted(manager.summarize().items()):
-                click.echo('{}: {}'.format(name.capitalize(), count))
+def add_cli_to_bel_namespace(main):
+    @main.command()
+    @click.pass_obj
+    def upload_bel_namespace(manager):
+        """Upload names/identifiers to terminology store."""
+        manager.upload_bel_namespace()
 
-    return main
+
+def add_cli_summarize(main):
+    @main.command()
+    @click.pass_obj
+    def summarize(manager):
+        """Summarize the contents of the database."""
+        for name, count in sorted(manager.summarize().items()):
+            click.echo('{}: {}'.format(name.capitalize(), count))
