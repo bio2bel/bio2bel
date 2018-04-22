@@ -24,7 +24,7 @@ class TestBuild(unittest.TestCase):
         """Test that an incorrectly built AbstractTemporaryCacheClassMixin won't run"""
 
         class RandomClass(object):
-            pass
+            """This class is not the right type and should throw a Bio2BELManagerTypeError"""
 
         class TestMixin(AbstractTemporaryCacheClassMixin):
             Manager = RandomClass

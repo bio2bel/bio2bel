@@ -47,30 +47,33 @@ class TestManagerFailures(unittest.TestCase):
 
     def test_undefined_module_name(self):
         """Test error thrown if module name isn't set"""
+        Base = declarative_base()
 
         class Manager(AbstractManager):
             @property
             def base(self):
-                return declarative_base()
+                return Base
 
             def populate(self):
-                pass
+                """Populates the database"""
 
         with self.assertRaises(Bio2BELMissingNameError):
             Manager()
 
     def test_module_name_case(self):
         """Test error thrown if module name is weird case"""
+        Base = declarative_base()
 
         class Manager(AbstractManager):
             module_name = 'TESTOMG'
 
             @property
             def base(self):
-                return declarative_base()
+                """Returns the declarative base"""
+                return Base
 
             def populate(self):
-                pass
+                """Populates the database"""
 
         with self.assertRaises(Bio2BELModuleCaseError):
             Manager()
