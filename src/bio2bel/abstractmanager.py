@@ -28,29 +28,22 @@ class AbstractManagerMeta(ABCMeta):
     """Crazy metaclass to hack in a decorator to the populate function."""
 
     def __new__(mcs, name, bases, namespace, **kwargs):
-        for ns_name, ns_value in namespace.items():
-            if ns_name != 'populate':
-                continue
+        cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
-            if getattr(ns_value, "__isabstractmethod__", False):
-                continue
+        cls._populate_original = cls.populate
 
-            @wraps(ns_value)
-            def populate(self, *populate_args, **populate_kwargs):
-                """Populates the database."""
-                ns_value(self, *populate_args, **populate_kwargs)
+        @wraps(cls._populate_original)
+        def populate_wrapped(self, *populate_args, **populate_kwargs):
+            """Populates the database."""
+            cls._populate_original(self, *populate_args, **populate_kwargs)
 
-                # Hack in the action storage
-                create_all(self.engine)
-                Action.store_populate(self.module_name, session=self.session)
+            # Hack in the action storage
+            create_all(self.engine)
+            Action.store_populate(self.module_name, session=self.session)
 
-            namespace[ns_name] = populate
+        cls.populate = populate_wrapped
 
-        return super().__new__(mcs, name, bases, namespace, **kwargs)
-
-
-class AbstractManagerABC(metaclass=AbstractManagerMeta):
-    """Allow for simple subclassing to get :class:`AbstractManagerMeta` as the metaclass."""
+        return cls
 
 
 class AbstractManagerConnectionMixin(object):
@@ -96,6 +89,14 @@ class AbstractManagerConnectionMixin(object):
         :rtype: str
         """
         return get_connection(cls.module_name, connection=connection)
+
+    def _store_populate(self):
+        create_all(self.engine)
+        Action.store_populate(self.module_name, session=self.session)
+
+    def _store_drop(self):
+        create_all(self.engine)
+        Action.store_drop(self.module_name, session=self.session)
 
     def __repr__(self):
         return '<{module_name}Manager url={url}>'.format(
@@ -259,7 +260,7 @@ class _CliMixin(AbstractManagerConnectionMixin):
         return main
 
 
-class AbstractManager(_FlaskMixin, _NamespaceMixin, _QueryMixin, _CliMixin, AbstractManagerABC):
+class AbstractManager(_FlaskMixin, _NamespaceMixin, _QueryMixin, _CliMixin, metaclass=AbstractManagerMeta):
     """This is a base class for implementing your own Bio2BEL manager.
 
     It already includes functions to handle configuration, construction of a connection to a database using SQLAlchemy,
@@ -469,7 +470,7 @@ class AbstractManager(_FlaskMixin, _NamespaceMixin, _QueryMixin, _CliMixin, Abst
           present in the target database. Defers to :meth:`sqlalchemy.sql.schema.MetaData.drop_all`
         """
         self._metadata.drop_all(self.engine, checkfirst=check_first)
-        Action.store_drop(self.module_name, session=self.session)
+        self._store_drop()
 
     @classmethod
     def ensure(cls, connection=None):
