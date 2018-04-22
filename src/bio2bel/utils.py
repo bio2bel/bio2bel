@@ -95,9 +95,9 @@ def get_connection(module_name, connection=None):
     if not os.path.exists(DEFAULT_CONFIG_PATH):
         log.debug('creating config file: %s', DEFAULT_CONFIG_PATH)
         config_writer = ConfigParser()
-        with open(DEFAULT_CONFIG_PATH, 'w') as f:
+        with open(DEFAULT_CONFIG_PATH, 'w') as file:
             config_writer.set(config_writer.default_section, 'connection', DEFAULT_CACHE_CONNECTION)
-            config_writer.write(f)
+            config_writer.write(file)
 
     log.debug('fetching global bio2bel config from %s', DEFAULT_CONFIG_PATH)
     config = ConfigParser()

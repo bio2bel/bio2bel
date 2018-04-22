@@ -143,12 +143,12 @@ def web_registered():
     """Print the registered web services."""
     from bio2bel.web.application import web_modules, add_admins
     click.echo('Web Modules:')
-    for m in sorted(web_modules):
-        click.echo(m)
+    for manager_name in sorted(web_modules):
+        click.echo(manager_name)
 
     click.echo('Web Admin Interfaces:')
-    for m, f in sorted(add_admins.items()):
-        click.echo('{} - {}'.format(m, f))
+    for manager_name, add_admin in sorted(add_admins.items()):
+        click.echo('{} - {}'.format(manager_name, add_admin))
 
 
 @main.command()

@@ -33,8 +33,7 @@ class ExtensionImporter(object):
             return
         end_name = fullname[len(self._group_with_dot):]
         for entry_point in iter_entry_points(group=self.group, name=None):
-            name = entry_point.name
-            if name == end_name:
+            if entry_point.name == end_name:
                 return self
 
     def load_module(self, fullname):
