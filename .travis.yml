@@ -9,6 +9,7 @@ env:
   - TOXENV=docs
   - TOXENV=manifest
   - TOXENV=rst-lint
+  - TOXENV=flake8
 
 install:
 - pip install tox
