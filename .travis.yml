@@ -3,16 +3,15 @@ cache: pip
 language: python
 python:
 - 3.6
-env:
-  matrix:
+matrix:
   include:
-    - TOXENV=py
-    - TOXENV=docs
-    - TOXENV=manifest
-    - TOXENV=rst-lint
-    - TOXENV=flake8
+    - env: TOXENV=py
+    - env: TOXENV=docs
+    - env: TOXENV=manifest
+    - env: TOXENV=rst-lint
+    - env: TOXENV=flake8
   allow_failures:
-    - TOXENV=flake8
+    - env: TOXENV=flake8
 
 install:
 - pip install tox
