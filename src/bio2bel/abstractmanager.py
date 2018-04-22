@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from sqlalchemy import create_engine
+from sqlalchemy import and_, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from .exc import Bio2BELMissingModelsError, Bio2BELMissingNameError, Bio2BELModuleCaseError
@@ -57,8 +57,6 @@ class AbstractManagerConnectionMixin(object):
 
 
 class AbstractManagerBase(ABC, AbstractManagerConnectionMixin):  # TODO write docstring
-    """"""
-
     def __init__(self, connection=None, check_first=True):
         """
         :param Optional[str] connection: SQLAlchemy connection string
@@ -319,6 +317,39 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
         """
         self.base.metadata.drop_all(self.engine, checkfirst=check_first)
         Action.store_drop(self.module_name, session=self.session)
+
+    @classmethod
+    def _get_namespace_keyword(cls):
+        """Gets the keyword to use as the reference BEL namespace
+
+        :rtype: str
+        """
+        return '_{}'.format(cls.module_name.upper())
+
+    @classmethod
+    def _get_namespace_filter(cls):
+        """Gets an SQLAlchemy filter for getting the reference BEL namespace
+
+        :return:
+        """
+        from pybel.manager.models import Namespace
+
+        _namespace_keyword = cls._get_namespace_keyword()
+
+        return and_(
+            Namespace.keyword == _namespace_keyword,
+            Namespace.url == _namespace_keyword
+        )
+
+    def _get_default_namespace(self):
+        """Gets the reference BEL namespace if it exists
+
+        :rtype: Optional[pybel.manager.models.Namespace
+        """
+        from pybel.manager.models import Namespace
+
+        namespace_filter = self._get_namespace_filter()
+        return self._get_query(Namespace).filter(namespace_filter).one_or_none()
 
     def __repr__(self):
         return '<{module_name}Manager url={url}>'.format(
