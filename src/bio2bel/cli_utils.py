@@ -86,6 +86,13 @@ def build_cli(manager_cls):
             graph = manager.to_bel()
             to_database(graph, connection=connection)
 
+    if hasattr(manager_cls, 'upload_bel_namespace'):
+        @main.command()
+        @click.pass_obj
+        def upload_bel_namespace(manager):
+            """Uploads names/identifiers to terminology store"""
+            manager.upload_bel_namespace()
+
     if hasattr(manager_cls, 'summarize'):
         @main.command()
         @click.pass_obj
