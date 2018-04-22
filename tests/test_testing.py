@@ -67,3 +67,16 @@ class TestPopulated(TestTesting):
     def test_populated(self):
         """Test that the correct number of models have been added to the database."""
         self.assertEqual(5, self.manager.count_model())
+
+
+class TestPopulatedKwargs(TestTesting):
+    """Test the :func:`bio2bel.testing.make_temporary_cache_class_mixin` with kwargs in the populate function."""
+
+    @classmethod
+    def populate(cls):
+        """Populate the database."""
+        cls.manager.populate(return_true=True)
+
+    def test_populated(self):
+        """Test that the correct number of models have been added to the database."""
+        self.assertEqual(5, self.manager.count_model())

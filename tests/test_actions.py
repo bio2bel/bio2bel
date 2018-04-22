@@ -19,8 +19,11 @@ class TestActions(TemporaryConnectionMethodMixin, MockConnectionMixin):
         self.assertEqual(0, Action.count(session=manager.session))
 
         self.assertFalse(manager.is_populated())
-        manager.populate()
+        manager.populate(return_true=True)
         self.assertTrue(manager.is_populated())
+
+        # just check this tiny implementation detail
+        self.assertEqual(manager.last_populate_kwargs, {'return_true': True})
 
         self.assertEqual(1, Action.count(session=manager.session))
         actions = Action.ls(session=manager.session)

@@ -29,6 +29,12 @@ class Manager(AbstractManager):
 
     module_name = 'test'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.last_populate_args = []
+        self.last_populate_kwargs = {}
+
     @property
     def _base(self):
         return TestBase
@@ -62,7 +68,7 @@ class Manager(AbstractManager):
         """
         return 0 < self.count_model()
 
-    def populate(self):
+    def populate(self, *args, **kwargs):
         """Add five models to the store."""
         models = [
             Model(
@@ -73,3 +79,11 @@ class Manager(AbstractManager):
         ]
         self.session.add_all(models)
         self.session.commit()
+
+        if args:
+            self.last_populate_args = args
+            log.critical('args: %s', args)
+
+        if kwargs:
+            self.last_populate_kwargs = kwargs
+            log.critical('kwargs: %s', kwargs)

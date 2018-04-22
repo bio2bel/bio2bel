@@ -35,6 +35,9 @@ class TemporaryConnectionMethodMixin(unittest.TestCase):
 class TemporaryConnectionMixin(unittest.TestCase):
     """Creates a :class:`unittest.TestCase` that has a persistent file for use with SQLite during testing."""
 
+    fd, path = None, None
+    connection = None
+
     @classmethod
     def setUpClass(cls):
         """Create a temporary file to use as a persistent database throughout tests in this class.
@@ -82,6 +85,7 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
     is a subclass of :class:`bio2bel.AbstractManager`.
     """
     Manager = ...
+    manager = None
 
     @classmethod
     def setUpClass(cls):
@@ -93,7 +97,7 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
         if not issubclass(cls.Manager, AbstractManager):
             raise Bio2BELManagerTypeError('Manager must be a subclass of bio2bel.AbstractManager')
 
-        super(AbstractTemporaryCacheClassMixin, cls).setUpClass()
+        super().setUpClass()
 
         cls.manager = cls.Manager(connection=cls.connection)
         cls.populate()
@@ -102,8 +106,7 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
     def tearDownClass(cls):
         """Close the connection in the manager and deletes the temporary database."""
         cls.manager.session.close()
-
-        super(AbstractTemporaryCacheClassMixin, cls).tearDownClass()
+        super().tearDownClass()
 
     @classmethod
     def populate(cls):
