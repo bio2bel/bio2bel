@@ -1,63 +1,38 @@
 # -*- coding: utf-8 -*-
 
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
+"""Tests the Flask web application generation utilities."""
 
-from bio2bel import AbstractManager
-from bio2bel.exc import Bio2BELMissingModelsError
 from bio2bel.abstractmanager import AbstractManagerFlaskMixin
+from bio2bel.exc import Bio2BELMissingModelsError
 from bio2bel.testing import MockConnectionMixin
+from tests.constants import Manager, Model
 
 
-class TestFailure(MockConnectionMixin):
+class WrongFlaskTestManager(AbstractManagerFlaskMixin):
+    """An implementation of an AbstractManager that is unable to produce a Flask app."""
+    module_name = 'test'
+
+
+class FlaskTestManager(Manager):
+    """Extends the test Manager for generating a Flask application"""
+    flask_admin_models = [Model]
+
+
+class TestFlask(MockConnectionMixin):
+    """Tests Flask application generation."""
 
     def test_missing_models(self):
-        class ExampleFlaskTestManager(AbstractManagerFlaskMixin):
-            module_name = 'test'
+        """Test exceptions are thrown properly for an improperly implemented AbstractManager."""
+        self.assertIs(WrongFlaskTestManager.flask_admin_models, ...)
 
-        self.assertIs(ExampleFlaskTestManager.flask_admin_models, ...)
-
-        manager = ExampleFlaskTestManager(connection=self.connection)
+        manager = WrongFlaskTestManager(connection=self.connection)
         self.assertIs(manager.flask_admin_models, ...)
 
         with self.assertRaises(Bio2BELMissingModelsError):
             manager.get_flask_admin_app()
 
     def test_app(self):
-        TestBase = declarative_base()
-
-        class Model(TestBase):
-            __tablename__ = 'test_model'
-            id = Column(Integer, primary_key=True)
-            model_id = Column(String(15), nullable=False, index=True, unique=True)
-
-        class FlaskTestManager(AbstractManager):
-            module_name = 'test'
-            flask_admin_models = [Model]
-
-            @property
-            def _base(self):
-                return TestBase
-
-            def count_model(self):
-                """
-                :rtype: int
-                """
-                return self._count_model(Model)
-
-            def is_populated(self):
-                """
-                :rtype: bool
-                """
-                return 0 < self.count_model()
-
-            def populate(self):
-                self.session.add_all([
-                    Model(model_id='model:{}'.format(model_id))
-                    for model_id in range(4)
-                ])
-                self.session.commit()
-
+        """Test the successful generation of a flask application."""
         manager = FlaskTestManager(connection=self.connection)
         manager.populate()
 
@@ -68,4 +43,4 @@ class TestFailure(MockConnectionMixin):
         self.assertIn(Model.__name__.encode('utf-8'), home_rv.data)
 
         rv = client.get('/{}'.format(Model.__name__.lower()), follow_redirects=True)
-        self.assertIn(b'model:1', rv.data)
+        self.assertIn(b'MODEL:1', rv.data)

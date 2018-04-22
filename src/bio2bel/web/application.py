@@ -68,11 +68,9 @@ def create_application(connection=None):
 
     for name, add_admin in add_admins.items():
         url = '/{}'.format(name)
-        try:
-            add_admin(app, session, url=url, endpoint=name, name=name)
-            log.warning('added %s - %s to %s', name, add_admin, url)
-        except:
-            log.exception('couldnt add %s', name)
+        add_admin(app, session, url=url, endpoint=name, name=name)
+        log.debug('added %s - %s to %s', name, add_admin, url)
+
     app.register_blueprint(ui)
 
     return app

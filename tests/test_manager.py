@@ -15,19 +15,23 @@ from bio2bel.testing import AbstractTemporaryCacheClassMixin, MockConnectionMixi
 
 
 class TestManagerFailures(unittest.TestCase):
+    """Test improperly implement AbstractManager."""
+
     def test_missing_all_abstract(self):
-        """Test that the abstract class can't be instantiated"""
+        """Test that the abstract class can't be instantiated."""
 
         class Manager(AbstractManager):
-            pass
+            """An incompletely implement AbstractManager"""
 
         with self.assertRaises(TypeError):  # cant's instantiate abstract class
             Manager()
 
     def test_fail_instantiation_2(self):
-        """Test that the abstract class can't be instantiated"""
+        """Test that the abstract class can't be instantiated."""
 
         class Manager(AbstractManager):
+            """An incompletely implement AbstractManager"""
+
             @property
             def _base(self):
                 return declarative_base()
@@ -36,35 +40,40 @@ class TestManagerFailures(unittest.TestCase):
             Manager()
 
     def test_fail_instantiation_3(self):
-        """Test that the abstract class can't be instantiated"""
+        """Test that the abstract class can't be instantiated."""
 
         class Manager(AbstractManager):
+            """An incompletely implement AbstractManager."""
+
             def populate(self):
-                pass
+                """Populate the database."""
 
         with self.assertRaises(TypeError):
             Manager()
 
     def test_undefined_module_name(self):
-        """Test error thrown if module name isn't set"""
+        """Test error thrown if module name isn't set."""
         Base = declarative_base()
 
         class Manager(AbstractManager):
+            """An improperly implemented AbstractManager that is missing the module_name class variable."""
+
             @property
             def _base(self):
                 return Base
 
             def is_populated(self):
-                """Checks if the database is already populated"""
+                """Check if the database is already populated."""
 
             def populate(self):
-                """Populates the database"""
+                """Populate the database."""
 
         with self.assertRaises(Bio2BELMissingNameError):
             Manager()
 
     def test_module_name_case(self):
-        """Test error thrown if module name is weird case"""
+        """Test error thrown if module name is weird case."""
+
         Base = declarative_base()
 
         class Manager(AbstractManager):
@@ -72,29 +81,33 @@ class TestManagerFailures(unittest.TestCase):
 
             @property
             def _base(self):
-                """Returns the declarative base"""
                 return Base
 
             def is_populated(self):
-                """Checks if the database is already populated"""
+                """Check if the database is already populated."""
 
             def populate(self):
-                """Populates the database"""
+                """Populate the database."""
 
         with self.assertRaises(Bio2BELModuleCaseError):
             Manager()
 
 
 class TestManagerEnsure(TemporaryConnectionMixin):
+    """Tests the ensure function of an AbstractManager works properly."""
+
     def test_type_error(self):
+        """Test that the connection's type is checked properly."""
         with self.assertRaises(TypeError):
             tests.constants.Manager.ensure(connection=5)
 
     def test_build(self):
+        """Test that a string can be passed."""
         m = tests.constants.Manager.ensure(connection=self.connection)
         self.assertIsInstance(m, tests.constants.Manager)
 
     def test_pass_through(self):
+        """Test that a manager can be passed."""
         m = tests.constants.Manager(connection=self.connection)
         self.assertIsInstance(m, tests.constants.Manager)
 
@@ -104,10 +117,11 @@ class TestManagerEnsure(TemporaryConnectionMixin):
 
 
 class TestConnectionDropping(MockConnectionMixin, AbstractTemporaryCacheClassMixin):
+    """Tests dropping the database."""
     Manager = tests.constants.Manager
 
     def test_no_exist(self):
-        """Checks if the database gets dropped that stuff breaks"""
+        """Check if the database gets dropped that stuff breaks."""
 
         with self.mock_global_connection:  # don't want to worry about that drop_app hook
             self.assertEqual(0, Action.count())
@@ -119,18 +133,24 @@ class TestConnectionDropping(MockConnectionMixin, AbstractTemporaryCacheClassMix
 
 
 class TestConnectionLoading(AbstractTemporaryCacheClassMixin):
+    """Tests the connection is loaded properly."""
     Manager = tests.constants.Manager
 
-    def test_repr(self):
-        self.assertEqual('<TestManager url={}>'.format(self.connection), repr(self.manager))
-
     def test_connection(self):
+        """Tests the type of the connection"""
+        self.assertIsNotNone(self.connection)
         self.assertIsInstance(self.connection, str)
 
     def test_manager_passes(self):
+        """Test the connection is inside the manager properly"""
         self.assertEqual(self.connection, self.manager.connection)
 
+    def test_repr(self):
+        """Test the repr function of the AbstractManager."""
+        self.assertEqual('<TestManager url={}>'.format(self.connection), repr(self.manager))
+
     def test_get_missing_model(self):
+        """Test population."""
         self.manager.populate()
 
         self.assertIsNone(self.manager.get_model_by_model_id(0))

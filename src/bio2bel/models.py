@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Bio2BEL database models"""
+"""Bio2BEL database models."""
 
 import datetime
 import logging
@@ -20,7 +20,7 @@ ACTION_TABLE_NAME = '{}_action'.format(TABLE_PREFIX)
 
 
 def _make_session():
-    """Makes a session
+    """Make a session.
 
     :rtype: sqlalchemy.orm.Session
     """
@@ -52,7 +52,8 @@ def _store_helper(make_method, resource, session=None):
 
 
 class Action(Base):
-    """Represents an update, dropping, population, etc. to the database"""
+    """Represents an update, dropping, population, etc. to the database."""
+
     __tablename__ = ACTION_TABLE_NAME
 
     id = Column(Integer, primary_key=True)
@@ -64,17 +65,23 @@ class Action(Base):
 
     @classmethod
     def make_populate(cls, resource):
-        """Make a ``populate`` instance of :class:`Action`"""
+        """Make a ``populate`` instance of :class:`Action`.
+
+        :rtype: Action
+        """
         return Action(resource=resource.lower(), action='populate')
 
     @classmethod
     def make_drop(cls, resource):
-        """Make a ``drop`` instance of :class:`Action`"""
+        """Make a ``drop`` instance of :class:`Action`.
+
+        :rtype: Action
+        """
         return Action(resource=resource.lower(), action='drop')
 
     @classmethod
     def store_populate(cls, resource, session=None):
-        """Stores a drop event
+        """Store a populate event.
 
         :param str resource: The normalized name of the resource to store
         :param Optional[sqlalchemy.orm.Session] session: A pre-built session
@@ -89,7 +96,7 @@ class Action(Base):
 
     @classmethod
     def store_drop(cls, resource, session=None):
-        """Stores a drop event
+        """Store a drop event.
 
         :param str resource: The normalized name of the resource to store
         :param Optional[sqlalchemy.orm.Session] session: A pre-built session
@@ -104,7 +111,7 @@ class Action(Base):
 
     @classmethod
     def ls(cls, session=None):
-        """Get all actions
+        """Get all actions.
 
         :param Optional[sqlalchemy.orm.Session] session: A pre-built session
         :rtype: list[Action]
@@ -116,7 +123,7 @@ class Action(Base):
 
     @classmethod
     def count(cls, session=None):
-        """Counts all actions
+        """Count all actions.
 
         :param Optional[sqlalchemy.orm.Session] session: A pre-built session
         :rtype: int

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""Setup.py for Bio2BEL."""
+
 import codecs
 import os
 import re
@@ -56,7 +58,7 @@ META_FILE = read(META_PATH)
 
 
 def find_meta(meta):
-    """Extract __*meta*__ from META_FILE"""
+    """Extract __*meta*__ from META_FILE."""
     meta_match = re.search(
         r'^__{meta}__ = ["\']([^"\']*)["\']'.format(meta=meta),
         META_FILE, re.M

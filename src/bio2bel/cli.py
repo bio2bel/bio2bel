@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Aggregate CLI for all Bio2BEL projects"""
+"""Aggregate CLI for all Bio2BEL projects."""
 
 import importlib
 import logging
@@ -78,7 +78,7 @@ main.help = "Bio2BEL Command Line Utilities on {}".format(sys.executable)
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 @click.pass_context
 def populate(ctx, skip):
-    """Runs all populate commands"""
+    """Run all populate commands."""
     skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
 
     for idx, (name, command) in enumerate(sorted(populate_commands.items()), start=1):
@@ -101,7 +101,7 @@ def populate(ctx, skip):
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 @click.pass_context
 def drop(ctx, skip):
-    """Runs all drop commands"""
+    """Run all drop commands."""
     skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
 
     for name, command in sorted(drop_commands.items()):
@@ -117,7 +117,7 @@ def drop(ctx, skip):
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 @click.pass_context
 def deploy(ctx, skip):
-    """Runs all deploy commands"""
+    """Run all deploy commands."""
     skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
 
     for name, command in sorted(deploy_commands.items()):
@@ -132,7 +132,7 @@ def deploy(ctx, skip):
 @main.command()
 @click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 def web(connection):
-    """Runs a combine web interface"""
+    """Run a combine web interface."""
     from bio2bel.web.application import create_application
     app = create_application(connection=connection)
     app.run(host='0.0.0.0', port=5000)
@@ -140,7 +140,7 @@ def web(connection):
 
 @main.command()
 def web_registered():
-    """Prints the registered web services"""
+    """Print the registered web services."""
     from bio2bel.web.application import web_modules, add_admins
     click.echo('Web Modules:')
     for m in sorted(web_modules):
@@ -153,7 +153,7 @@ def web_registered():
 
 @main.command()
 def actions():
-    """List actions"""
+    """List actions."""
     for action in Action.ls():
         click.echo('{} {} {}'.format(action.created, action.action, action.resource))
 

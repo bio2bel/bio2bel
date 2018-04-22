@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+"""Provides abstractions over the management of SQLALChemy connections and sessions."""
+
+import logging
 from abc import ABC, abstractmethod
 
 from sqlalchemy import and_, create_engine
@@ -9,12 +12,17 @@ from .exc import Bio2BELMissingModelsError, Bio2BELMissingNameError, Bio2BELModu
 from .models import Action
 from .utils import get_connection
 
-__all__ = ['AbstractManager', ]
+__all__ = [
+    'AbstractManager',
+]
+
+log = logging.getLogger(__name__)
 
 
 class AbstractManagerConnectionMixin(object):
-    """Represents the connection-building aspect of the abstract manager. Minimally requires the definition of the
-    class-level variable, ``module_name``
+    """Represents the connection-building aspect of the abstract manager.
+
+    Minimally requires the definition of the class-level variable, ``module_name``.
 
     Example for InterPro:
 
@@ -56,7 +64,9 @@ class AbstractManagerConnectionMixin(object):
         return get_connection(cls.module_name, connection=connection)
 
 
-class AbstractManagerBase(ABC, AbstractManagerConnectionMixin):  # TODO write docstring
+class AbstractManagerBase(ABC, AbstractManagerConnectionMixin):
+    """Abstracts the creation of the database using the declarative base and its associated metadata."""
+
     def __init__(self, connection=None, check_first=True):
         """
         :param Optional[str] connection: SQLAlchemy connection string
@@ -292,7 +302,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
 
     @abstractmethod
     def populate(self, *args, **kwargs):
-        """Populate method should be overridden"""
+        """Populate the database."""
 
     def _get_query(self, model):
         """Gets a query for the given model using this manager's session.
@@ -319,7 +329,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
         return self._get_query(model).all()
 
     def drop_all(self, check_first=True):
-        """Create the empty database (tables)
+        """Drops all tables from the database.
 
         :param bool check_first: Defaults to True, only issue DROPs for tables confirmed to be
           present in the target database. Defers to :meth:`sqlalchemy.sql.schema.MetaData.drop_all`

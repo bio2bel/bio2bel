@@ -20,8 +20,10 @@ class TemporaryConnectionMixin(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Creates a temporary file to use as a persistent database throughout tests in this class. Subclasses of
-        :class:`TemporaryCacheClsMixin` can extend :func:`TemporaryCacheClsMixin.setUpClass` to populate the database
+        """Create a temporary file to use as a persistent database throughout tests in this class.
+
+        Subclasses of :class:`TemporaryCacheClsMixin` can extend :func:`TemporaryCacheClsMixin.setUpClass` to populate
+        the database.
         """
         super(TemporaryConnectionMixin, cls).setUpClass()
 
@@ -31,23 +33,23 @@ class TemporaryConnectionMixin(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        """Closes the connection to the database and removes the files created for it"""
+        """Close the connection to the database and removes the files created for it."""
         os.close(cls.fd)
         os.remove(cls.path)
 
 
 class MockConnectionMixin(TemporaryConnectionMixin):
-    """Allows for testing with a consistent connection without changing the configuration"""
+    """Allows for testing with a consistent connection without changing the configuration."""
 
     @classmethod
     def setUpClass(cls):
-        """Adds two class-level variables: ``mock_global_connection`` and ``mock_module_connection`` that can be
+        """Add two class-level variables: ``mock_global_connection`` and ``mock_module_connection`` that can be
         used as context managers to mock the bio2bel connection getter functions."""
 
         super(MockConnectionMixin, cls).setUpClass()
 
         def mock_connection():
-            """Returns the connection enclosed by this class
+            """Get the connection enclosed by this class.
 
             :rtype: str
             """
@@ -67,7 +69,7 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
 
     @classmethod
     def setUpClass(cls):
-        """Sets up the class with the given manager and allows an optional populate hook to be overridden"""
+        """Set up the class with the given manager and allows an optional populate hook to be overridden."""
         if cls.Manager is ...:
             raise Bio2BELTestMissingManagerError('Must override class variable "Manager" with subclass of '
                                                  'bio2bel.AbstractManager')
@@ -82,23 +84,22 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
 
     @classmethod
     def tearDownClass(cls):
-        """Closes the connection in the manager and deletes the temporary database"""
+        """Close the connection in the manager and deletes the temporary database."""
         cls.manager.session.close()
 
         super(AbstractTemporaryCacheClassMixin, cls).tearDownClass()
 
     @classmethod
     def populate(cls):
-        """A stub that can be overridden to populate the manager"""
+        """A stub that can be overridden to populate the manager."""
 
 
 def make_temporary_cache_class_mixin(manager_cls):
-    """Builds a testing class that has a Bio2BEL manager instance ready to go
+    """Build a testing class that has a Bio2BEL manager instance ready to go.
 
     :param type[bio2bel.AbstractManager] manager_cls: A Bio2BEL manager
     :rtype: type[AbstractTemporaryCacheClassMixin]
     """
-
     class TemporaryCacheClassMixin(AbstractTemporaryCacheClassMixin):
         Manager = manager_cls
 

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""Testing constants and utilities for Bio2BEL."""
+
 import logging
 
 from sqlalchemy import Column, Integer, String
@@ -13,13 +15,15 @@ TestBase = declarative_base()
 
 
 class Model(TestBase):
+    """A test model"""
     __tablename__ = 'test_model'
+
     id = Column(Integer, primary_key=True)
     model_id = Column(String(15), nullable=False, index=True, unique=True)
 
 
 class Manager(AbstractManager):
-    """Manager for running tests"""
+    """Manager for running tests."""
 
     module_name = 'test'
 
@@ -28,7 +32,7 @@ class Manager(AbstractManager):
         return TestBase
 
     def get_model_by_model_id(self, model_id):
-        """Gets a model if it exists by its identifier
+        """Get a model if it exists by its identifier.
 
         :param str model_id: A Model identifier
         :rtype: Optional[Model]
@@ -36,23 +40,23 @@ class Manager(AbstractManager):
         return self.session.query(Model).filter(Model.model_id == model_id).one_or_none()
 
     def count_model(self):
-        """Counts the test model
+        """Count the test model.
 
         :rtype: int
         """
         return self._count_model(Model)
 
     def is_populated(self):
-        """Checks if the database is already populated
+        """Check if the database is already populated.
 
         :rtype: bool
         """
         return 0 < self.count_model()
 
     def populate(self):
-        """Adds five models to the store"""
+        """Add five models to the store."""
         models = [
-            Model(model_id='MODEL{}'.format(model_id))
+            Model(model_id='MODEL:{}'.format(model_id))
             for model_id in range(5)
         ]
         self.session.add_all(models)

@@ -5,11 +5,14 @@ python:
 - 3.6
 env:
   matrix:
-  - TOXENV=py
-  - TOXENV=docs
-  - TOXENV=manifest
-  - TOXENV=rst-lint
-  - TOXENV=flake8
+  include:
+    - TOXENV=py
+    - TOXENV=docs
+    - TOXENV=manifest
+    - TOXENV=rst-lint
+    - TOXENV=flake8
+  allow_failures:
+    - TOXENV=flake8
 
 install:
 - pip install tox
