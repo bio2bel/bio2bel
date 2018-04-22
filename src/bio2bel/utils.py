@@ -13,7 +13,6 @@ log = logging.getLogger(__name__)
 __all__ = [
     'get_data_dir',
     'get_connection',
-    'bio2bel_populater',
 ]
 
 
@@ -111,29 +110,3 @@ def get_connection(module_name, connection=None):
     log.debug('load default connection string from %s', default_connection)
 
     return default_connection
-
-
-def bio2bel_populater(resource, session=None):
-    """Apply this decorator to a function so Bio2BEL's database gets populated automatically
-
-    :param str resource: The name of the Bio2BEL package to populate
-    :param Optional[sqlalchemy.orm.Session] session: A pre-built session
-
-    Usage:
-
-    >>> from bio2bel.utils import bio2bel_populater
-    >>>
-    >>> @bio2bel_populater('hgnc')
-    >>> def populate_hgnc(...):
-    >>>     ...
-    """
-
-    def wrap_bio2bel_func(f):
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            Action.store_populate(resource, session=session)
-            return f(*args, **kwargs)
-
-        return wrapped
-
-    return wrap_bio2bel_func

@@ -15,6 +15,23 @@ from .exc import Bio2BELManagerTypeError, Bio2BELTestMissingManagerError
 log = logging.getLogger(__name__)
 
 
+class TemporaryConnectionMethodMixin(unittest.TestCase):
+    """Creates a :class:`unittest.TestCase` that has a persistent file for use with SQLite during testing."""
+
+    def setUp(self):
+        """Create a temporary file to use as a persistent database throughout tests in this class."""
+        super(TemporaryConnectionMethodMixin, self).setUp()
+
+        self.fd, self.path = tempfile.mkstemp()
+        self.connection = 'sqlite:///' + self.path
+        log.info('test database at %s', self.connection)
+
+    def tearDown(self):
+        """Close the connection to the database and removes the files created for it."""
+        os.close(self.fd)
+        os.remove(self.path)
+
+
 class TemporaryConnectionMixin(unittest.TestCase):
     """Creates a :class:`unittest.TestCase` that has a persistent file for use with SQLite during testing."""
 
@@ -99,6 +116,7 @@ def make_temporary_cache_class_mixin(manager_cls):
     :param type[bio2bel.AbstractManager] manager_cls: A Bio2BEL manager
     :rtype: type[AbstractTemporaryCacheClassMixin]
     """
+
     class TemporaryCacheClassMixin(AbstractTemporaryCacheClassMixin):
         Manager = manager_cls
 

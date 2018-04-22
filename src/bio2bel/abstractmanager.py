@@ -3,13 +3,14 @@
 """Provides abstractions over the management of SQLALChemy connections and sessions."""
 
 import logging
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
+from functools import wraps
 
 from sqlalchemy import and_, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from .exc import Bio2BELMissingModelsError, Bio2BELMissingNameError, Bio2BELModuleCaseError
-from .models import Action
+from .models import Action, create_all
 from .utils import get_connection
 
 __all__ = [
@@ -17,6 +18,35 @@ __all__ = [
 ]
 
 log = logging.getLogger(__name__)
+
+
+class AbstractManagerMeta(ABCMeta):
+    """Crazy metaclass to hack in a decorator to the populate function."""
+
+    def __new__(mcs, name, bases, namespace, **kwargs):
+        for ns_name, ns_value in namespace.items():
+            if ns_name != 'populate':
+                continue
+
+            if getattr(ns_value, "__isabstractmethod__", False):
+                continue
+
+            @wraps(ns_value)
+            def populate(self, *args, **kwargs):
+                """Populates the database."""
+                ns_value(self, *args, **kwargs)
+
+                # Hack in the action storage
+                create_all(self.engine)
+                Action.store_populate(self.module_name, session=self.session)
+
+            namespace[ns_name] = populate
+
+        return super().__new__(mcs, name, bases, namespace, **kwargs)
+
+
+class AbstractManagerABC(metaclass=AbstractManagerMeta):
+    """Allow for simple subclassing to get :class:`AbstractManagerMeta` as the metaclass."""
 
 
 class AbstractManagerConnectionMixin(object):
@@ -64,7 +94,7 @@ class AbstractManagerConnectionMixin(object):
         return get_connection(cls.module_name, connection=connection)
 
 
-class AbstractManagerBase(ABC, AbstractManagerConnectionMixin):
+class AbstractManagerBase(AbstractManagerABC, AbstractManagerConnectionMixin):
     """Abstracts the creation of the database using the declarative base and its associated metadata."""
 
     def __init__(self, connection=None, check_first=True):
