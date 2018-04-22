@@ -12,9 +12,10 @@ matrix:
     - env: TOXENV=flake8
   allow_failures:
     - env: TOXENV=flake8
-
 install:
 - pip install tox
+- pip install codecov
+- pip install coverage
 script:
 - tox
 after_success:
