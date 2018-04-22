@@ -105,13 +105,13 @@ class AbstractManagerBase(ABC, AbstractManagerConnectionMixin):  # TODO write do
 
 
 class AbstractManagerFlaskMixin(AbstractManagerConnectionMixin):
-    """Mixin for making the AbstractManager build a Flask application"""
+    """Mixin for making the AbstractManager build a Flask application."""
 
     #: Represents a list of SQLAlchemy classes to make a Flask-Admin interface
     flask_admin_models = ...
 
     def _add_admin(self, app, **kwargs):
-        """Adds a Flask Admin interface to an application
+        """Add a Flask Admin interface to an application.
 
         :param flask.Flask app: A Flask application
         :param kwargs:
@@ -131,7 +131,7 @@ class AbstractManagerFlaskMixin(AbstractManagerConnectionMixin):
         return admin
 
     def get_flask_admin_app(self, url=None):
-        """Creates a Flask application if this class has defined the :data:`flask_admin_models` variable a list of
+        """Create a Flask application if this class has defined the :data:`flask_admin_models` variable a list of
         model classes.
 
         :param Optional[str] url: Optional mount point of the admin application. Defaults to ``'/'``.
@@ -285,7 +285,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
 
     @abstractmethod
     def is_populated(self):
-        """Checks if the database is already populated
+        """Checks if the database is already populated.
 
         :rtype: bool
         """
@@ -295,7 +295,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
         """Populate method should be overridden"""
 
     def _get_query(self, model):
-        """Gets a query for the given model using this manager's session
+        """Gets a query for the given model using this manager's session.
 
         :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
         :return: a SQLAlchemy query
@@ -303,7 +303,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
         return self.session.query(model)
 
     def _count_model(self, model):
-        """Helps count the number of a given model in the database
+        """Helps count the number of a given model in the database.
 
         :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
         :rtype: int
@@ -311,7 +311,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
         return self._get_query(model).count()
 
     def _list_model(self, model):
-        """Helps get all instances of the model in the database
+        """Helps get all instances of the model in the database.
 
         :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
         :rtype: list
@@ -329,7 +329,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
 
     @classmethod
     def _get_namespace_keyword(cls):
-        """Gets the keyword to use as the reference BEL namespace
+        """Gets the keyword to use as the reference BEL namespace.
 
         :rtype: str
         """
@@ -337,7 +337,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
 
     @classmethod
     def _get_namespace_filter(cls):
-        """Gets an SQLAlchemy filter for getting the reference BEL namespace
+        """Get an SQLAlchemy filter for getting the reference BEL namespace.
 
         :return:
         """
@@ -351,7 +351,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
         )
 
     def _get_default_namespace(self):
-        """Gets the reference BEL namespace if it exists
+        """Get the reference BEL namespace if it exists.
 
         :rtype: Optional[pybel.manager.models.Namespace
         """
