@@ -19,18 +19,25 @@ TABLE_PREFIX = 'bio2bel'
 ACTION_TABLE_NAME = '{}_action'.format(TABLE_PREFIX)
 
 
+def create_all(engine, checkfirst=True):
+    """Create the tables for Bio2BEL."""
+    Base.metadata.create_all(engine, checkfirst=checkfirst)
+
+
 def _make_session():
     """Make a session.
 
     :rtype: sqlalchemy.orm.Session
     """
     connection = get_global_connection()
-
     engine = create_engine(connection)
-    Base.metadata.create_all(engine, checkfirst=True)
+
+    create_all(engine)
 
     session_cls = sessionmaker(bind=engine)
-    return session_cls()
+    session = session_cls()
+
+    return session
 
 
 def _store_helper(make_method, resource, session=None):
@@ -63,16 +70,19 @@ class Action(Base):
     action = Column(String(32), nullable=False)
     created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow, doc='The date and time of upload')
 
-    @classmethod
-    def make_populate(cls, resource):
+    def __repr__(self):
+        return '{} {} at {}'.format(self.resource, self.action, self.created)
+
+    @staticmethod
+    def make_populate(resource):
         """Make a ``populate`` instance of :class:`Action`.
 
         :rtype: Action
         """
         return Action(resource=resource.lower(), action='populate')
 
-    @classmethod
-    def make_drop(cls, resource):
+    @staticmethod
+    def make_drop(resource):
         """Make a ``drop`` instance of :class:`Action`.
 
         :rtype: Action
@@ -116,8 +126,10 @@ class Action(Base):
         :param Optional[sqlalchemy.orm.Session] session: A pre-built session
         :rtype: list[Action]
         """
-        session = session or _make_session()
-        actions = session.query(cls).order_by(Action.created.desc()).all()
+        if session is None:
+            session = _make_session()
+
+        actions = session.query(cls).order_by(cls.created.desc()).all()
         session.close()
         return actions
 
@@ -128,7 +140,9 @@ class Action(Base):
         :param Optional[sqlalchemy.orm.Session] session: A pre-built session
         :rtype: int
         """
-        session = session or _make_session()
+        if session is None:
+            session = _make_session()
+
         count = session.query(cls).count()
         session.close()
         return count
