@@ -32,9 +32,9 @@ class AbstractManagerMeta(ABCMeta):
                 continue
 
             @wraps(ns_value)
-            def populate(self, *args, **kwargs):
+            def populate(self, *populate_args, **populate_kwargs):
                 """Populates the database."""
-                ns_value(self, *args, **kwargs)
+                ns_value(self, *populate_args, **populate_kwargs)
 
                 # Hack in the action storage
                 create_all(self.engine)
@@ -93,68 +93,24 @@ class AbstractManagerConnectionMixin(object):
         """
         return get_connection(cls.module_name, connection=connection)
 
-
-class AbstractManagerBase(AbstractManagerABC, AbstractManagerConnectionMixin):
-    """Abstracts the creation of the database using the declarative base and its associated metadata."""
-
-    def __init__(self, connection=None, check_first=True):
-        """
-        :param Optional[str] connection: SQLAlchemy connection string
-        :param bool check_first: Defaults to True, don't issue CREATEs for tables already present
-         in the target database. Defers to :meth:`bio2bel.abstractmanager.AbstractManager.create_all`
-        """
-        super().__init__(connection=connection)
-        self.create_all(check_first=check_first)
-
-    @property
-    @abstractmethod
-    def _base(self):
-        """Returns the declarative base.
-
-        It is usually sufficient to return an instance that is module-level.
-
-        :rtype: sqlalchemy.ext.declarative.api.DeclarativeMeta
-
-        How to build an instance of :class:`sqlalchemy.ext.declarative.api.DeclarativeMeta` by using
-        :func:`sqlalchemy.ext.declarative.declarative_base`:
-
-        >>> from sqlalchemy.ext.declarative import declarative_base
-        >>> Base = declarative_base()
-
-        Then just override this abstract property like:
-
-        >>> @property
-        >>> def _base(self):
-        >>>     return Base
-
-        Note that this property could effectively also be a static method.
-        """
-
-    @property
-    def _metadata(self):
-        """Returns the metadata object associated with this manager's declarative base."""
-        return self._base.metadata
-
-    def create_all(self, check_first=True):
-        """Create the empty database (tables)
-
-        :param bool check_first: Defaults to True, don't issue CREATEs for tables already present
-         in the target database. Defers to :meth:`sqlalchemy.sql.schema.MetaData.create_all`
-        """
-        self._metadata.create_all(self.engine, checkfirst=check_first)
+    def __repr__(self):
+        return '<{module_name}Manager url={url}>'.format(
+            module_name=self.module_name.capitalize(),
+            url=self.engine.url
+        )
 
 
-class AbstractManagerFlaskMixin(AbstractManagerConnectionMixin):
+class _FlaskMixin(AbstractManagerConnectionMixin):
     """Mixin for making the AbstractManager build a Flask application."""
 
-    #: Represents a list of SQLAlchemy classes to make a Flask-Admin interface
+    #: Represents a list of SQLAlchemy classes to make a Flask-Admin interface.
     flask_admin_models = ...
 
     def _add_admin(self, app, **kwargs):
         """Add a Flask Admin interface to an application.
 
         :param flask.Flask app: A Flask application
-        :param kwargs:
+        :param kwargs: Keyword arguments are passed through to :class:`flask_admin.Admin`
         :rtype: flask_admin.Admin
         """
         if self.flask_admin_models is ...:
@@ -165,8 +121,16 @@ class AbstractManagerFlaskMixin(AbstractManagerConnectionMixin):
 
         admin = Admin(app, **kwargs)
 
-        for Model in self.flask_admin_models:
-            admin.add_view(ModelView(Model, self.session))
+        for flask_admin_model in self.flask_admin_models:
+            if isinstance(flask_admin_model, tuple):  # assume its a 2 tuple
+                if len(flask_admin_model) != 2:
+                    raise TypeError
+
+                model, view = flask_admin_model
+                admin.add_view(view(model, self.session))
+
+            else:
+                admin.add_view(ModelView(flask_admin_model, self.session))
 
         return admin
 
@@ -184,7 +148,68 @@ class AbstractManagerFlaskMixin(AbstractManagerConnectionMixin):
         return app
 
 
-class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
+class _NamespaceMixin(AbstractManagerConnectionMixin):
+    @classmethod
+    def _get_namespace_keyword(cls):
+        """Gets the keyword to use as the reference BEL namespace.
+
+        :rtype: str
+        """
+        return '_{}'.format(cls.module_name.upper())
+
+    @classmethod
+    def _get_namespace_filter(cls):
+        """Get an SQLAlchemy filter for getting the reference BEL namespace.
+
+        :return:
+        """
+        from pybel.manager.models import Namespace
+
+        _namespace_keyword = cls._get_namespace_keyword()
+
+        return and_(
+            Namespace.keyword == _namespace_keyword,
+            Namespace.url == _namespace_keyword
+        )
+
+    def _get_default_namespace(self):
+        """Get the reference BEL namespace if it exists.
+
+        :rtype: Optional[pybel.manager.models.Namespace
+        """
+        from pybel.manager.models import Namespace
+
+        namespace_filter = self._get_namespace_filter()
+        return self.session.query(Namespace).filter(namespace_filter).one_or_none()
+
+
+class _QueryMixin(AbstractManagerConnectionMixin):
+    def _get_query(self, model):
+        """Gets a query for the given model using this manager's session.
+
+        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
+        :return: a SQLAlchemy query
+        """
+        return self.session.query(model)
+
+    def _count_model(self, model):
+        """Helps count the number of a given model in the database.
+
+        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
+        :rtype: int
+        """
+        return self._get_query(model).count()
+
+    def _list_model(self, model):
+        """Helps get all instances of the model in the database.
+
+        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
+        :rtype: list
+        """
+        return self._get_query(model).all()
+
+
+class AbstractManager(_FlaskMixin, _NamespaceMixin, _QueryMixin, AbstractManagerABC):
     """This is a base class for implementing your own Bio2BEL manager.
 
     It already includes functions to handle configuration, construction of a connection to a database using SQLAlchemy,
@@ -218,9 +243,9 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
 
     **Setting the Declarative Base**
 
-    Building on the previous example, the abstract property :data:`bio2bel.AbstractManager.base` must be overridden
-    to return the value from your :func:`sqlalchemy.ext.declarative.declarative_base`. We chose to make this an
-    instance-level property instead of a class-level variable so each manager could have its own information about
+    Building on the previous example, the (private) abstract property :data:`bio2bel.AbstractManager._base` must be
+    overridden to return the value from your :func:`sqlalchemy.ext.declarative.declarative_base`. We chose to make this
+    an instance-level property instead of a class-level variable so each manager could have its own information about
     connections to the database.
 
     As a minimal example:
@@ -276,6 +301,31 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
             def populate(self):
                 ...
 
+    **Checking the Database Is Populated**
+
+    A method for checking if the database has been populated already must be implemented as well. The easiest way to
+    implement this is to check that there's a non-zero count of whatever the most important model in the database is.
+
+    .. code-block:: python
+
+        from bio2bel import AbstractManager
+        from .constants import MODULE_NAME
+        from .models import Base
+
+        class Manager(AbstractManager):
+            module_name = MODULE_NAME
+
+            @property
+            def _base(self):
+                return Base
+
+            def populate(self):
+                ...
+
+            def is_populated(self)
+                return 0 < self.session.query(MyImportantModel).count()
+
+
     **Preparing Flask Admin (Optional)**
 
     This class also contains a function to build a :mod:`flask` application for easy viewing of the contents of the
@@ -305,23 +355,38 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
     will have access to several other functions that would rely on this.
     """
 
-    @classmethod
-    def ensure(cls, connection=None):
-        """Allows a manager to be build from a string, or a pre-built manager to be passed through.
-
-        This function is a polymorphic constructor inspired by the
-        `Factory Method <https://en.wikipedia.org/wiki/Factory_method_pattern>`_
-
-        :param connection: can be either a already build manager or a connection string to build a manager with.
-        :type connection: Optional[str or AbstractManager]
+    def __init__(self, connection=None, check_first=True):
         """
-        if connection is None or isinstance(connection, str):
-            return cls(connection=connection)
+        :param Optional[str] connection: SQLAlchemy connection string
+        :param bool check_first: Defaults to True, don't issue CREATEs for tables already present
+         in the target database. Defers to :meth:`bio2bel.abstractmanager.AbstractManager.create_all`
+        """
+        super().__init__(connection=connection)
+        self.create_all(check_first=check_first)
 
-        if isinstance(connection, cls):
-            return connection
+    @property
+    @abstractmethod
+    def _base(self):
+        """Returns the declarative base.
 
-        raise TypeError('passed invalid type: {}'.format(connection.__class__.__name__))
+        It is usually sufficient to return an instance that is module-level.
+
+        :rtype: sqlalchemy.ext.declarative.api.DeclarativeMeta
+
+        How to build an instance of :class:`sqlalchemy.ext.declarative.api.DeclarativeMeta` by using
+        :func:`sqlalchemy.ext.declarative.declarative_base`:
+
+        >>> from sqlalchemy.ext.declarative import declarative_base
+        >>> Base = declarative_base()
+
+        Then just override this abstract property like:
+
+        >>> @property
+        >>> def _base(self):
+        >>>     return Base
+
+        Note that this property could effectively also be a static method.
+        """
 
     @abstractmethod
     def is_populated(self):
@@ -334,29 +399,18 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
     def populate(self, *args, **kwargs):
         """Populate the database."""
 
-    def _get_query(self, model):
-        """Gets a query for the given model using this manager's session.
+    @property
+    def _metadata(self):
+        """Returns the metadata object associated with this manager's declarative base."""
+        return self._base.metadata
 
-        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
-        :return: a SQLAlchemy query
+    def create_all(self, check_first=True):
+        """Create the empty database (tables).
+
+        :param bool check_first: Defaults to True, don't issue CREATEs for tables already present
+         in the target database. Defers to :meth:`sqlalchemy.sql.schema.MetaData.create_all`
         """
-        return self.session.query(model)
-
-    def _count_model(self, model):
-        """Helps count the number of a given model in the database.
-
-        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
-        :rtype: int
-        """
-        return self._get_query(model).count()
-
-    def _list_model(self, model):
-        """Helps get all instances of the model in the database.
-
-        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
-        :rtype: list
-        """
-        return self._get_query(model).all()
+        self._metadata.create_all(self.engine, checkfirst=check_first)
 
     def drop_all(self, check_first=True):
         """Drops all tables from the database.
@@ -368,40 +422,20 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
         Action.store_drop(self.module_name, session=self.session)
 
     @classmethod
-    def _get_namespace_keyword(cls):
-        """Gets the keyword to use as the reference BEL namespace.
+    def ensure(cls, connection=None):
+        """Build a manager from a string, pass through a pre-built manager, or build the default manager.
 
-        :rtype: str
+        This function is a polymorphic constructor inspired by the
+        `Factory Method <https://en.wikipedia.org/wiki/Factory_method_pattern>`_
+
+        :param connection: can be either a already build manager or a connection string to build a manager with.
+        :type connection: Optional[str or AbstractManager]
+        :rtype: AbstractManager
         """
-        return '_{}'.format(cls.module_name.upper())
+        if connection is None or isinstance(connection, str):
+            return cls(connection=connection)
 
-    @classmethod
-    def _get_namespace_filter(cls):
-        """Get an SQLAlchemy filter for getting the reference BEL namespace.
+        if isinstance(connection, cls):
+            return connection
 
-        :return:
-        """
-        from pybel.manager.models import Namespace
-
-        _namespace_keyword = cls._get_namespace_keyword()
-
-        return and_(
-            Namespace.keyword == _namespace_keyword,
-            Namespace.url == _namespace_keyword
-        )
-
-    def _get_default_namespace(self):
-        """Get the reference BEL namespace if it exists.
-
-        :rtype: Optional[pybel.manager.models.Namespace
-        """
-        from pybel.manager.models import Namespace
-
-        namespace_filter = self._get_namespace_filter()
-        return self._get_query(Namespace).filter(namespace_filter).one_or_none()
-
-    def __repr__(self):
-        return '<{module_name}Manager url={url}>'.format(
-            module_name=self.module_name.capitalize(),
-            url=self.engine.url
-        )
+        raise TypeError('passed invalid type: {}'.format(connection.__class__.__name__))

@@ -20,7 +20,7 @@ class TemporaryConnectionMethodMixin(unittest.TestCase):
 
     def setUp(self):
         """Create a temporary file to use as a persistent database throughout tests in this class."""
-        super(TemporaryConnectionMethodMixin, self).setUp()
+        super().setUp()
 
         self.fd, self.path = tempfile.mkstemp()
         self.connection = 'sqlite:///' + self.path
@@ -42,7 +42,7 @@ class TemporaryConnectionMixin(unittest.TestCase):
         Subclasses of :class:`TemporaryCacheClsMixin` can extend :func:`TemporaryCacheClsMixin.setUpClass` to populate
         the database.
         """
-        super(TemporaryConnectionMixin, cls).setUpClass()
+        super().setUpClass()
 
         cls.fd, cls.path = tempfile.mkstemp()
         cls.connection = 'sqlite:///' + cls.path
@@ -62,7 +62,7 @@ class MockConnectionMixin(TemporaryConnectionMixin):
         """Add two class-level variables: ``mock_global_connection`` and ``mock_module_connection`` that can be
         used as context managers to mock the bio2bel connection getter functions."""
 
-        super(MockConnectionMixin, self).setUp()
+        super().setUp()
 
         def mock_connection():
             """Get the connection enclosed by this class.

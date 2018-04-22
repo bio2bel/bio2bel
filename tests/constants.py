@@ -19,7 +19,9 @@ class Model(TestBase):
     __tablename__ = 'test_model'
 
     id = Column(Integer, primary_key=True)
+
     model_id = Column(String(15), nullable=False, index=True, unique=True)
+    name = Column(String(255), nullable=False, index=True)
 
 
 class Manager(AbstractManager):
@@ -46,6 +48,13 @@ class Manager(AbstractManager):
         """
         return self._count_model(Model)
 
+    def list_model(self):
+        """Get all models.
+
+        :rtype: list[Model]
+        """
+        return self._list_model(Model)
+
     def is_populated(self):
         """Check if the database is already populated.
 
@@ -56,7 +65,10 @@ class Manager(AbstractManager):
     def populate(self):
         """Add five models to the store."""
         models = [
-            Model(model_id='MODEL:{}'.format(model_id))
+            Model(
+                model_id='MODEL:{}'.format(model_id),
+                name='{model_id}{model_id}{model_id}{model_id}{model_id}'.format(model_id=model_id),
+            )
             for model_id in range(5)
         ]
         self.session.add_all(models)

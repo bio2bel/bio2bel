@@ -151,7 +151,9 @@ class TestConnectionLoading(AbstractTemporaryCacheClassMixin):
 
     def test_get_missing_model(self):
         """Test population."""
+        self.assertFalse(self.manager.is_populated())
         self.manager.populate()
+        self.assertTrue(self.manager.is_populated())
 
         self.assertIsNone(self.manager.get_model_by_model_id(0))
         self.assertIsNone(self.manager.get_model_by_model_id(1))
