@@ -42,6 +42,13 @@ class Manager(AbstractManager):
         """
         return self._count_model(Model)
 
+    def is_populated(self):
+        """Checks if the database is already populated
+
+        :rtype: bool
+        """
+        return 0 < self.count_model()
+
     def populate(self):
         """Adds five models to the store"""
         models = [

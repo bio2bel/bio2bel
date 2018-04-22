@@ -39,6 +39,18 @@ class TestFailure(MockConnectionMixin):
             def base(self):
                 return TestBase
 
+            def count_model(self):
+                """
+                :rtype: int
+                """
+                return self._count_model(Model)
+
+            def is_populated(self):
+                """
+                :rtype: bool
+                """
+                return 0 < self.count_model()
+
             def populate(self):
                 self.session.add_all([
                     Model(model_id='model:{}'.format(model_id))

@@ -277,6 +277,13 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
         raise TypeError('passed invalid type: {}'.format(connection.__class__.__name__))
 
     @abstractmethod
+    def is_populated(self):
+        """Checks if the database is already populated
+
+        :rtype: bool
+        """
+
+    @abstractmethod
     def populate(self, *args, **kwargs):
         """Populate method should be overridden"""
 

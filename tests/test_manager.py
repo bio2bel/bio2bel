@@ -54,6 +54,9 @@ class TestManagerFailures(unittest.TestCase):
             def base(self):
                 return Base
 
+            def is_populated(self):
+                """Checks if the database is already populated"""
+
             def populate(self):
                 """Populates the database"""
 
@@ -71,6 +74,9 @@ class TestManagerFailures(unittest.TestCase):
             def base(self):
                 """Returns the declarative base"""
                 return Base
+
+            def is_populated(self):
+                """Checks if the database is already populated"""
 
             def populate(self):
                 """Populates the database"""
