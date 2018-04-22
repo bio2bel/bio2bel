@@ -41,22 +41,21 @@ class TemporaryConnectionMixin(unittest.TestCase):
 class MockConnectionMixin(TemporaryConnectionMixin):
     """Allows for testing with a consistent connection without changing the configuration."""
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         """Add two class-level variables: ``mock_global_connection`` and ``mock_module_connection`` that can be
         used as context managers to mock the bio2bel connection getter functions."""
 
-        super(MockConnectionMixin, cls).setUpClass()
+        super(MockConnectionMixin, self).setUp()
 
         def mock_connection():
             """Get the connection enclosed by this class.
 
             :rtype: str
             """
-            return cls.connection
+            return self.connection
 
-        cls.mock_global_connection = mock.patch('bio2bel.models.get_global_connection', mock_connection)
-        cls.mock_module_connection = mock.patch('bio2bel.utils.get_connection', mock_connection)
+        self.mock_global_connection = mock.patch('bio2bel.models.get_global_connection', mock_connection)
+        self.mock_module_connection = mock.patch('bio2bel.utils.get_connection', mock_connection)
 
 
 class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
