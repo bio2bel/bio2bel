@@ -68,8 +68,10 @@ class AbstractManagerBase(ABC, AbstractManagerConnectionMixin):  # TODO write do
 
     @property
     @abstractmethod
-    def base(self):
-        """Returns the abstract base. Usually sufficient to return an instance that is module-level.
+    def _base(self):
+        """Returns the declarative base.
+
+        It is usually sufficient to return an instance that is module-level.
 
         :rtype: sqlalchemy.ext.declarative.api.DeclarativeMeta
 
@@ -82,9 +84,16 @@ class AbstractManagerBase(ABC, AbstractManagerConnectionMixin):  # TODO write do
         Then just override this abstract property like:
 
         >>> @property
-        >>> def base(self):
+        >>> def _base(self):
         >>>     return Base
+
+        Note that this property could effectively also be a static method.
         """
+
+    @property
+    def _metadata(self):
+        """Returns the metadata object associated with this manager's declarative base."""
+        return self._base.metadata
 
     def create_all(self, check_first=True):
         """Create the empty database (tables)
@@ -92,7 +101,7 @@ class AbstractManagerBase(ABC, AbstractManagerConnectionMixin):  # TODO write do
         :param bool check_first: Defaults to True, don't issue CREATEs for tables already present
          in the target database. Defers to :meth:`sqlalchemy.sql.schema.MetaData.create_all`
         """
-        self.base.metadata.create_all(self.engine, checkfirst=check_first)
+        self._metadata.create_all(self.engine, checkfirst=check_first)
 
 
 class AbstractManagerFlaskMixin(AbstractManagerConnectionMixin):
@@ -187,7 +196,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
             module_name = 'mirtarbase'  # note: use lower case module names
 
             @property
-            def base(self):
+            def _base(self):
                 return Base
 
 
@@ -203,7 +212,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
             module_name = MODULE_NAME
 
             @property
-            def base(self):
+            def _base(self):
                 return Base
 
     **Populating the Database**
@@ -221,7 +230,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
             module_name = MODULE_NAME
 
             @property
-            def base(self):
+            def _base(self):
                 return Base
 
             def populate(self):
@@ -244,7 +253,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
             flask_admin_models = [Evidence, Interaction, Mirna, Species, Target]
 
             @property
-            def base(self):
+            def _base(self):
                 return Base
 
             def populate(self):
@@ -315,7 +324,7 @@ class AbstractManager(AbstractManagerFlaskMixin, AbstractManagerBase):
         :param bool check_first: Defaults to True, only issue DROPs for tables confirmed to be
           present in the target database. Defers to :meth:`sqlalchemy.sql.schema.MetaData.drop_all`
         """
-        self.base.metadata.drop_all(self.engine, checkfirst=check_first)
+        self._metadata.drop_all(self.engine, checkfirst=check_first)
         Action.store_drop(self.module_name, session=self.session)
 
     @classmethod

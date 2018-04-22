@@ -24,7 +24,7 @@ class Manager(AbstractManager):
     module_name = 'test'
 
     @property
-    def base(self):
+    def _base(self):
         return TestBase
 
     def get_model_by_model_id(self, model_id):

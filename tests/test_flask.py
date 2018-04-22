@@ -36,7 +36,7 @@ class TestFailure(MockConnectionMixin):
             flask_admin_models = [Model]
 
             @property
-            def base(self):
+            def _base(self):
                 return TestBase
 
             def count_model(self):

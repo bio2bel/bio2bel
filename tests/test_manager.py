@@ -29,7 +29,7 @@ class TestManagerFailures(unittest.TestCase):
 
         class Manager(AbstractManager):
             @property
-            def base(self):
+            def _base(self):
                 return declarative_base()
 
         with self.assertRaises(TypeError):
@@ -51,7 +51,7 @@ class TestManagerFailures(unittest.TestCase):
 
         class Manager(AbstractManager):
             @property
-            def base(self):
+            def _base(self):
                 return Base
 
             def is_populated(self):
@@ -71,7 +71,7 @@ class TestManagerFailures(unittest.TestCase):
             module_name = 'TESTOMG'
 
             @property
-            def base(self):
+            def _base(self):
                 """Returns the declarative base"""
                 return Base
 
