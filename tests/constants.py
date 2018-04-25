@@ -13,15 +13,31 @@ log = logging.getLogger(__name__)
 
 TestBase = declarative_base()
 
+NUMBER_TEST_MODELS = 5
+TEST_MODEL_ID_FORMAT = 'MODEL:{}'
+TEST_MODEL_NAME_FORMAT = '{0}{0}{0}{0}{0}'
+
 
 class Model(TestBase):
-    """A test model"""
+    """A test model."""
     __tablename__ = 'test_model'
 
     id = Column(Integer, primary_key=True)
 
     model_id = Column(String(15), nullable=False, index=True, unique=True)
     name = Column(String(255), nullable=False, index=True)
+
+    @staticmethod
+    def from_id(model_id):
+        """Create a test Model from a given integer identifier.
+
+        :param int model_id:
+        :rtype: Model
+        """
+        return Model(
+            model_id=TEST_MODEL_ID_FORMAT.format(model_id),
+            name=TEST_MODEL_NAME_FORMAT.format(model_id),
+        )
 
 
 class Manager(AbstractManager):
@@ -71,11 +87,8 @@ class Manager(AbstractManager):
     def populate(self, *args, **kwargs):
         """Add five models to the store."""
         models = [
-            Model(
-                model_id='MODEL:{}'.format(model_id),
-                name='{model_id}{model_id}{model_id}{model_id}{model_id}'.format(model_id=model_id),
-            )
-            for model_id in range(5)
+            Model.from_id(model_id)
+            for model_id in range(NUMBER_TEST_MODELS)
         ]
         self.session.add_all(models)
         self.session.commit()

@@ -78,6 +78,38 @@ class MockConnectionMixin(TemporaryConnectionMixin):
         self.mock_module_connection = mock.patch('bio2bel.utils.get_connection', mock_connection)
 
 
+class AbstractTemporaryCacheMethodMixin(TemporaryConnectionMethodMixin):
+    """Allows for testing with a consistent connection and creation of a manager class wrapping that connection.
+
+    Requires the class variable ``Manager`` to be overriden with the class corresponding to the manager to be used that
+    is a subclass of :class:`bio2bel.AbstractManager`.
+    """
+    Manager = ...
+    manager = None
+
+    def setUp(self):
+        """Set up the class with the given manager and allows an optional populate hook to be overridden."""
+        if self.Manager is ...:
+            raise Bio2BELTestMissingManagerError('Must override class variable "Manager" with subclass of '
+                                                 'bio2bel.AbstractManager')
+
+        if not issubclass(self.Manager, AbstractManager):
+            raise Bio2BELManagerTypeError('Manager must be a subclass of bio2bel.AbstractManager')
+
+        super().setUp()
+
+        self.manager = self.Manager(connection=self.connection)
+        self.populate()
+
+    def tearDown(self):
+        """Close the connection in the manager and deletes the temporary database."""
+        self.manager.session.close()
+        super().tearDown()
+
+    def populate(self):
+        """A stub that can be overridden to populate the manager."""
+
+
 class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
     """Allows for testing with a consistent connection and creation of a manager class wrapping that connection.
 

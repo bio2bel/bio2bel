@@ -6,7 +6,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 from functools import wraps
 
-from sqlalchemy import and_, create_engine
+from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from .cli_utils import (
@@ -153,41 +153,6 @@ class _FlaskMixin(AbstractManagerConnectionMixin):
         return app
 
 
-class _NamespaceMixin(AbstractManagerConnectionMixin):
-    @classmethod
-    def _get_namespace_keyword(cls):
-        """Gets the keyword to use as the reference BEL namespace.
-
-        :rtype: str
-        """
-        return '_{}'.format(cls.module_name.upper())
-
-    @classmethod
-    def _get_namespace_filter(cls):
-        """Get an SQLAlchemy filter for getting the reference BEL namespace.
-
-        :return:
-        """
-        from pybel.manager.models import Namespace
-
-        _namespace_keyword = cls._get_namespace_keyword()
-
-        return and_(
-            Namespace.keyword == _namespace_keyword,
-            Namespace.url == _namespace_keyword
-        )
-
-    def _get_default_namespace(self):
-        """Get the reference BEL namespace if it exists.
-
-        :rtype: Optional[pybel.manager.models.Namespace
-        """
-        from pybel.manager.models import Namespace
-
-        namespace_filter = self._get_namespace_filter()
-        return self.session.query(Namespace).filter(namespace_filter).one_or_none()
-
-
 class _QueryMixin(AbstractManagerConnectionMixin):
     def _get_query(self, model):
         """Gets a query for the given model using this manager's session.
@@ -260,7 +225,7 @@ class _CliMixin(AbstractManagerConnectionMixin):
         return main
 
 
-class AbstractManager(_FlaskMixin, _NamespaceMixin, _QueryMixin, _CliMixin, metaclass=AbstractManagerMeta):
+class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractManagerMeta):
     """This is a base class for implementing your own Bio2BEL manager.
 
     It already includes functions to handle configuration, construction of a connection to a database using SQLAlchemy,

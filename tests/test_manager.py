@@ -6,12 +6,11 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.declarative import declarative_base
 
 import tests.constants
-from bio2bel.abstractmanager import (
-    AbstractManager,
-)
+from bio2bel import AbstractManager
 from bio2bel.exc import Bio2BELMissingNameError, Bio2BELModuleCaseError
 from bio2bel.models import Action
 from bio2bel.testing import AbstractTemporaryCacheClassMixin, MockConnectionMixin, TemporaryConnectionMixin
+from tests.constants import NUMBER_TEST_MODELS
 
 
 class TestManagerFailures(unittest.TestCase):
@@ -154,6 +153,8 @@ class TestConnectionLoading(AbstractTemporaryCacheClassMixin):
         self.assertFalse(self.manager.is_populated())
         self.manager.populate()
         self.assertTrue(self.manager.is_populated())
+
+        self.assertEqual(NUMBER_TEST_MODELS, self.manager.count_model())
 
         self.assertIsNone(self.manager.get_model_by_model_id(0))
         self.assertIsNone(self.manager.get_model_by_model_id(1))

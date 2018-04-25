@@ -25,9 +25,10 @@ CLASSIFIERS = [
     'Topic :: Scientific/Engineering :: Bio-Informatics'
 ]
 INSTALL_REQUIRES = [
-    'sqlalchemy==1.1.15',
+    'sqlalchemy',
     'click',
     'pandas',
+    'tqdm',
 ]
 EXTRAS_REQUIRE = {
     'web': [
