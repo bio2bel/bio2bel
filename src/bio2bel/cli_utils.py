@@ -36,7 +36,7 @@ def add_cli_populate(main):
 
         manager.populate()
 
-    return populate
+    return main
 
 
 def add_cli_drop(main):
@@ -53,7 +53,7 @@ def add_cli_drop(main):
         if yes or click.confirm('Drop everything?'):
             manager.drop_all()
 
-    return drop
+    return main
 
 
 def add_cli_flask(main):
@@ -72,10 +72,15 @@ def add_cli_flask(main):
         app = manager.get_flask_admin_app(url='/')
         app.run(debug=debug, host=host, port=port)
 
-    return web
+    return main
 
 
 def add_cli_to_bel(main):
+    """Add several command to main :mod:`click` function related to export to BEL.
+
+    :param main: A click-decorated main function
+    """
+
     @main.command()
     @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
     @click.pass_obj
@@ -94,19 +99,36 @@ def add_cli_to_bel(main):
         graph = manager.to_bel()
         to_database(graph, connection=connection)
 
+    return main
+
 
 def add_cli_to_bel_namespace(main):
+    """Add a ``upload_bel_namespace`` command to main :mod:`click` function.
+
+    :param main: A click-decorated main function
+    """
+
     @main.command()
     @click.pass_obj
     def upload_bel_namespace(manager):
         """Upload names/identifiers to terminology store."""
-        manager.upload_bel_namespace()
+        namespace = manager.upload_bel_namespace()
+        click.echo('uploaded [{}] {}'.format(namespace.id, namespace))
+
+    return main
 
 
 def add_cli_summarize(main):
+    """Add a ``summarize`` command to main :mod:`click` function.
+
+    :param main: A click-decorated main function
+    """
+
     @main.command()
     @click.pass_obj
     def summarize(manager):
         """Summarize the contents of the database."""
         for name, count in sorted(manager.summarize().items()):
             click.echo('{}: {}'.format(name.capitalize(), count))
+
+    return main
