@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
-"""Provides abstractions over the management of SQLALChemy connections and sessions."""
+"""Provides abstractions over the management of SQLAlchemy connections and sessions."""
 
 import logging
+import time
 from abc import ABCMeta, abstractmethod
 from functools import wraps
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from .cli_utils import (
-    add_cli_drop, add_cli_flask, add_cli_populate, add_cli_summarize, add_cli_to_bel,
-    add_cli_to_bel_namespace,
-)
+from .cli_utils import add_cli_cache, add_cli_drop, add_cli_flask, add_cli_populate, add_cli_summarize, add_cli_to_bel
 from .exc import Bio2BELMissingModelsError, Bio2BELMissingNameError, Bio2BELModuleCaseError
 from .models import Action, create_all
 from .utils import get_connection
@@ -209,6 +207,7 @@ class _CliMixin(AbstractManagerConnectionMixin):
 
         add_cli_populate(main)
         add_cli_drop(main)
+        add_cli_cache(main)
 
         if hasattr(cls, 'flask_admin_models') and cls.flask_admin_models:
             add_cli_flask(main)

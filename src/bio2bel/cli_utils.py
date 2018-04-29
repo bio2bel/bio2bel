@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import os
 import sys
 
 import click
+
+from .utils import get_data_dir
 
 __all__ = [
     'add_cli_populate',
@@ -12,6 +15,7 @@ __all__ = [
     'add_cli_summarize',
     'add_cli_to_bel',
     'add_cli_to_bel_namespace',
+    'add_cli_cache',
 ]
 log = logging.getLogger(__name__)
 
@@ -130,5 +134,38 @@ def add_cli_summarize(main):
         """Summarize the contents of the database."""
         for name, count in sorted(manager.summarize().items()):
             click.echo('{}: {}'.format(name.capitalize(), count))
+
+    return main
+
+
+def add_cli_cache(main):
+    """Add several commands to main :mod:`click` function for handling the cache.
+
+    :param main: A click-decorated main function
+    """
+
+    @main.group()
+    def cache():
+        pass
+
+    @cache.command()
+    @click.pass_obj
+    def ls(manager):
+        """Lists files in the cache."""
+        data_dir = get_data_dir(manager.module_name)
+
+        for path in os.listdir(data_dir):
+            click.echo(path)
+
+    @cache.command()
+    @click.pass_obj
+    def clear(manager):
+        """Clears all files from the cache."""
+        data_dir = get_data_dir(manager.module_name)
+
+        for path in os.listdir(data_dir):
+            if path in {'config.ini', 'cache.db'}:
+                continue
+            os.remove(os.path.join(data_dir, path))
 
     return main
