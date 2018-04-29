@@ -11,6 +11,7 @@ from sqlalchemy import and_
 from tqdm import tqdm
 
 from .abstractmanager import AbstractManager
+from .cli_utils import add_cli_to_bel_namespace
 
 log = logging.getLogger(__name__)
 
@@ -187,3 +188,11 @@ class NamespaceManagerMixin(AbstractManager):
             return self._make_namespace()
 
         return self._update_namespace()
+
+
+    @classmethod
+    def get_cli(cls):
+        """Gets a :mod:`click` main function to use as a command line interface."""
+        main = super().get_cli()
+        add_cli_to_bel_namespace(main)
+        return main

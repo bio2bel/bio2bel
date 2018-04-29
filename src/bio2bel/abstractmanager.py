@@ -215,9 +215,6 @@ class _CliMixin(AbstractManagerConnectionMixin):
         if hasattr(cls, 'to_bel'):
             add_cli_to_bel(main)
 
-        if hasattr(cls, 'upload_bel_namespace'):
-            add_cli_to_bel_namespace(main)
-
         if hasattr(cls, 'summarize'):
             add_cli_summarize(main)
 
