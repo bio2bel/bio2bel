@@ -12,7 +12,6 @@ from bio2bel.models import Action
 from bio2bel.testing import AbstractTemporaryCacheClassMixin, MockConnectionMixin, TemporaryConnectionMixin
 from tests.constants import NUMBER_TEST_MODELS
 
-
 class TestManagerFailures(unittest.TestCase):
     """Test improperly implement AbstractManager."""
 
@@ -27,13 +26,14 @@ class TestManagerFailures(unittest.TestCase):
 
     def test_fail_instantiation_2(self):
         """Test that the abstract class can't be instantiated."""
+        base = declarative_base()
 
         class Manager(AbstractManager):
             """An incompletely implement AbstractManager"""
 
             @property
             def _base(self):
-                return declarative_base()
+                return base
 
         with self.assertRaises(TypeError):
             Manager()
@@ -52,14 +52,14 @@ class TestManagerFailures(unittest.TestCase):
 
     def test_undefined_module_name(self):
         """Test error thrown if module name isn't set."""
-        Base = declarative_base()
+        base = declarative_base()
 
         class Manager(AbstractManager):
             """An improperly implemented AbstractManager that is missing the module_name class variable."""
 
             @property
             def _base(self):
-                return Base
+                return base
 
             def is_populated(self):
                 """Check if the database is already populated."""
@@ -72,15 +72,14 @@ class TestManagerFailures(unittest.TestCase):
 
     def test_module_name_case(self):
         """Test error thrown if module name is weird case."""
-
-        Base = declarative_base()
+        base = declarative_base()
 
         class Manager(AbstractManager):
             module_name = 'TESTOMG'
 
             @property
             def _base(self):
-                return Base
+                return base
 
             def is_populated(self):
                 """Check if the database is already populated."""
@@ -133,6 +132,7 @@ class TestConnectionDropping(MockConnectionMixin, AbstractTemporaryCacheClassMix
 
 class TestConnectionLoading(AbstractTemporaryCacheClassMixin):
     """Tests the connection is loaded properly."""
+
     Manager = tests.constants.Manager
 
     def test_connection(self):
