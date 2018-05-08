@@ -35,8 +35,12 @@ EXTRAS_REQUIRE = {
         'flask',
         'flask-admin',
     ],
+    'namespaces': [
+        'pybel',
+    ]
 }
 TESTS_REQUIRE = [
+    'pybel',
     'flask',
     'flask-admin',
 ]
