@@ -86,6 +86,10 @@ class TestClassCacheBuild(unittest.TestCase):
 class TestTesting(make_temporary_cache_class_mixin(Manager)):
     """Tests :func:`bio2bel.testing.make_temporary_cache_class_mixin`."""
 
+    def test_self(self):
+        """Test that this test is an instance of AbstractTemporaryCacheClassMixin."""
+        self.assertIsInstance(self, AbstractTemporaryCacheClassMixin)
+
     def test_has_attributes(self):
         """Test class has a manager instance."""
         self.assertTrue(hasattr(self, 'manager'))
