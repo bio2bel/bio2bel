@@ -9,6 +9,7 @@ Table of Contents
    :maxdepth: 2
 
    introduction
+   repositories
    tutorial
    cli
 
