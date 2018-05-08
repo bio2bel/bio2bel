@@ -12,6 +12,15 @@ from unittest import mock
 from .abstractmanager import AbstractManager
 from .exc import Bio2BELManagerTypeError, Bio2BELTestMissingManagerError
 
+__all__ = [
+    'TemporaryConnectionMethodMixin',
+    'TemporaryConnectionMixin',
+    'MockConnectionMixin',
+    'AbstractTemporaryCacheMethodMixin',
+    'AbstractTemporaryCacheClassMixin',
+    'make_temporary_cache_class_mixin',
+]
+
 log = logging.getLogger(__name__)
 
 
