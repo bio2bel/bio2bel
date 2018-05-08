@@ -36,8 +36,7 @@ class AbstractManagerMeta(ABCMeta):
             cls._populate_original(self, *populate_args, **populate_kwargs)
 
             # Hack in the action storage
-            create_all(self.engine)
-            Action.store_populate(self.module_name, session=self.session)
+            self._store_populate()
 
         cls.populate = populate_wrapped
 
