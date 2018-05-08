@@ -12,9 +12,11 @@ Installation |pypi_version| |python_versions| |pypi_license|
 ------------------------------------------------------------
 Download the latest stable code from `PyPI <https://pypi.org/project/bio2bel>`_ with:
 
+.. code-block:: sh
+
    $ python3 -m pip install bio2bel
 
-or check the `installation instructions <http://bio2bel.readthedocs.io/en/latest/#installation>`_.
+or get the latest from GitHub with:
 
 .. code-block:: sh
 
@@ -22,6 +24,7 @@ or check the `installation instructions <http://bio2bel.readthedocs.io/en/latest
    $ cd bio2bel
    $ python3 -m pip install -e .
 
+or check the `installation instructions <http://bio2bel.readthedocs.io/en/latest/#installation>`_.
 
 .. |build| image:: https://travis-ci.org/bio2bel/bio2bel.svg?branch=master
     :target: https://travis-ci.org/bio2bel/bio2bel

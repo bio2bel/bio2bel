@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 
-"""Import hook for extensions"""
+"""Import hook for extensions."""
 
 import logging
 import sys
 
 from pkg_resources import iter_entry_points
 
+__all__ = [
+    'ExtensionImporter',
+]
+
 log = logging.getLogger(__name__)
 
 
 class ExtensionImporter(object):
-    """An importer and loader for package resources registered under a particular group"""
+    """An importer and loader for package resources registered under a particular group."""
 
     def __init__(self, group):
         """
@@ -28,7 +32,7 @@ class ExtensionImporter(object):
         sys.meta_path.append(self)
 
     def find_module(self, fullname, path=None):
-        """Find a module if its name starts with :code:`self.group` and is registered as a package resources entry_point."""
+        """Find a module if its name starts with :code:`self.group` and is registered."""
         if not fullname.startswith(self._group_with_dot):
             return
         end_name = fullname[len(self._group_with_dot):]
@@ -37,7 +41,7 @@ class ExtensionImporter(object):
                 return self
 
     def load_module(self, fullname):
-        """Load a module if its name starts with :code:`self.group` and is registered as a package resources entry_point."""
+        """Load a module if its name starts with :code:`self.group` and is registered."""
         if fullname in sys.modules:
             return sys.modules[fullname]
         end_name = fullname[len(self._group_with_dot):]
