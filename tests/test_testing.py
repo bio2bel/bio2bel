@@ -6,12 +6,49 @@ import unittest
 
 from bio2bel.exc import Bio2BELManagerTypeError, Bio2BELTestMissingManagerError
 from bio2bel.testing import (
-    AbstractTemporaryCacheClassMixin, make_temporary_cache_class_mixin,
+    AbstractTemporaryCacheClassMixin, AbstractTemporaryCacheMethodMixin, make_temporary_cache_class_mixin,
 )
 from tests.constants import Manager
 
 
-class TestBuild(unittest.TestCase):
+class TestMethodCacheBuild(unittest.TestCase):
+    """Tests the instantiation of concrete implementation of the :class:`AbstractManager`."""
+
+    def test_missing_manager(self):
+        """Test that an incorrectly built AbstractTemporaryCacheMethodMixin won't run."""
+
+        class TestMissingManagerMixin(AbstractTemporaryCacheMethodMixin):
+            """An :class:`AbstractTemporaryCacheClassMixin` that is missing the Manager class variable."""
+
+            def test_dummy(self):
+                """Test dummy."""
+                self.assertTrue(True)
+
+        with self.assertRaises(Bio2BELTestMissingManagerError):
+            m = TestMissingManagerMixin()
+            m.setUp()
+
+    def test_manager_wrong_type(self):
+        """Test that an incorrectly built AbstractTemporaryCacheClassMixin won't run."""
+
+        class RandomClass(object):
+            """This class is not the right type and should throw a Bio2BELManagerTypeError."""
+
+        class TestManagerWrongTypeMixin(AbstractTemporaryCacheMethodMixin):
+            """This is a malformed :class:`AbstractTemporaryCacheClassMixin`."""
+
+            Manager = RandomClass
+
+            def test_dummy(self):
+                """This is a dummy test."""
+                self.assertTrue(True)
+
+        with self.assertRaises(Bio2BELManagerTypeError):
+            m = TestManagerWrongTypeMixin()
+            m.setUp()
+
+
+class TestClassCacheBuild(unittest.TestCase):
     """Tests the instantiation of concrete implementation of the :class:`AbstractManager`."""
 
     def test_missing_manager(self):
