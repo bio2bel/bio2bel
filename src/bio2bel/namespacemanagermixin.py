@@ -3,13 +3,13 @@
 """Provide abstractions over BEL namespace generation procedures"""
 
 import logging
+import time
 from abc import abstractmethod
 
-import time
-from pybel.manager.models import Namespace
 from sqlalchemy import and_
 from tqdm import tqdm
 
+from pybel.manager.models import Namespace
 from .abstractmanager import AbstractManager
 from .cli_utils import add_cli_to_bel_namespace
 
@@ -71,7 +71,6 @@ class NamespaceManagerMixin(AbstractManager):
     @abstractmethod
     def _get_identifier(self, model):
         """Given an instance of namespace_model, extract its identifier"""
-        pass
 
     def _get_namespace_entries(self):
         return [
@@ -95,9 +94,8 @@ class NamespaceManagerMixin(AbstractManager):
     def _get_namespace_filter(cls):
         """Get an SQLAlchemy filter for getting the reference BEL namespace.
 
-        :return:
+        :return: A SQLAlchemy namespace filter
         """
-
         _namespace_keyword = cls._get_namespace_keyword()
 
         return and_(
@@ -188,7 +186,6 @@ class NamespaceManagerMixin(AbstractManager):
             return self._make_namespace()
 
         return self._update_namespace()
-
 
     @classmethod
     def get_cli(cls):

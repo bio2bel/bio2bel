@@ -4,10 +4,12 @@
 
 import logging
 
-from pybel.manager.models import Base as PyBELBase, Namespace, NamespaceEntry
+from click.testing import CliRunner
 
+import pybel
 from bio2bel.namespacemanagermixin import Bio2BELMissingNamespaceModelError, NamespaceManagerMixin
-from bio2bel.testing import AbstractTemporaryCacheMethodMixin, TemporaryConnectionMethodMixin
+from bio2bel.testing import AbstractTemporaryCacheMethodMixin, MockConnectionMixin, TemporaryConnectionMethodMixin
+from pybel.manager.models import Base as PyBELBase, Namespace, NamespaceEntry
 from tests.constants import Manager, Model, NUMBER_TEST_MODELS, TEST_MODEL_ID_FORMAT, TEST_MODEL_NAME_FORMAT
 
 log = logging.getLogger(__name__)
@@ -113,3 +115,30 @@ class TestAwesome(AbstractTemporaryCacheMethodMixin):
         self.assertIsNotNone(namespace)
         self.assertIsInstance(namespace, Namespace)
         self.assertEqual(NUMBER_TEST_MODELS + _number_to_add, namespace.entries.count())
+
+
+class TestCli(MockConnectionMixin):
+    """Tests the CLI for uploading a BEL namespace."""
+
+    def setUp(self):
+        """Set up a CliRunner and an accompanying CLI for each test."""
+        self.runner = CliRunner()
+        self.main = NamespaceManager.get_cli()
+        self.manager = Manager(connection=self.connection)
+        self.manager.populate()
+
+    def test_to_bel_namespace(self):
+        """Test the population function can be run."""
+        self.assertEqual(5, self.manager.count_model(), msg='manager should be populated')
+
+        pybel_manager = pybel.Manager(connection=self.connection)
+        self.assertEqual(0, pybel_manager.count_namespaces())
+
+        args = [
+            '--connection',
+            self.connection,
+            'upload_bel_namespace'
+        ]
+        self.runner.invoke(self.main, args)
+
+        self.assertEqual(1, pybel_manager.count_namespaces())
