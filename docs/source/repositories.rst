@@ -21,11 +21,11 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | MSigDB                 | |msig_pypi|         | |msig_docs|         | |msig_build|         | |msig_zenodo|         |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| miRTarBase             | |mirtarbase_pypi|   | |mirtarbase_docs|   | |mirtarbase_build|   |                       |
+| miRTarBase             | |mirtarbase_pypi|   | |mirtarbase_docs|   | |mirtarbase_build|   | |mirtarbase_zenodo|   |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| DrugBank               | |drugbank_pypi|     | |drugbank_docs|     | |drugbank_build|     |                       |
+| DrugBank               | |drugbank_pypi|     | |drugbank_docs|     | |drugbank_build|     | |drugbank_zenodo|     |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| InterPro               | |interpro_pypi|     | |interpro_docs|     | |interpro_build|     |                       |
+| InterPro               | |interpro_pypi|     | |interpro_docs|     | |interpro_build|     | |interpro_zenodo|     |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | GO                     | |go_pypi|           | |go_docs|           | |go_build|           |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
@@ -46,8 +46,6 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 | Entrez                 | |entrez_pypi|       | |entrez_docs|       | |entrez_build|       |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 
-
-
 .. |mirtarbase_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mirtarbase.svg
     :alt: Current miRTarBase version on PyPI
 
@@ -59,6 +57,9 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
     :target: https://travis-ci.org/bio2bel/mirtarbase
     :alt: miRTarBase Build Status
 
+.. |mirtarbase_zenodo| image:: https://zenodo.org/badge/95350968.svg
+    :target: https://zenodo.org/badge/latestdoi/95350968
+    :alt: Zenodo DOI
 
 
 .. |expasy_pypi| image:: https://img.shields.io/pypi/v/bio2bel_expasy.svg
@@ -89,6 +90,9 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
     :target: http://bio2bel.readthedocs.io/projects/interpro/en/latest/?badge=latest
     :alt: InterPro Documentation Status
 
+.. |interpro_zenodo| image:: https://zenodo.org/badge/98345182.svg
+    :target: https://zenodo.org/badge/latestdoi/98345182
+    :alt: Zenodo DOI
 
 
 .. |ctd_pypi| image:: https://img.shields.io/pypi/v/bio2bel_ctd.svg
@@ -250,6 +254,10 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 
 .. |drugbank_pypi| image:: https://img.shields.io/pypi/v/bio2bel_drugbank.svg
     :alt: Current version on PyPI
+
+.. |drugbank_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1243727.svg
+    :target: https://doi.org/10.5281/zenodo.1243727
+    :alt: Zenodo DOI
 
 
 

@@ -4,7 +4,6 @@ Bio2BEL
 
 Table of Contents
 =================
-
 .. toctree::
    :maxdepth: 2
 
