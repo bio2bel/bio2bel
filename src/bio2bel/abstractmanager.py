@@ -16,6 +16,7 @@ from .models import Action, create_all
 from .utils import get_connection
 
 __all__ = [
+    'AbstractManagerConnectionMixin',
     'AbstractManager',
 ]
 
@@ -294,7 +295,8 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
     **Populating the Database**
 
     Deciding how to populate the database using your SQLAlchemy models is incredibly creative and can't be given a good
-    example without checking real code. See the previously mentioned `implementation of a Manager <https://github.com/bio2bel/mirtarbase/blob/master/src/bio2bel_mirtarbase/manager.py>`_.
+    example without checking real code. See the previously mentioned `implementation of a Manager
+    <https://github.com/bio2bel/mirtarbase/blob/master/src/bio2bel_mirtarbase/manager.py>`_.
 
     .. code-block:: python
 
