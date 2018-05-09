@@ -9,7 +9,7 @@ from functools import wraps
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from .cli_utils import add_cli_cache, add_cli_flask, add_cli_populate, add_cli_summarize, add_cli_to_bel
+from .cli_utils import add_cli_cache, add_cli_drop, add_cli_flask, add_cli_populate, add_cli_summarize, add_cli_to_bel
 from .exc import Bio2BELMissingModelsError, Bio2BELMissingNameError, Bio2BELModuleCaseError
 from .models import Action, create_all
 from .utils import get_connection
@@ -205,7 +205,7 @@ class _CliMixin(AbstractManagerConnectionMixin):
 
     @staticmethod
     def _cli_add_drop(main):
-        add_cli_populate(main)
+        add_cli_drop(main)
 
     @staticmethod
     def _cli_add_cache(main):
