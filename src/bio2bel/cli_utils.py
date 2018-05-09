@@ -15,6 +15,7 @@ __all__ = [
     'add_cli_summarize',
     'add_cli_to_bel',
     'add_cli_to_bel_namespace',
+    'add_cli_clear_bel_namespace',
     'add_cli_cache',
 ]
 log = logging.getLogger(__name__)
@@ -118,6 +119,24 @@ def add_cli_to_bel_namespace(main):
         """Upload names/identifiers to terminology store."""
         namespace = manager.upload_bel_namespace()
         click.echo('uploaded [{}] {}'.format(namespace.id, namespace))
+
+    return main
+
+
+def add_cli_clear_bel_namespace(main):
+    """Add a ``clear_bel_namespace`` command to main :mod:`click` function.
+
+    :param main: A click-decorated main function
+    """
+
+    @main.command()
+    @click.pass_obj
+    def clear_bel_namespace(manager):
+        """Clear names/identifiers to terminology store."""
+        cleared = manager.clear_bel_namespace()
+
+        if cleared:
+            click.echo('namespace was cleared')
 
     return main
 

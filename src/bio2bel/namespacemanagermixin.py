@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from pybel.manager.models import Namespace
 from .abstractmanager import AbstractManager
-from .cli_utils import add_cli_to_bel_namespace
+from .cli_utils import add_cli_clear_bel_namespace, add_cli_to_bel_namespace
 
 log = logging.getLogger(__name__)
 
@@ -187,13 +187,26 @@ class NamespaceManagerMixin(AbstractManager):
 
         return self._update_namespace()
 
+    def clear_bel_namespace(self):
+        """Remove the default namespace if it exists."""
+        ns = self._get_default_namespace()
+        if ns is not None:
+            self.session.delete(ns)
+            return True
+        return False
+
     @staticmethod
     def _cli_add_to_bel_namespace(main):
         return add_cli_to_bel_namespace(main)
+
+    @staticmethod
+    def _cli_add_clear_bel_namespace(main):
+        return add_cli_clear_bel_namespace(main)
 
     @classmethod
     def get_cli(cls):
         """Gets a :mod:`click` main function to use as a command line interface."""
         main = super().get_cli()
         cls._cli_add_to_bel_namespace(main)
+        cls._cli_add_clear_bel_namespace(main)
         return main
