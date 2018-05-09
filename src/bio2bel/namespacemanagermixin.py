@@ -106,9 +106,8 @@ class NamespaceManagerMixin(AbstractManager):
     def _get_default_namespace(self):
         """Get the reference BEL namespace if it exists.
 
-        :rtype: Optional[pybel.manager.models.Namespace
+        :rtype: Optional[pybel.manager.models.Namespace]
         """
-
         namespace_filter = self._get_namespace_filter()
         return self._get_query(Namespace).filter(namespace_filter).one_or_none()
 
@@ -142,6 +141,7 @@ class NamespaceManagerMixin(AbstractManager):
 
         Default to using the identifier, but can be overridden to use the name instead.
 
+        :param pybel.manager.models.Namespace namespace:
         :rtype: set[pybel.manager.model.NamespaceEntry]
 
         >>> {term.identifier for term in namespace.entries}
