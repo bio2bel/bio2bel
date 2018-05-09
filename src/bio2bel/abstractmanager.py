@@ -9,7 +9,7 @@ from functools import wraps
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from .cli_utils import add_cli_cache, add_cli_drop, add_cli_flask, add_cli_populate, add_cli_summarize, add_cli_to_bel
+from .cli_utils import add_cli_cache, add_cli_flask, add_cli_populate, add_cli_summarize, add_cli_to_bel
 from .exc import Bio2BELMissingModelsError, Bio2BELMissingNameError, Bio2BELModuleCaseError
 from .models import Action, create_all
 from .utils import get_connection
@@ -199,23 +199,47 @@ class _CliMixin(AbstractManagerConnectionMixin):
 
         return main
 
+    @staticmethod
+    def _cli_add_populate(main):
+        add_cli_populate(main)
+
+    @staticmethod
+    def _cli_add_drop(main):
+        add_cli_populate(main)
+
+    @staticmethod
+    def _cli_add_cache(main):
+        add_cli_cache(main)
+
+    @staticmethod
+    def _cli_add_flask(main):
+        add_cli_flask(main)
+
+    @staticmethod
+    def _cli_add_to_bel(main):
+        add_cli_to_bel(main)
+
+    @staticmethod
+    def _cli_add_summarize(main):
+        add_cli_summarize(main)
+
     @classmethod
     def get_cli(cls):
         """Gets a :mod:`click` main function to use as a command line interface."""
         main = cls._get_cli_main()
 
-        add_cli_populate(main)
-        add_cli_drop(main)
-        add_cli_cache(main)
+        cls._cli_add_populate(main)
+        cls._cli_add_drop(main)
+        cls._cli_add_cache(main)
 
         if hasattr(cls, 'flask_admin_models') and cls.flask_admin_models:
-            add_cli_flask(main)
+            cls._cli_add_flask(main)
 
         if hasattr(cls, 'to_bel'):
-            add_cli_to_bel(main)
+            cls._cli_add_to_bel(main)
 
         if hasattr(cls, 'summarize'):
-            add_cli_summarize(main)
+            cls._cli_add_summarize(main)
 
         return main
 
