@@ -201,27 +201,27 @@ class _CliMixin(AbstractManagerConnectionMixin):
 
     @staticmethod
     def _cli_add_populate(main):
-        add_cli_populate(main)
+        return add_cli_populate(main)
 
     @staticmethod
     def _cli_add_drop(main):
-        add_cli_drop(main)
+        return add_cli_drop(main)
 
     @staticmethod
     def _cli_add_cache(main):
-        add_cli_cache(main)
+        return add_cli_cache(main)
 
     @staticmethod
     def _cli_add_flask(main):
-        add_cli_flask(main)
+        return add_cli_flask(main)
 
     @staticmethod
     def _cli_add_to_bel(main):
-        add_cli_to_bel(main)
+        return add_cli_to_bel(main)
 
     @staticmethod
     def _cli_add_summarize(main):
-        add_cli_summarize(main)
+        return add_cli_summarize(main)
 
     @classmethod
     def get_cli(cls):
