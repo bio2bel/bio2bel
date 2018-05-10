@@ -42,8 +42,8 @@ Bio2BEL is tested with Python3 on Linux using `Travis CI <https://travis-ci.org/
 
 from pkg_resources import iter_entry_points
 
-from . import abstractmanager, cli_utils, utils
-from .abstractmanager import *
+from . import abstract_manager, cli_utils, utils
+from .abstract_manager import *
 from .cli_utils import *
 from .downloading import *
 from .utils import *
@@ -79,4 +79,9 @@ __email__ = 'charles.hoyt@scai.fraunhofer.de'
 __license__ = 'Apache 2.0 License'
 __copyright__ = 'Copyright (c) 2017-2018 Charles Tapley Hoyt'
 
-__all__ = entries + abstractmanager.__all__ + utils.__all__ + cli_utils.__all__
+__all__ = (
+        entries +
+        abstract_manager.__all__ +
+        utils.__all__ +
+        cli_utils.__all__
+)

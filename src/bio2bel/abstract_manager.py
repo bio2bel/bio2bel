@@ -232,7 +232,7 @@ class _CliMixin(AbstractManagerConnectionMixin):
         cls._cli_add_drop(main)
         cls._cli_add_cache(main)
 
-        if hasattr(cls, 'flask_admin_models') and cls.flask_admin_models:
+        if hasattr(cls, 'flask_admin_models') and cls.flask_admin_models is not ...:
             cls._cli_add_flask(main)
 
         if hasattr(cls, 'to_bel'):
