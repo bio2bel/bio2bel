@@ -3,14 +3,13 @@
 """Provide abstractions over BEL namespace generation procedures"""
 
 import logging
-import time
 from abc import abstractmethod
 
-from sqlalchemy import and_
+import time
 from tqdm import tqdm
 
 from pybel.manager.models import Namespace
-from .abstractmanager import AbstractManager
+from .abstract_manager import AbstractManager
 from .cli_utils import add_cli_clear_bel_namespace, add_cli_to_bel_namespace
 
 log = logging.getLogger(__name__)
@@ -65,34 +64,35 @@ class NamespaceManagerMixin(AbstractManager):
         super().__init__(*args, **kwargs)
 
     @abstractmethod
-    def _create_namespace_entry_from_model(self, model, namespace=None):
+    def _create_namespace_entry_from_model(self, model, namespace):
         """
         :param model: The model to convert
-        :type namespace: Optional[pybel.manager.models.Namespace]
+        :type namespace: pybel.manager.models.Namespace
         :rtype: Optional[pybel.manager.models.NamespaceEntry]
         """
 
+    def _get_encoding(self, model):
+        """Get the encoding for the model"""
+
+    def _get_name(self, model):
+        """Get the name for the namespace model"""
+
+    @staticmethod
     @abstractmethod
-    def _get_identifier(self, model):
+    def _get_identifier(model):
         """Given an instance of namespace_model, extract its identifier
 
         :param model: The model to convert
         :rtype: str
         """
 
-    def _get_namespace_entries(self):
-        return [
-            namespace_entry
-            for namespace_entry in (
-                self._create_namespace_entry_from_model(model)
-                for model in self._iterate_namespace_models()
-            )
-            if namespace_entry is not None
-        ]
-
     def _iterate_namespace_models(self):
         """Return an iterator over the models to be converted to the namespace"""
-        return tqdm(self._get_query(self.namespace_model), total=self._count_model(self.namespace_model))
+        return tqdm(
+            self._get_query(self.namespace_model),
+            total=self._count_model(self.namespace_model),
+            desc='Getting {} models'.format(self.module_name)
+        )
 
     @classmethod
     def _get_namespace_keyword(cls):
@@ -100,55 +100,57 @@ class NamespaceManagerMixin(AbstractManager):
 
         :rtype: str
         """
-        return '_{}'.format(cls.module_name.upper())
+        return cls.module_name.upper()
 
     @classmethod
-    def _get_namespace_filter(cls):
-        """Get an SQLAlchemy filter for getting the reference BEL namespace.
+    def _get_namespace_url(cls):
+        """Gets the URL to use as the reference BEL namespace. Not really the real one.
 
-        :return: A SQLAlchemy namespace filter
+        :rtype: str
         """
-        _namespace_keyword = cls._get_namespace_keyword()
-
-        return and_(
-            Namespace.keyword == _namespace_keyword,
-            Namespace.url == _namespace_keyword
-        )
+        return '_{}'.format(cls.module_name.upper())
 
     def _get_default_namespace(self):
         """Get the reference BEL namespace if it exists.
 
         :rtype: Optional[pybel.manager.models.Namespace]
         """
-        namespace_filter = self._get_namespace_filter()
-        return self._get_query(Namespace).filter(namespace_filter).one_or_none()
+        return self._get_query(Namespace).filter(Namespace.url == self._get_namespace_url()).one_or_none()
+
+    def _get_namespace_entries(self, namespace):
+        return [
+            namespace_entry
+            for namespace_entry in (
+                self._create_namespace_entry_from_model(model, namespace)
+                for model in self._iterate_namespace_models()
+            )
+            if namespace_entry is not None
+        ]
 
     def _make_namespace(self):
         """
         :rtype: pybel.manager.models.Namespace
         """
-        from pybel.manager.models import Namespace
-
-        entries = self._get_namespace_entries()
-        _namespace_keyword = self._get_namespace_keyword()
-        ns = Namespace(
-            name=_namespace_keyword,
-            keyword=_namespace_keyword,
-            url=_namespace_keyword,
+        namespace = Namespace(
+            name=self.module_name,
+            keyword=self._get_namespace_keyword(),
+            url=self._get_namespace_url(),
             version=str(time.asctime()),
-            entries=entries,
         )
-        self.session.add(ns)
+        self.session.add(namespace)
+
+        entries = self._get_namespace_entries(namespace)
+        self.session.add_all(entries)
 
         t = time.time()
         log.info('committing models')
         self.session.commit()
         log.info('committed models in %.2f seconds', time.time() - t)
 
-        return ns
+        return namespace
 
     @staticmethod
-    def _build_old_entry_set(namespace):
+    def _get_old_entry_identifiers(namespace):
         """Converts PyBEL generalized namespace entries to a set.
 
         Default to using the identifier, but can be overridden to use the name instead.
@@ -160,19 +162,18 @@ class NamespaceManagerMixin(AbstractManager):
         """
         return {term.identifier for term in namespace.entries}
 
-    def _update_namespace(self):
+    def _update_namespace(self, namespace):
         """Only call this if namespace won't be none!
 
-        :rtype: pybel.manager.models.Namespace
+        :type namespace: pybel.manager.models.Namespace
         """
-        namespace = self._get_default_namespace()
 
-        old_entry_set = self._build_old_entry_set(namespace)
+        old_entry_identifiers = self._get_old_entry_identifiers(namespace)
         new_count = 0
         skip_count = 0
 
         for model in self._iterate_namespace_models():
-            if self._get_identifier(model) in old_entry_set:
+            if self._get_identifier(model) in old_entry_identifiers:
                 continue
 
             entry = self._create_namespace_entry_from_model(model, namespace=namespace)
@@ -188,28 +189,35 @@ class NamespaceManagerMixin(AbstractManager):
         self.session.commit()
         log.info('committed models in %.2f seconds', time.time() - t)
 
-        return namespace
-
-    def upload_bel_namespace(self):
+    def upload_bel_namespace(self, update=False):
         """
+        :param bool update: Should the namespae be updated first?
         :rtype: pybel.manager.models.Namespace
         """
         if not self.is_populated():
             self.populate()
 
-        ns = self._get_default_namespace()
+        namespace = self._get_default_namespace()
 
-        if ns is None:
+        if namespace is None:
+            log.info('making namespace for %s', self.module_name)
             return self._make_namespace()
 
-        return self._update_namespace()
+        if update:
+            self._update_namespace(namespace)
+
+        return namespace
 
     def clear_bel_namespace(self):
         """Remove the default namespace if it exists."""
         ns = self._get_default_namespace()
 
         if ns is not None:
+            for entry in tqdm(ns.entries, desc='deleting entries in {}'.format(self.module_name)):
+                self.session.delete(entry)
             self.session.delete(ns)
+
+            log.info('committing deletions')
             self.session.commit()
             return ns
 

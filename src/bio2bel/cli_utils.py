@@ -114,10 +114,11 @@ def add_cli_to_bel_namespace(main):
     """
 
     @main.command()
+    @click.option('-u', '--update', is_flag=True)
     @click.pass_obj
-    def upload_bel_namespace(manager):
+    def upload_bel_namespace(manager, update):
         """Upload names/identifiers to terminology store."""
-        namespace = manager.upload_bel_namespace()
+        namespace = manager.upload_bel_namespace(update=update)
         click.echo('uploaded [{}] {}'.format(namespace.id, namespace))
 
     return main
@@ -165,7 +166,7 @@ def add_cli_cache(main):
 
     @main.group()
     def cache():
-        pass
+        """Manage cached data"""
 
     @cache.command()
     @click.pass_obj
