@@ -66,16 +66,28 @@ class NamespaceManagerMixin(AbstractManager):
 
     @abstractmethod
     def _create_namespace_entry_from_model(self, model, namespace=None):
-        """"""
+        """
+        :param model: The model to convert
+        :type namespace: Optional[pybel.manager.models.Namespace]
+        :rtype: Optional[pybel.manager.models.NamespaceEntry]
+        """
 
     @abstractmethod
     def _get_identifier(self, model):
-        """Given an instance of namespace_model, extract its identifier"""
+        """Given an instance of namespace_model, extract its identifier
+
+        :param model: The model to convert
+        :rtype: str
+        """
 
     def _get_namespace_entries(self):
         return [
-            self._create_namespace_entry_from_model(model)
-            for model in self._iterate_namespace_models()
+            namespace_entry
+            for namespace_entry in (
+                self._create_namespace_entry_from_model(model)
+                for model in self._iterate_namespace_models()
+            )
+            if namespace_entry is not None
         ]
 
     def _iterate_namespace_models(self):
@@ -157,17 +169,22 @@ class NamespaceManagerMixin(AbstractManager):
 
         old_entry_set = self._build_old_entry_set(namespace)
         new_count = 0
+        skip_count = 0
 
         for model in self._iterate_namespace_models():
             if self._get_identifier(model) in old_entry_set:
                 continue
 
-            new_count += 1
             entry = self._create_namespace_entry_from_model(model, namespace=namespace)
+            if entry is None or entry.name is None:
+                skip_count += 1
+                continue
+
+            new_count += 1
             self.session.add(entry)
 
         t = time.time()
-        log.info('got %d new entries. committing models', new_count)
+        log.info('got %d new entries. skipped %d entries missing names. committing models', new_count, skip_count)
         self.session.commit()
         log.info('committed models in %.2f seconds', time.time() - t)
 
