@@ -96,6 +96,12 @@ class TestAwesome(AbstractTemporaryCacheMethodMixin):
             self.assertEqual(TEST_MODEL_NAME_FORMAT.format(i), model.name)
             self.assertEqual(namespace, model.namespace)
 
+        # TODO fix cascade on namespace to namespace entries
+        # self.manager.clear_bel_namespace()
+        # self.assertIsNone(self.manager._get_default_namespace())
+        # self.assertEqual(0, self.manager.session.query(Namespace).count())
+        # self.assertEqual(0, self.manager.session.query(NamespaceEntry).count())
+
     def test_update_namespace(self):
         self.manager._make_namespace()
 
