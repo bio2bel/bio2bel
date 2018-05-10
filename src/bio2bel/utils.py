@@ -3,16 +3,15 @@
 import logging
 import os
 from configparser import ConfigParser
-from functools import wraps
 
-from .constants import BIO2BEL_DIR, DEFAULT_CACHE_CONNECTION, DEFAULT_CONFIG_PATH
-from .models import Action
+from .constants import BIO2BEL_DIR, DEFAULT_CACHE_CONNECTION, DEFAULT_CONFIG_PATH, VERSION
 
 log = logging.getLogger(__name__)
 
 __all__ = [
     'get_data_dir',
     'get_connection',
+    'get_version',
 ]
 
 
@@ -110,3 +109,7 @@ def get_connection(module_name, connection=None):
     log.debug('load default connection string from %s', default_connection)
 
     return default_connection
+
+
+def get_version():
+    return VERSION

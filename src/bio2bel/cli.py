@@ -12,6 +12,7 @@ from pkg_resources import VersionConflict, iter_entry_points
 
 from .constants import DEFAULT_CACHE_CONNECTION
 from .models import Action
+from .utils import get_version
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -71,7 +72,7 @@ for entry_point in iter_entry_points(group='bio2bel', name=None):
         log.debug('no command bio2bel_%s.cli:web', entry)
 
 main = click.Group(commands=main_commands)
-main.help = "Bio2BEL Command Line Utilities on {}".format(sys.executable)
+main.help = "Bio2BEL Command Line Utilities on {}\nBio2BEL v{}".format(sys.executable, get_version())
 
 
 @main.command(help='Populate: {}'.format(', '.join(sorted(populate_commands))))
