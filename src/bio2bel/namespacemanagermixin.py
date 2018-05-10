@@ -207,10 +207,11 @@ class NamespaceManagerMixin(AbstractManager):
     def clear_bel_namespace(self):
         """Remove the default namespace if it exists."""
         ns = self._get_default_namespace()
+
         if ns is not None:
             self.session.delete(ns)
-            return True
-        return False
+            self.session.commit()
+            return ns
 
     @staticmethod
     def _cli_add_to_bel_namespace(main):

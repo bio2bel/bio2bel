@@ -133,10 +133,10 @@ def add_cli_clear_bel_namespace(main):
     @click.pass_obj
     def clear_bel_namespace(manager):
         """Clear names/identifiers to terminology store."""
-        cleared = manager.clear_bel_namespace()
+        namespace = manager.clear_bel_namespace()
 
-        if cleared:
-            click.echo('namespace was cleared')
+        if namespace:
+            click.echo('namespace {} was cleared'.format(namespace))
 
     return main
 
