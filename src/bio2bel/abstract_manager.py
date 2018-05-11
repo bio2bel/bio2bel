@@ -50,7 +50,7 @@ class AbstractManagerConnectionMixin(object):
 
     Example for InterPro:
 
-    >>> from bio2bel.abstractmanager import AbstractManagerConnectionMixin
+    >>> from bio2bel import AbstractManagerConnectionMixin
     >>> class Manager(AbstractManagerConnectionMixin):
     >>>     module_name = 'interpro'
 
