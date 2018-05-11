@@ -5,7 +5,6 @@
 import importlib
 import logging
 import sys
-import time
 
 import click
 from pkg_resources import VersionConflict, iter_entry_points
@@ -17,27 +16,29 @@ from .utils import get_version
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
+modules = {}
 cli_modules = {}
 main_commands = {}
 deploy_commands = {}
 populate_commands = {}
 drop_commands = {}
 web_commands = {}
+summarize_commands = {}
 
 for entry_point in iter_entry_points(group='bio2bel', name=None):
     entry = entry_point.name
 
     try:
-        bio2bel_module = entry_point.load()
+        modules[entry] = entry_point.load()
     except VersionConflict:
-        log.warning('Version conflict in %s', entry)
+        log.exception('Version conflict in %s', entry)
         continue
-    except Exception:
-        log.warning('Issue with importing module %s', entry)
+    except ImportError:
+        log.exception('Issue with importing module %s', entry)
         continue
 
     try:
-        cli_modules[entry] = bio2bel_module.cli
+        cli_modules[entry] = modules[entry].cli
     except AttributeError:
         try:
             cli_modules[entry] = importlib.import_module('bio2bel_{}.cli'.format(entry))
@@ -71,31 +72,43 @@ for entry_point in iter_entry_points(group='bio2bel', name=None):
     except AttributeError:
         log.debug('no command bio2bel_%s.cli:web', entry)
 
+    try:
+        summarize_commands[entry] = cli_modules[entry].summarize
+    except AttributeError:
+        log.debug('no command bio2bel_%s.cli:summarize', entry)
+
 main = click.Group(commands=main_commands)
 main.help = "Bio2BEL Command Line Utilities on {}\nBio2BEL v{}".format(sys.executable, get_version())
 
 
 @main.command(help='Populate: {}'.format(', '.join(sorted(populate_commands))))
+@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+@click.option('--reset', is_flag=True, help='Nuke database first')
+@click.option('--force', is_flag=True, help='Force overwrite if already populated')
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
-@click.pass_context
-def populate(ctx, skip):
+def populate(connection, reset, force, skip):
     """Run all populate commands."""
-    skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
 
-    for idx, (name, command) in enumerate(sorted(populate_commands.items()), start=1):
-        if name in skip:
-            click.echo('skipping {}'.format(name))
-            continue
+    _modules = [
+        (name, module)
+        for name, module in modules.items()
+        if name not in skip
+    ]
 
-        click.echo('{} [{}/{}] populating {}'.format(time.strftime('%H:%M'), idx, len(populate_commands), name))
+    for idx, (name, module) in enumerate(sorted(_modules), start=1):
+        manager = module.Manager(connection=connection)
 
-        try:
-            command.invoke(ctx)
-        except Exception:
-            log.exception('error during population of %s', name)
-            continue
+        if reset:
+            click.echo('Deleting the previous instance of the database')
+            manager.drop_all()
+            click.echo('Creating new models')
+            manager.create_all()
 
-        click.echo('{} finished populating {}'.format(time.strftime('%H:%M'), name))
+        if manager.is_populated() and not force:
+            click.echo('Database already populated. Use --force to overwrite')
+            sys.exit(0)
+
+        manager.populate()
 
 
 @main.command(help='Drop: {}'.format(', '.join(sorted(drop_commands))))
@@ -127,6 +140,22 @@ def deploy(ctx, skip):
             continue
 
         click.echo('deploying {}'.format(name))
+        command.invoke(ctx)
+
+
+@main.command()
+@click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
+@click.pass_context
+def summarize(ctx, skip):
+    """Run all summarize commands."""
+    skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
+
+    for name, command in sorted(summarize_commands.items()):
+        if name in skip:
+            click.echo('skipping {}'.format(name))
+            continue
+
+        click.echo(name)
         command.invoke(ctx)
 
 
