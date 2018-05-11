@@ -28,16 +28,21 @@ def add_cli_populate(main):
     """
 
     @main.command()
-    @click.option('--reset', is_flag=True)
+    @click.option('--reset', is_flag=True, help='Nuke database first')
+    @click.option('--force', is_flag=True, help='Force overwrite if already populated')
     @click.pass_obj
-    def populate(manager, reset):
+    def populate(manager, reset, force):
         """Populates the database"""
 
         if reset:
-            log.info('Deleting the previous instance of the database')
+            click.echo('Deleting the previous instance of the database')
             manager.drop_all()
-            log.info('Creating new models')
+            click.echo('Creating new models')
             manager.create_all()
+
+        if manager.is_populated() and not force:
+            click.echo('Database already populated. Use --force to overwrite')
+            sys.exit(0)
 
         manager.populate()
 
