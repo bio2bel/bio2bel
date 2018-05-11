@@ -81,6 +81,17 @@ main = click.Group(commands=main_commands)
 main.help = "Bio2BEL Command Line Utilities on {}\nBio2BEL v{}".format(sys.executable, get_version())
 
 
+def _iterate_managers(connection, skip):
+    _modules = sorted(
+        (name, module)
+        for name, module in modules.items()
+        if name not in skip
+    )
+    return len(_modules), (
+        (idx, name, module.Manager(connection=connection))
+        for idx, (name, module) in enumerate(_modules, start=1)
+    )
+
 @main.command(help='Populate: {}'.format(', '.join(sorted(populate_commands))))
 @click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 @click.option('--reset', is_flag=True, help='Nuke database first')
@@ -88,75 +99,53 @@ main.help = "Bio2BEL Command Line Utilities on {}\nBio2BEL v{}".format(sys.execu
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 def populate(connection, reset, force, skip):
     """Run all populate commands."""
+    lm, manager_list = _iterate_managers(connection, skip)
 
-    _modules = [
-        (name, module)
-        for name, module in modules.items()
-        if name not in skip
-    ]
-
-    for idx, (name, module) in enumerate(sorted(_modules), start=1):
-        manager = module.Manager(connection=connection)
+    for idx, name, manager in manager_list:
+        click.echo(
+            click.style('[{}/{}] '.format(idx, lm, name), fg='blue', bold=True) +
+            click.style('populating {}'.format(name), fg='cyan', bold=True))
 
         if reset:
-            click.echo('Deleting the previous instance of the database')
+            click.echo('deleting the previous instance of the database')
             manager.drop_all()
-            click.echo('Creating new models')
+            click.echo('creating new models')
             manager.create_all()
 
-        if manager.is_populated() and not force:
-            click.echo('Database already populated. Use --force to overwrite')
-            sys.exit(0)
+        elif manager.is_populated() and not force:
+            click.echo('👍 {} is already populated. use --force to overwrite'.format(name), color='red')
+            continue
 
-        manager.populate()
+        try:
+            manager.populate()
+        except:
+            log.exception('%s population failed', name)
+            click.echo(click.style('👎 {} population failed'.format(name), fg='red', bold=True))
+
 
 
 @main.command(help='Drop: {}'.format(', '.join(sorted(drop_commands))))
+@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
-@click.pass_context
-def drop(ctx, skip):
+def drop(connection, skip):
     """Run all drop commands."""
-    skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
-
-    for name, command in sorted(drop_commands.items()):
-        if name in skip:
-            click.echo('skipping {}'.format(name))
-            continue
-
-        click.echo('dropping {}'.format(name))
-        command.invoke(ctx)
-
-
-@main.command(help='Deploy: {}'.format(', '.join(sorted(deploy_commands))))
-@click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
-@click.pass_context
-def deploy(ctx, skip):
-    """Run all deploy commands."""
-    skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
-
-    for name, command in sorted(deploy_commands.items()):
-        if name in skip:
-            click.echo('skipping {}'.format(name))
-            continue
-
-        click.echo('deploying {}'.format(name))
-        command.invoke(ctx)
+    for idx, name, manager in _iterate_managers(connection, skip):
+        click.echo(click.style('dropping {}'.format(name), fg='cyan', bold=True))
+        manager.drop_all()
 
 
 @main.command()
+@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
-@click.pass_context
-def summarize(ctx, skip):
+def summarize(connection, skip):
     """Run all summarize commands."""
-    skip = set(ctx.params.pop('skip')) if 'skip' in ctx.params else set()
-
-    for name, command in sorted(summarize_commands.items()):
-        if name in skip:
-            click.echo('skipping {}'.format(name))
-            continue
-
-        click.echo(name)
-        command.invoke(ctx)
+    for idx, name, manager in _iterate_managers(connection, skip):
+        click.echo(click.style(name, fg='cyan', bold=True))
+        if not manager.is_populated():
+            click.echo('unpopulated {}'.format(name))
+        else:
+            for field_name, count in sorted(manager.summarize().items()):
+                click.echo('{}: {}'.format(field_name.capitalize(), count))
 
 
 @main.command()
