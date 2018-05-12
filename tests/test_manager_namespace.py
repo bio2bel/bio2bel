@@ -7,7 +7,7 @@ import logging
 from click.testing import CliRunner
 
 import pybel
-from bio2bel.namespacemanagermixin import Bio2BELMissingNamespaceModelError, NamespaceManagerMixin
+from bio2bel.namespace_manager import Bio2BELMissingNamespaceModelError, NamespaceManagerMixin
 from bio2bel.testing import AbstractTemporaryCacheMethodMixin, MockConnectionMixin, TemporaryConnectionMethodMixin
 from pybel.manager.models import Base as PyBELBase, Namespace, NamespaceEntry
 from tests.constants import Manager, Model, NUMBER_TEST_MODELS, TEST_MODEL_ID_FORMAT, TEST_MODEL_NAME_FORMAT
