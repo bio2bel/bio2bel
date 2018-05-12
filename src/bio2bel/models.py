@@ -24,12 +24,15 @@ def create_all(engine, checkfirst=True):
     Base.metadata.create_all(engine, checkfirst=checkfirst)
 
 
-def _make_session():
+def _make_session(connection=None):
     """Make a session.
 
+    :type connection: Optional[str]
     :rtype: sqlalchemy.orm.Session
     """
-    connection = get_global_connection()
+    if connection is None:
+        connection = get_global_connection()
+
     engine = create_engine(connection)
 
     create_all(engine)

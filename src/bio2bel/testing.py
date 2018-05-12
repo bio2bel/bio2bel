@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from .abstractmanager import AbstractManager
+from .abstract_manager import AbstractManager
 from .exc import Bio2BELManagerTypeError, Bio2BELTestMissingManagerError
 
 __all__ = [

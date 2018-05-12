@@ -4,6 +4,7 @@
 
 import importlib
 import logging
+import os
 import sys
 
 import click
@@ -14,16 +15,10 @@ from .models import Action
 from .utils import get_version
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 modules = {}
 cli_modules = {}
 main_commands = {}
-deploy_commands = {}
-populate_commands = {}
-drop_commands = {}
-web_commands = {}
-summarize_commands = {}
 
 for entry_point in iter_entry_points(group='bio2bel', name=None):
     entry = entry_point.name
@@ -52,31 +47,6 @@ for entry_point in iter_entry_points(group='bio2bel', name=None):
         log.warning('no command group bio2bel_%s.cli:main', entry)
         continue
 
-    try:
-        deploy_commands[entry] = cli_modules[entry].deploy
-    except AttributeError:
-        log.debug('no command bio2bel_%s.cli:deploy', entry)
-
-    try:
-        populate_commands[entry] = cli_modules[entry].populate
-    except AttributeError:
-        log.debug('no command bio2bel_%s.cli:populate', entry)
-
-    try:
-        drop_commands[entry] = cli_modules[entry].drop
-    except AttributeError:
-        log.debug('no command bio2bel_%s.cli:drop', entry)
-
-    try:
-        web_commands[entry] = cli_modules[entry].web
-    except AttributeError:
-        log.debug('no command bio2bel_%s.cli:web', entry)
-
-    try:
-        summarize_commands[entry] = cli_modules[entry].summarize
-    except AttributeError:
-        log.debug('no command bio2bel_%s.cli:summarize', entry)
-
 main = click.Group(commands=main_commands)
 main.help = "Bio2BEL Command Line Utilities on {}\nBio2BEL v{}".format(sys.executable, get_version())
 
@@ -92,13 +62,14 @@ def _iterate_managers(connection, skip):
         for idx, (name, module) in enumerate(_modules, start=1)
     )
 
-@main.command(help='Populate: {}'.format(', '.join(sorted(populate_commands))))
+
+@main.command()
 @click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 @click.option('--reset', is_flag=True, help='Nuke database first')
 @click.option('--force', is_flag=True, help='Force overwrite if already populated')
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 def populate(connection, reset, force, skip):
-    """Run all populate commands."""
+    """Populate all."""
     lm, manager_list = _iterate_managers(connection, skip)
 
     for idx, name, manager in manager_list:
@@ -123,13 +94,13 @@ def populate(connection, reset, force, skip):
             click.echo(click.style('👎 {} population failed'.format(name), fg='red', bold=True))
 
 
-
-@main.command(help='Drop: {}'.format(', '.join(sorted(drop_commands))))
+@main.command(help='Drop all')
 @click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 def drop(connection, skip):
-    """Run all drop commands."""
-    for idx, name, manager in _iterate_managers(connection, skip):
+    """Drop all."""
+    lm, manager_list = _iterate_managers(connection, skip)
+    for idx, name, manager in manager_list:
         click.echo(click.style('dropping {}'.format(name), fg='cyan', bold=True))
         manager.drop_all()
 
@@ -138,14 +109,46 @@ def drop(connection, skip):
 @click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 def summarize(connection, skip):
-    """Run all summarize commands."""
-    for idx, name, manager in _iterate_managers(connection, skip):
+    """Summarize all."""
+    lm, manager_list = _iterate_managers(connection, skip)
+    for idx, name, manager in manager_list:
         click.echo(click.style(name, fg='cyan', bold=True))
         if not manager.is_populated():
-            click.echo('unpopulated {}'.format(name))
+            click.echo('👎 unpopulated')
+        elif not hasattr(manager, 'summarize'):
+            click.echo('👎 summarize function not implemented')
         else:
             for field_name, count in sorted(manager.summarize().items()):
-                click.echo('{}: {}'.format(field_name.capitalize(), count))
+                click.echo(
+                    click.style('=> ', fg='white', bold=True) +
+                    '{}: {}'.format(field_name.replace('_', ' ').capitalize(), count)
+                )
+
+
+@main.command()
+@click.option('-d', '--directory', type=click.Path(), default=os.getcwd(), help='output directory')
+@click.option('--force', is_flag=True, help='Force overwrite if already exported')
+@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+@click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
+def to_bel(directory, force, connection, skip):
+    """Write all as BEL."""
+    os.makedirs(directory, exist_ok=True)
+    lm, manager_list = _iterate_managers(connection, skip)
+    import pybel
+    for idx, name, manager in manager_list:
+        click.echo(click.style(name, fg='cyan', bold=True))
+        path = os.path.join(directory, '{}.bel.gpickle'.format(name))
+        if os.path.exists(path) and not force:
+            click.echo('👍 already exported')
+            continue
+
+        if not manager.is_populated():
+            click.echo('👎 unpopulated')
+        elif not hasattr(manager, 'to_bel'):
+            click.echo('👎 to_bel function not implemented')
+        else:
+            graph = manager.to_bel()
+            pybel.to_pickle(graph, path)
 
 
 @main.command()
@@ -158,24 +161,12 @@ def web(connection):
 
 
 @main.command()
-def web_registered():
-    """Print the registered web services."""
-    from bio2bel.web.application import web_modules, add_admins
-    click.echo('Web Modules:')
-    for manager_name in sorted(web_modules):
-        click.echo(manager_name)
-
-    click.echo('Web Admin Interfaces:')
-    for manager_name, add_admin in sorted(add_admins.items()):
-        click.echo('{} - {}'.format(manager_name, add_admin))
-
-
-@main.command()
 def actions():
-    """List actions."""
+    """List all actions."""
     for action in Action.ls():
         click.echo('{} {} {}'.format(action.created, action.action, action.resource))
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     main()

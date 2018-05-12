@@ -124,7 +124,7 @@ def add_cli_to_bel_namespace(main):
     def upload_bel_namespace(manager, update):
         """Upload names/identifiers to terminology store."""
         namespace = manager.upload_bel_namespace(update=update)
-        click.echo('uploaded [{}] {}'.format(namespace.id, namespace))
+        click.echo('uploaded [{}] {}'.format(namespace.id, namespace.keyword))
 
     return main
 

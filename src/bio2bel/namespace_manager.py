@@ -91,7 +91,7 @@ class NamespaceManagerMixin(AbstractManager):
         return tqdm(
             self._get_query(self.namespace_model),
             total=self._count_model(self.namespace_model),
-            desc='Getting {} models'.format(self.module_name)
+            desc='Mapping {} to BEL namespace'.format(self.module_name)
         )
 
     @classmethod
