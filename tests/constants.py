@@ -7,7 +7,7 @@ import logging
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
-from bio2bel.abstractmanager import AbstractManager
+from bio2bel.abstract_manager import AbstractManager
 
 log = logging.getLogger(__name__)
 

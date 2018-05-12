@@ -4,7 +4,7 @@
 
 from flask_admin.contrib.sqla import ModelView
 
-from bio2bel.abstractmanager import _FlaskMixin
+from bio2bel.abstract_manager import _FlaskMixin
 from bio2bel.exc import Bio2BELMissingModelsError
 from bio2bel.testing import TemporaryConnectionMethodMixin
 from tests.constants import Manager, Model
