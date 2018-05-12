@@ -70,13 +70,14 @@ class TestAwesome(AbstractTemporaryCacheMethodMixin):
 
     def test_namespace_name(self):
         self.assertEqual('test', self.manager.module_name)  # this is defined in the tests
-        self.assertEqual('_TEST', self.manager._get_namespace_keyword())
+        self.assertEqual('TEST', self.manager._get_namespace_keyword())
+        self.assertEqual('_TEST', self.manager._get_namespace_url())
 
     def test_make_namespace(self):
         namespace = self.manager._make_namespace()
         self.assertIsNotNone(namespace)
         self.assertIsInstance(namespace, Namespace)
-        self.assertEqual('_TEST', namespace.keyword)
+        self.assertEqual('TEST', namespace.keyword)
         self.assertEqual('_TEST', namespace.url)
 
         self.assertEqual(NUMBER_TEST_MODELS, namespace.entries.count())
