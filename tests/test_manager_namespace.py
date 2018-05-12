@@ -104,7 +104,7 @@ class TestAwesome(AbstractTemporaryCacheMethodMixin):
         # self.assertEqual(0, self.manager.session.query(NamespaceEntry).count())
 
     def test_update_namespace(self):
-        self.manager._make_namespace()
+        namespace = self.manager._make_namespace()
 
         # mock some sort of changes to the database
 
@@ -117,10 +117,7 @@ class TestAwesome(AbstractTemporaryCacheMethodMixin):
         self.manager.session.add_all(models)
         self.manager.session.commit()
 
-        namespace = self.manager._update_namespace()
-
-        self.assertIsNotNone(namespace)
-        self.assertIsInstance(namespace, Namespace)
+        self.manager._update_namespace(namespace)
         self.assertEqual(NUMBER_TEST_MODELS + _number_to_add, namespace.entries.count())
 
 
