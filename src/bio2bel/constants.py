@@ -6,7 +6,7 @@ from configparser import ConfigParser
 
 log = logging.getLogger(__name__)
 
-VERSION = '0.0.12-dev'
+VERSION = '0.0.12'
 
 BIO2BEL_DIR = os.environ.get('BIO2BEL_DIRECTORY', os.path.join(os.path.expanduser('~'), '.pybel', 'bio2bel'))
 os.makedirs(BIO2BEL_DIR, exist_ok=True)
