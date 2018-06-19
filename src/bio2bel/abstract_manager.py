@@ -3,6 +3,7 @@
 """Provides abstractions over the management of SQLAlchemy connections and sessions."""
 
 import logging
+import os
 from abc import ABCMeta, abstractmethod
 from functools import wraps
 
@@ -136,16 +137,19 @@ class _FlaskMixin(AbstractManagerConnectionMixin):
 
         return admin
 
-    def get_flask_admin_app(self, url=None):
+    def get_flask_admin_app(self, url=None, secret_key=None):
         """Create a Flask application if this class has defined the :data:`flask_admin_models` variable a list of
         model classes.
 
         :param Optional[str] url: Optional mount point of the admin application. Defaults to ``'/'``.
+        :param Optional[str] secret_key: Specify a secret key. If None, generates one with :py:func:`os.urandom`.
         :rtype: flask.Flask
         """
         from flask import Flask
 
         app = Flask(__name__)
+        app.secret_key = secret_key or os.urandom(16)
+
         self._add_admin(app, url=(url or '/'))
         return app
 

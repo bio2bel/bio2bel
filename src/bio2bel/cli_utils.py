@@ -76,10 +76,11 @@ def add_cli_flask(main):
     @click.option('-v', '--debug', is_flag=True)
     @click.option('-p', '--port')
     @click.option('-h', '--host')
+    @click.option('-k', '--secret-key')
     @click.pass_obj
-    def web(manager, debug, port, host):
+    def web(manager, debug, port, host, secret_key):
         """Run the web app."""
-        app = manager.get_flask_admin_app(url='/')
+        app = manager.get_flask_admin_app(url='/', secret_key=secret_key)
         app.run(debug=debug, host=host, port=port)
 
     return main
