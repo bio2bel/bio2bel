@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import logging
-import os
 import sys
 
 import click
+import logging
+import os
 
 from .utils import get_data_dir
 
@@ -14,6 +14,7 @@ __all__ = [
     'add_cli_flask',
     'add_cli_summarize',
     'add_cli_to_bel',
+    'add_cli_upload_bel',
     'add_cli_to_bel_namespace',
     'add_cli_clear_bel_namespace',
     'add_cli_cache',
@@ -99,6 +100,13 @@ def add_cli_to_bel(main):
         from pybel import to_bel
         graph = manager.to_bel()
         to_bel(graph, output)
+
+
+def add_cli_upload_bel(main):
+    """Add several command to main :mod:`click` function related to export to BEL.
+
+    :param main: A click-decorated main function
+    """
 
     @main.command()
     @click.option('-c', '--connection')

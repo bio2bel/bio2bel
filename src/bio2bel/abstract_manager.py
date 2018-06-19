@@ -5,7 +5,6 @@
 import logging
 from abc import ABCMeta, abstractmethod
 from functools import wraps
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -62,20 +61,23 @@ class AbstractManagerConnectionMixin(object):
     #: This represents the module name. Needs to be lower case
     module_name = ...
 
-    def __init__(self, connection=None):
-        """
-        :param Optional[str] connection: SQLAlchemy connection string
-        """
+    def __init__(self, engine, session):
         if not self.module_name or not isinstance(self.module_name, str):
             raise Bio2BELMissingNameError('module_name class variable not set on {}'.format(self.__class__.__name__))
 
         if self.module_name != self.module_name.lower():
             raise Bio2BELModuleCaseError('module_name class variable should be lowercase')
 
-        self.connection = self.get_connection(connection=connection)
-        self.engine = create_engine(self.connection)
-        self.session_maker = sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
-        self.session = scoped_session(self.session_maker)
+        self.engine = engine
+        self.session = session
+
+    @classmethod
+    def from_connection(cls, connection=None):
+        connection = cls.get_connection(connection=connection)
+        engine = create_engine(connection)
+        session_maker = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+        session = scoped_session(session_maker)
+        return cls(engine=engine, session=session)
 
     @classmethod
     def get_connection(cls, connection=None):
@@ -216,10 +218,6 @@ class _CliMixin(AbstractManagerConnectionMixin):
         return add_cli_flask(main)
 
     @staticmethod
-    def _cli_add_to_bel(main):
-        return add_cli_to_bel(main)
-
-    @staticmethod
     def _cli_add_summarize(main):
         return add_cli_summarize(main)
 
@@ -234,9 +232,6 @@ class _CliMixin(AbstractManagerConnectionMixin):
 
         if hasattr(cls, 'flask_admin_models') and cls.flask_admin_models is not ...:
             cls._cli_add_flask(main)
-
-        if hasattr(cls, 'to_bel'):
-            cls._cli_add_to_bel(main)
 
         if hasattr(cls, 'summarize'):
             cls._cli_add_summarize(main)
@@ -397,7 +392,11 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
         :param bool check_first: Defaults to True, don't issue CREATEs for tables already present
          in the target database. Defers to :meth:`bio2bel.abstractmanager.AbstractManager.create_all`
         """
-        super().__init__(connection=connection)
+        connection = self.get_connection(connection=connection)
+        engine = create_engine(connection)
+        session_maker = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+        session = scoped_session(session_maker)
+        super().__init__(engine=engine, session=session)
         self.create_all(check_first=check_first)
 
     @property
@@ -456,6 +455,12 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
         """
         self._metadata.drop_all(self.engine, checkfirst=check_first)
         self._store_drop()
+
+    def register_mutators(self):
+        """Register mutator functions from this instance to the global Pipeline framework.
+
+        Must be overridden, otherwise does not do anything.
+        """
 
     @classmethod
     def ensure(cls, connection=None):
