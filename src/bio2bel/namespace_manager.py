@@ -3,14 +3,15 @@
 """Provide abstractions over BEL namespace generation procedures"""
 
 import logging
-from abc import abstractmethod
-
 import time
+from abc import abstractmethod
 from tqdm import tqdm
 
 from pybel.manager.models import Namespace
+from pybel.resources import write_namespace
+from pybel.constants import NAMESPACE_DOMAIN_OTHER
 from .abstract_manager import AbstractManager
-from .cli_utils import add_cli_clear_bel_namespace, add_cli_to_bel_namespace
+from .cli_utils import add_cli_clear_bel_namespace, add_cli_to_bel_namespace, add_cli_write_bel_namespace
 
 log = logging.getLogger(__name__)
 
@@ -55,9 +56,6 @@ class NamespaceManagerMixin(AbstractManager):
     namespace_model = ...
 
     def __init__(self, *args, **kwargs):
-        """
-        :param Optional[str] connection: SQLAlchemy connection string
-        """
         if self.namespace_model is ...:
             raise Bio2BELMissingNamespaceModelError
 
@@ -221,6 +219,26 @@ class NamespaceManagerMixin(AbstractManager):
             self.session.commit()
             return ns
 
+    def write_bel_namespace(self, file):
+        """Write as a BEL namespace file.
+
+        :param file:
+        """
+        _namespace_keyword = self._get_namespace_keyword()
+
+        values = {self._get_identifier(model) for model in self._iterate_namespace_models()}
+
+        write_namespace(
+            namespace_name=_namespace_keyword,
+            namespace_keyword=_namespace_keyword,
+            namespace_domain=NAMESPACE_DOMAIN_OTHER,
+            author_name='',
+            citation_name='',
+            values=values,
+            functions='A',
+            file=file,
+        )
+
     @staticmethod
     def _cli_add_to_bel_namespace(main):
         return add_cli_to_bel_namespace(main)
@@ -229,10 +247,15 @@ class NamespaceManagerMixin(AbstractManager):
     def _cli_add_clear_bel_namespace(main):
         return add_cli_clear_bel_namespace(main)
 
+    @staticmethod
+    def _cli_add_write_bel_namespace(main):
+        return add_cli_write_bel_namespace(main)
+
     @classmethod
     def get_cli(cls):
         """Gets a :mod:`click` main function to use as a command line interface."""
         main = super().get_cli()
         cls._cli_add_to_bel_namespace(main)
         cls._cli_add_clear_bel_namespace(main)
+        cls._cli_add_write_bel_namespace(main)
         return main
