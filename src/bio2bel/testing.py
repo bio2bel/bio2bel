@@ -107,7 +107,7 @@ class AbstractTemporaryCacheMethodMixin(TemporaryConnectionMethodMixin):
 
         super().setUp()
 
-        self.manager = self.Manager(connection=self.connection)
+        self.manager = self.Manager.from_connection(connection=self.connection)
         self.populate()
 
     def tearDown(self):
@@ -140,7 +140,7 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
 
         super().setUpClass()
 
-        cls.manager = cls.Manager(connection=cls.connection)
+        cls.manager = cls.Manager.from_connection(connection=cls.connection)
         cls.populate()
 
     @classmethod
