@@ -16,6 +16,7 @@ matrix:
     - env: TOXENV=flake8
   allow_failures:
     - env: TOXENV=flake8
+    - python: 3.7
     - python: 3.5
     - python: 3.4
 install:
