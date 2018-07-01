@@ -9,10 +9,10 @@ import tests.constants
 from bio2bel import AbstractManager
 from bio2bel.exc import Bio2BELMissingNameError, Bio2BELModuleCaseError
 from bio2bel.models import Action
-from bio2bel.testing import AbstractTemporaryCacheClassMixin, MockConnectionMixin
+from bio2bel.testing import AbstractTemporaryCacheClassMixin, MockConnectionMixin, TemporaryConnectionMethodMixin
 from tests.constants import NUMBER_TEST_MODELS
 
-class TestManagerFailures(unittest.TestCase):
+class TestManagerFailures(TemporaryConnectionMethodMixin):
     """Test improperly implement AbstractManager."""
 
     def test_missing_all_abstract(self):
@@ -22,7 +22,7 @@ class TestManagerFailures(unittest.TestCase):
             """An incompletely implement AbstractManager"""
 
         with self.assertRaises(TypeError):  # cant's instantiate abstract class
-            Manager()
+            Manager.from_connection(self.connection)
 
     def test_fail_instantiation_2(self):
         """Test that the abstract class can't be instantiated."""
@@ -36,7 +36,7 @@ class TestManagerFailures(unittest.TestCase):
                 return base
 
         with self.assertRaises(TypeError):
-            Manager()
+            Manager.from_connection(self.connection)
 
     def test_fail_instantiation_3(self):
         """Test that the abstract class can't be instantiated."""
@@ -48,7 +48,7 @@ class TestManagerFailures(unittest.TestCase):
                 """Populate the database."""
 
         with self.assertRaises(TypeError):
-            Manager()
+            Manager.from_connection(self.connection)
 
     def test_undefined_module_name(self):
         """Test error thrown if module name isn't set."""
@@ -68,7 +68,7 @@ class TestManagerFailures(unittest.TestCase):
                 """Populate the database."""
 
         with self.assertRaises(Bio2BELMissingNameError):
-            Manager()
+            Manager.from_connection(self.connection)
 
     def test_module_name_case(self):
         """Test error thrown if module name is weird case."""
@@ -88,7 +88,7 @@ class TestManagerFailures(unittest.TestCase):
                 """Populate the database."""
 
         with self.assertRaises(Bio2BELModuleCaseError):
-            Manager()
+            Manager.from_connection(self.connection)
 
 
 class TestConnectionDropping(MockConnectionMixin, AbstractTemporaryCacheClassMixin):

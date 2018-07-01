@@ -5,6 +5,8 @@
 import logging
 from abc import abstractmethod
 
+from pybel import BELGraph
+
 from .abstract_manager import AbstractManager
 from .cli_utils import add_cli_to_bel, add_cli_upload_bel
 
@@ -44,11 +46,8 @@ class BELManagerMixin(AbstractManager):
     """
 
     @abstractmethod
-    def to_bel(self, *args, **kwargs):
-        """Convert the database to BEL.
-
-        :rtype: pybel.BELGraph
-        """
+    def to_bel(self, *args, **kwargs) -> BELGraph:
+        """Convert the database to BEL."""
 
     @staticmethod
     def _cli_add_to_bel(main):
