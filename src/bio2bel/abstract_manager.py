@@ -456,8 +456,8 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
         self._metadata.drop_all(self.engine, checkfirst=check_first)
         self._store_drop()
 
-    def register_mutators(self):
-        """Register mutator functions from this instance to the global Pipeline framework.
+    def register_transformations(self):
+        """Register transformation functions from this instance to the global Pipeline framework.
 
         Must be overridden, otherwise does not do anything.
         """
