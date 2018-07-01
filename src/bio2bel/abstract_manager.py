@@ -153,8 +153,10 @@ class _FlaskMixin(AbstractManagerConnectionMixin):
 
 
 class _QueryMixin(AbstractManagerConnectionMixin):
+    """A mixin with convenient functions for querying the database."""
+
     def _get_query(self, model):
-        """Gets a query for the given model using this manager's session.
+        """Get a query for the given model using this manager's session.
 
         :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
         :return: a SQLAlchemy query
@@ -162,7 +164,7 @@ class _QueryMixin(AbstractManagerConnectionMixin):
         return self.session.query(model)
 
     def _count_model(self, model):
-        """Helps count the number of a given model in the database.
+        """Help count the number of a given model in the database.
 
         :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
         :rtype: int
@@ -170,7 +172,7 @@ class _QueryMixin(AbstractManagerConnectionMixin):
         return self._get_query(model).count()
 
     def _list_model(self, model):
-        """Helps get all instances of the model in the database.
+        """Help get all instances of the model in the database.
 
         :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
         :rtype: list
@@ -179,7 +181,7 @@ class _QueryMixin(AbstractManagerConnectionMixin):
 
 
 class _CliMixin(AbstractManagerConnectionMixin):
-    """Functions for building a CLI"""
+    """Functions for building a CLI."""
 
     @classmethod
     def _get_cli_main(cls):
@@ -282,16 +284,17 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     .. code-block:: python
 
-        from bio2bel import AbstractManager
-        from sqlalchemy.ext.declarative import declarative_base
+        from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 
-        Base = declarative_base()
+        from bio2bel import AbstractManager
+
+        Base: DeclarativeMeta = declarative_base()
 
         class Manager(AbstractManager):
             module_name = 'mirtarbase'  # note: use lower case module names
 
             @property
-            def _base(self):
+            def _base(self) -> DeclarativeMeta:
                 return Base
 
 
@@ -299,7 +302,10 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     .. code-block:: python
 
+        from sqlalchemy.ext.declarative import DeclarativeMeta
+
         from bio2bel import AbstractManager
+
         from .constants import MODULE_NAME
         from .models import Base
 
@@ -307,7 +313,7 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
             module_name = MODULE_NAME
 
             @property
-            def _base(self):
+            def _base(self) -> DeclarativeMeta:
                 return Base
 
     **Populating the Database**
@@ -318,7 +324,10 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     .. code-block:: python
 
+        from sqlalchemy.ext.declarative import DeclarativeMeta
+
         from bio2bel import AbstractManager
+
         from .constants import MODULE_NAME
         from .models import Base
 
@@ -326,10 +335,10 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
             module_name = MODULE_NAME
 
             @property
-            def _base(self):
+            def _base(self) -> DeclarativeMeta:
                 return Base
 
-            def populate(self):
+            def populate(self) -> None:
                 ...
 
     **Checking the Database Is Populated**
@@ -339,7 +348,10 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     .. code-block:: python
 
+        from sqlalchemy.ext.declarative import DeclarativeMeta
+
         from bio2bel import AbstractManager
+
         from .constants import MODULE_NAME
         from .models import Base
 
@@ -347,13 +359,13 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
             module_name = MODULE_NAME
 
             @property
-            def _base(self):
+            def _base(self) -> DeclarativeMeta:
                 return Base
 
-            def populate(self):
+            def populate(self) -> None:
                 ...
 
-            def is_populated(self)
+            def is_populated(self) -> bool:
                 return 0 < self.session.query(MyImportantModel).count()
 
 
@@ -365,7 +377,10 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     .. code-block:: python
 
+        from sqlalchemy.ext.declarative import DeclarativeMeta
+
         from bio2bel import AbstractManager
+
         from .constants import MODULE_NAME
         from .models import Base, Evidence, Interaction, Mirna, Species, Target
 
@@ -374,16 +389,22 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
             flask_admin_models = [Evidence, Interaction, Mirna, Species, Target]
 
             @property
-            def _base(self):
+            def _base(self) -> DeclarativeMeta:
                 return Base
 
-            def populate(self):
+            def populate(self) -> None:
                 ...
+
+    **Exporting a BEL Namespace (Optional)**
+
+    To enable a Bio2BEL manager to use the namespace utilities, the :mod:`pybel`
+    library needs to be installed and the :py:class:`bio2bel.namespace_manager.NamespaceManagerMixin`
+    needs to be used as one of the parent classes of the manager. See its documentation for a guide.
 
     **Exporting to BEL (Optional)**
 
-    If a function named ``to_bel`` is implemented that returns a :class:`pybel.BELGraph`, then the manager and CLI
-    will have access to several other functions that would rely on this.
+    To enable a Bio2BEL manager to use BEL utilities, the :mod:`pybel` libary needs to be installed
+    and the :py:class:`bio2bel.bel_manager.BELManagerMixin` needs to be used as a parent class.
     """
 
     def __init__(self, connection=None, check_first=True):

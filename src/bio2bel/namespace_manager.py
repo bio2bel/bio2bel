@@ -21,11 +21,11 @@ __all__ = [
 
 
 class Bio2BELMissingNamespaceModelError(TypeError):
-    """Raised when the namespace_model class variable is not defined"""
+    """Raised when the namespace_model class variable is not defined."""
 
 
 class NamespaceManagerMixin(AbstractManager):
-    """This mixin adds functions for making a BEL namespace to a repository
+    """This mixin adds functions for making a BEL namespace to a repository.
 
     *How to Use This Mixin*
 
@@ -36,7 +36,7 @@ class NamespaceManagerMixin(AbstractManager):
 
 
         from bio2bel import AbstractManager
-        from bio2bel.namespacemanagermixin import NamespaceManagerMixin
+        from bio2bel.namespace_manager import NamespaceManagerMixin
 
         class MyManager(AbstractManager, NamespaceManagerMixin):
             ...
@@ -46,7 +46,7 @@ class NamespaceManagerMixin(AbstractManager):
 
     ..code-block:: python
 
-        from bio2bel.namespacemanagermixin import NamespaceManagerMixin
+        from bio2bel.namespace_manager import NamespaceManagerMixin
 
         class MyManager(NamespaceManagerMixin):
             ...
@@ -72,15 +72,15 @@ class NamespaceManagerMixin(AbstractManager):
         """
 
     def _get_encoding(self, model):
-        """Get the encoding for the model"""
+        """Get the encoding for the model."""
 
     def _get_name(self, model):
-        """Get the name for the namespace model"""
+        """Get the name for the namespace model."""
 
     @staticmethod
     @abstractmethod
     def _get_identifier(model):
-        """Given an instance of namespace_model, extract its identifier
+        """Given an instance of namespace_model, extract its identifier.
 
         :param model: The model to convert
         :rtype: str
