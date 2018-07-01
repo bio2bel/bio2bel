@@ -461,22 +461,3 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
         Must be overridden, otherwise does not do anything.
         """
-
-    @classmethod
-    def ensure(cls, connection=None):
-        """Build a manager from a string, pass through a pre-built manager, or build the default manager.
-
-        This function is a polymorphic constructor inspired by the
-        `Factory Method <https://en.wikipedia.org/wiki/Factory_method_pattern>`_
-
-        :param connection: can be either a already build manager or a connection string to build a manager with.
-        :type connection: Optional[str or AbstractManager]
-        :rtype: AbstractManager
-        """
-        if connection is None or isinstance(connection, str):
-            return cls(connection=connection)
-
-        if isinstance(connection, cls):
-            return connection
-
-        raise TypeError('passed invalid type: {}'.format(connection.__class__.__name__))

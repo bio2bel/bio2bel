@@ -9,7 +9,7 @@ import tests.constants
 from bio2bel import AbstractManager
 from bio2bel.exc import Bio2BELMissingNameError, Bio2BELModuleCaseError
 from bio2bel.models import Action
-from bio2bel.testing import AbstractTemporaryCacheClassMixin, MockConnectionMixin, TemporaryConnectionMixin
+from bio2bel.testing import AbstractTemporaryCacheClassMixin, MockConnectionMixin
 from tests.constants import NUMBER_TEST_MODELS
 
 class TestManagerFailures(unittest.TestCase):
@@ -89,29 +89,6 @@ class TestManagerFailures(unittest.TestCase):
 
         with self.assertRaises(Bio2BELModuleCaseError):
             Manager()
-
-
-class TestManagerEnsure(TemporaryConnectionMixin):
-    """Tests the ensure function of an AbstractManager works properly."""
-
-    def test_type_error(self):
-        """Test that the connection's type is checked properly."""
-        with self.assertRaises(TypeError):
-            tests.constants.Manager.ensure(connection=5)
-
-    def test_build(self):
-        """Test that a string can be passed."""
-        m = tests.constants.Manager.ensure(connection=self.connection)
-        self.assertIsInstance(m, tests.constants.Manager)
-
-    def test_pass_through(self):
-        """Test that a manager can be passed."""
-        m = tests.constants.Manager(connection=self.connection)
-        self.assertIsInstance(m, tests.constants.Manager)
-
-        m2 = tests.constants.Manager.ensure(connection=m)
-        self.assertIsInstance(m, tests.constants.Manager)
-        self.assertEqual(m, m2)
 
 
 class TestConnectionDropping(MockConnectionMixin, AbstractTemporaryCacheClassMixin):
