@@ -3,9 +3,11 @@ cache: pip
 language: python
 python:
 - 3.6
+- 3.4
+env:
+  - TOXENV=py
 matrix:
   include:
-    - env: TOXENV=py
     - env: TOXENV=docs
     - env: TOXENV=manifest
     - env: TOXENV=rst-lint
