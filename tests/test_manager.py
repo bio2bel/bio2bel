@@ -142,7 +142,7 @@ class TestConnectionLoading(AbstractTemporaryCacheClassMixin):
 
     def test_manager_passes(self):
         """Test the connection is inside the manager properly"""
-        self.assertEqual(self.connection, self.manager.connection)
+        self.assertEqual(self.connection, str(self.manager.engine.url))
 
     def test_repr(self):
         """Test the repr function of the AbstractManager."""
