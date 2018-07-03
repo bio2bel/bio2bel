@@ -42,7 +42,7 @@ class TestFlask(TemporaryConnectionMethodMixin):
         """Test exceptions are thrown properly for an improperly implemented AbstractManager."""
         self.assertIs(WrongFlaskTestManager.flask_admin_models, ...)
 
-        manager = WrongFlaskTestManager(connection=self.connection)
+        manager = WrongFlaskTestManager.from_connection(connection=self.connection)
         self.assertIs(manager.flask_admin_models, ...)
 
         with self.assertRaises(Bio2BELMissingModelsError):
@@ -50,7 +50,7 @@ class TestFlask(TemporaryConnectionMethodMixin):
 
     def test_app(self):
         """Test the successful generation of a flask application."""
-        manager = FlaskTestManager(connection=self.connection)
+        manager = FlaskTestManager.from_connection(connection=self.connection)
 
         self.assertFalse(manager.is_populated())
         manager.populate()
@@ -67,7 +67,7 @@ class TestFlask(TemporaryConnectionMethodMixin):
 
     def test_app_truncated_view(self):
         """Test the ability to define tuple views."""
-        manager = FlaskTestViewManager(connection=self.connection)
+        manager = FlaskTestViewManager.from_connection(connection=self.connection)
 
         self.assertFalse(manager.is_populated())
         manager.populate()
@@ -85,7 +85,7 @@ class TestFlask(TemporaryConnectionMethodMixin):
 
     def test_app_view_failure(self):
         """Test the ability to define tuple views."""
-        manager = FlaskFailureTestViewManager(connection=self.connection)
+        manager = FlaskFailureTestViewManager.from_connection(connection=self.connection)
         manager.populate()
         with self.assertRaises(TypeError):
             manager.get_flask_admin_app()

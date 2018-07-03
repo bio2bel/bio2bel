@@ -55,7 +55,7 @@ class TestFailure(TemporaryConnectionMethodMixin):
 class TestNamespaceManagerMixin(TemporaryConnectionMethodMixin):
     def test_instantiation_success(self):
         """Test instantiation is possible."""
-        NamespaceManager(connection=self.connection)
+        NamespaceManager.from_connection(connection=self.connection)
 
 
 class TestAwesome(AbstractTemporaryCacheMethodMixin):
@@ -128,7 +128,7 @@ class TestCli(MockConnectionMixin):
         """Set up a CliRunner and an accompanying CLI for each test."""
         self.runner = CliRunner()
         self.main = NamespaceManager.get_cli()
-        self.manager = Manager(connection=self.connection)
+        self.manager = Manager.from_connection(connection=self.connection)
         self.manager.populate()
 
     def test_to_bel_namespace(self):

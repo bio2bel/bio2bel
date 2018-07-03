@@ -10,7 +10,7 @@ from functools import wraps
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from .cli_utils import add_cli_cache, add_cli_drop, add_cli_flask, add_cli_populate, add_cli_summarize, add_cli_to_bel
+from .cli_utils import add_cli_cache, add_cli_drop, add_cli_flask, add_cli_populate, add_cli_summarize
 from .exc import Bio2BELMissingModelsError, Bio2BELMissingNameError, Bio2BELModuleCaseError
 from .models import Action, create_all
 from .utils import get_connection, get_version
@@ -44,6 +44,54 @@ class AbstractManagerMeta(ABCMeta):
         return cls
 
 
+def build_engine_session(connection, echo=False, autoflush=None, autocommit=None, expire_on_commit=None,
+                         scopefunc=None):
+    """Build an engine and a session.
+
+    :param str connection: An RFC-1738 database connection string
+    :param bool echo: Turn on echoing SQL
+    :param Optional[bool] autoflush: Defaults to True if not specified in kwargs or configuration.
+    :param Optional[bool] autocommit: Defaults to False if not specified in kwargs or configuration.
+    :param Optional[bool] expire_on_commit: Defaults to False if not specified in kwargs or configuration.
+    :param scopefunc: Scoped function to pass to :func:`sqlalchemy.orm.scoped_session`
+    :rtype: tuple[Engine,Session]
+
+    From the Flask-SQLAlchemy documentation:
+
+    An extra key ``'scopefunc'`` can be set on the ``options`` dict to
+    specify a custom scope function.  If it's not provided, Flask's app
+    context stack identity is used. This will ensure that sessions are
+    created and removed with the request/response cycle, and should be fine
+    in most cases.
+    """
+    if connection is None:
+        raise ValueError('can not build engine when connection is None')
+
+    engine = create_engine(connection, echo=echo)
+
+    autoflush = autoflush if autoflush is not None else False
+    autocommit = autocommit if autocommit is not None else False
+    expire_on_commit = expire_on_commit if expire_on_commit is not None else True
+
+    log.debug('auto flush: %s, auto commit: %s, expire on commmit: %s', autoflush, autocommit, expire_on_commit)
+
+    #: A SQLAlchemy session maker
+    session_maker = sessionmaker(
+        bind=engine,
+        autoflush=autoflush,
+        autocommit=autocommit,
+        expire_on_commit=expire_on_commit,
+    )
+
+    #: A SQLAlchemy session object
+    session = scoped_session(
+        session_maker,
+        scopefunc=scopefunc
+    )
+
+    return engine, session
+
+
 class AbstractManagerConnectionMixin(object):
     """Represents the connection-building aspect of the abstract manager.
 
@@ -55,7 +103,6 @@ class AbstractManagerConnectionMixin(object):
     >>> class Manager(AbstractManagerConnectionMixin):
     >>>     module_name = 'interpro'
 
-
     In general, this class won't be used directly except in the situation where the connection should be loaded
     in a different way and it can be used as a mixin.
     """
@@ -63,23 +110,36 @@ class AbstractManagerConnectionMixin(object):
     #: This represents the module name. Needs to be lower case
     module_name = ...
 
-    def __init__(self, connection=None):
-        """
-        :param Optional[str] connection: SQLAlchemy connection string
-        """
-        if not self.module_name or not isinstance(self.module_name, str):
-            raise Bio2BELMissingNameError('module_name class variable not set on {}'.format(self.__class__.__name__))
-
-        if self.module_name != self.module_name.lower():
-            raise Bio2BELModuleCaseError('module_name class variable should be lowercase')
-
-        self.connection = self.get_connection(connection=connection)
-        self.engine = create_engine(self.connection)
-        self.session_maker = sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
-        self.session = scoped_session(self.session_maker)
+    def __init__(self, engine, session):
+        self._assert_module_name()
+        self.engine = engine
+        self.session = session
 
     @classmethod
-    def get_connection(cls, connection=None):
+    def _assert_module_name(cls):
+        if cls.module_name is ...:
+            raise Bio2BELMissingNameError('module_name class variable not set on {}'.format(cls.__name__))
+
+        if not isinstance(cls.module_name, str):
+            raise TypeError('module_name class variable not set as str: {}'.format(cls.__name__))
+
+        if cls.module_name != cls.module_name.lower():
+            raise Bio2BELModuleCaseError('module_name class variable should be lowercase')
+
+    @classmethod
+    def from_connection(cls, connection, **kwargs):
+        cls._assert_module_name()
+        connection = cls._get_connection(connection=connection)
+        engine, session = build_engine_session(connection=connection, **kwargs)
+        return cls(engine=engine, session=session)
+
+    @classmethod
+    def from_default_connection(cls, **kwargs):
+        connection = cls._get_connection()
+        return cls.from_connection(connection, **kwargs)
+
+    @classmethod
+    def _get_connection(cls, connection=None):
         """Gets the default connection string by wrapping :func:`bio2bel.utils.get_connection` and passing
         this class's :data:`module_name` to it.
 
@@ -102,8 +162,90 @@ class AbstractManagerConnectionMixin(object):
             url=self.engine.url
         )
 
+class _QueryMixin(AbstractManagerConnectionMixin):
+    """A mixin with convenient functions for querying the database."""
 
-class _FlaskMixin(AbstractManagerConnectionMixin):
+    def _get_query(self, model):
+        """Get a query for the given model using this manager's session.
+
+        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
+        :return: a SQLAlchemy query
+        """
+        return self.session.query(model)
+
+    def _count_model(self, model):
+        """Help count the number of a given model in the database.
+
+        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
+        :rtype: int
+        """
+        return self._get_query(model).count()
+
+    def _list_model(self, model):
+        """Help get all instances of the model in the database.
+
+        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
+        :rtype: list
+        """
+        return self._get_query(model).all()
+
+
+class _CliMixin(AbstractManagerConnectionMixin):
+    """Functions for building a CLI."""
+
+    @classmethod
+    def _get_cli_main(cls):
+        """Build a :mod:`click` CLI main function.
+
+        :param Type[AbstractManager] cls: A Manager class
+        :return: The main function for click
+        """
+        import click
+
+        @click.group(help='Default connection at {}\n\nusing Bio2BEL v{}'.format(cls._get_connection(), get_version()))
+        @click.option('-c', '--connection', default=cls._get_connection(),
+                      help='Defaults to {}'.format(cls._get_connection()))
+        @click.pass_context
+        def main(ctx, connection):
+            """Bio2BEL CLI."""
+            logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+            logging.getLogger('bio2bel.utils').setLevel(logging.WARNING)
+            ctx.obj = cls.from_connection(connection=connection)
+
+        return main
+
+    @staticmethod
+    def _cli_add_populate(main):
+        return add_cli_populate(main)
+
+    @staticmethod
+    def _cli_add_drop(main):
+        return add_cli_drop(main)
+
+    @staticmethod
+    def _cli_add_cache(main):
+        return add_cli_cache(main)
+
+    @staticmethod
+    def _cli_add_summarize(main):
+        return add_cli_summarize(main)
+
+    @classmethod
+    def get_cli(cls):
+        """Gets a :mod:`click` main function to use as a command line interface."""
+        main = cls._get_cli_main()
+
+        cls._cli_add_populate(main)
+        cls._cli_add_drop(main)
+        cls._cli_add_cache(main)
+
+        if hasattr(cls, 'summarize'):
+            cls._cli_add_summarize(main)
+
+        return main
+
+
+class _FlaskMixin(_CliMixin, AbstractManagerConnectionMixin):
     """Mixin for making the AbstractManager build a Flask application."""
 
     #: Represents a list of SQLAlchemy classes to make a Flask-Admin interface.
@@ -137,113 +279,29 @@ class _FlaskMixin(AbstractManagerConnectionMixin):
 
         return admin
 
-    def get_flask_admin_app(self, url=None, secret_key=None):
+    def get_flask_admin_app(self, url=None):
         """Create a Flask application if this class has defined the :data:`flask_admin_models` variable a list of
         model classes.
 
         :param Optional[str] url: Optional mount point of the admin application. Defaults to ``'/'``.
-        :param Optional[str] secret_key: Specify a secret key. If None, generates one with :py:func:`os.urandom`.
         :rtype: flask.Flask
         """
         from flask import Flask
 
         app = Flask(__name__)
-        app.secret_key = secret_key or os.urandom(16)
-
         self._add_admin(app, url=(url or '/'))
         return app
-
-
-class _QueryMixin(AbstractManagerConnectionMixin):
-    def _get_query(self, model):
-        """Gets a query for the given model using this manager's session.
-
-        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
-        :return: a SQLAlchemy query
-        """
-        return self.session.query(model)
-
-    def _count_model(self, model):
-        """Helps count the number of a given model in the database.
-
-        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
-        :rtype: int
-        """
-        return self._get_query(model).count()
-
-    def _list_model(self, model):
-        """Helps get all instances of the model in the database.
-
-        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
-        :rtype: list
-        """
-        return self._get_query(model).all()
-
-
-class _CliMixin(AbstractManagerConnectionMixin):
-    """Functions for building a CLI"""
-
-    @classmethod
-    def _get_cli_main(cls):
-        """Build a :mod:`click` CLI main function.
-
-        :param Type[AbstractManager] cls: A Manager class
-        :return: The main function for click
-        """
-        import click
-
-        @click.group(help='Default connection at {}\n\nusing Bio2BEL v{}'.format(cls.get_connection(), get_version()))
-        @click.option('-c', '--connection', help='Defaults to {}'.format(cls.get_connection()))
-        @click.pass_context
-        def main(ctx, connection):
-            """Bio2BEL CLI."""
-            logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-            logging.getLogger('bio2bel.utils').setLevel(logging.WARNING)
-            ctx.obj = cls(connection=connection)
-
-        return main
-
-    @staticmethod
-    def _cli_add_populate(main):
-        return add_cli_populate(main)
-
-    @staticmethod
-    def _cli_add_drop(main):
-        return add_cli_drop(main)
-
-    @staticmethod
-    def _cli_add_cache(main):
-        return add_cli_cache(main)
 
     @staticmethod
     def _cli_add_flask(main):
         return add_cli_flask(main)
 
-    @staticmethod
-    def _cli_add_to_bel(main):
-        return add_cli_to_bel(main)
-
-    @staticmethod
-    def _cli_add_summarize(main):
-        return add_cli_summarize(main)
-
     @classmethod
     def get_cli(cls):
-        """Gets a :mod:`click` main function to use as a command line interface."""
-        main = cls._get_cli_main()
+        """Add  a :mod:`click` main function to use as a command line interface."""
+        main = super().get_cli()
 
-        cls._cli_add_populate(main)
-        cls._cli_add_drop(main)
-        cls._cli_add_cache(main)
-
-        if hasattr(cls, 'flask_admin_models') and cls.flask_admin_models is not ...:
-            cls._cli_add_flask(main)
-
-        if hasattr(cls, 'to_bel'):
-            cls._cli_add_to_bel(main)
-
-        if hasattr(cls, 'summarize'):
-            cls._cli_add_summarize(main)
+        cls._cli_add_flask(main)
 
         return main
 
@@ -291,16 +349,17 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     .. code-block:: python
 
-        from bio2bel import AbstractManager
-        from sqlalchemy.ext.declarative import declarative_base
+        from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 
-        Base = declarative_base()
+        from bio2bel import AbstractManager
+
+        Base: DeclarativeMeta = declarative_base()
 
         class Manager(AbstractManager):
             module_name = 'mirtarbase'  # note: use lower case module names
 
             @property
-            def _base(self):
+            def _base(self) -> DeclarativeMeta:
                 return Base
 
 
@@ -308,7 +367,10 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     .. code-block:: python
 
+        from sqlalchemy.ext.declarative import DeclarativeMeta
+
         from bio2bel import AbstractManager
+
         from .constants import MODULE_NAME
         from .models import Base
 
@@ -316,7 +378,7 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
             module_name = MODULE_NAME
 
             @property
-            def _base(self):
+            def _base(self) -> DeclarativeMeta:
                 return Base
 
     **Populating the Database**
@@ -327,7 +389,10 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     .. code-block:: python
 
+        from sqlalchemy.ext.declarative import DeclarativeMeta
+
         from bio2bel import AbstractManager
+
         from .constants import MODULE_NAME
         from .models import Base
 
@@ -335,10 +400,10 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
             module_name = MODULE_NAME
 
             @property
-            def _base(self):
+            def _base(self) -> DeclarativeMeta:
                 return Base
 
-            def populate(self):
+            def populate(self) -> None:
                 ...
 
     **Checking the Database Is Populated**
@@ -348,7 +413,10 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     .. code-block:: python
 
+        from sqlalchemy.ext.declarative import DeclarativeMeta
+
         from bio2bel import AbstractManager
+
         from .constants import MODULE_NAME
         from .models import Base
 
@@ -356,13 +424,13 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
             module_name = MODULE_NAME
 
             @property
-            def _base(self):
+            def _base(self) -> DeclarativeMeta:
                 return Base
 
-            def populate(self):
+            def populate(self) -> None:
                 ...
 
-            def is_populated(self)
+            def is_populated(self) -> bool:
                 return 0 < self.session.query(MyImportantModel).count()
 
 
@@ -374,7 +442,10 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     .. code-block:: python
 
+        from sqlalchemy.ext.declarative import DeclarativeMeta
+
         from bio2bel import AbstractManager
+
         from .constants import MODULE_NAME
         from .models import Base, Evidence, Interaction, Mirna, Species, Target
 
@@ -383,26 +454,23 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
             flask_admin_models = [Evidence, Interaction, Mirna, Species, Target]
 
             @property
-            def _base(self):
+            def _base(self) -> DeclarativeMeta:
                 return Base
 
-            def populate(self):
+            def populate(self) -> None:
                 ...
+
+    **Exporting a BEL Namespace (Optional)**
+
+    To enable a Bio2BEL manager to use the namespace utilities, the :mod:`pybel`
+    library needs to be installed and the :py:class:`bio2bel.namespace_manager.NamespaceManagerMixin`
+    needs to be used as one of the parent classes of the manager. See its documentation for a guide.
 
     **Exporting to BEL (Optional)**
 
-    If a function named ``to_bel`` is implemented that returns a :class:`pybel.BELGraph`, then the manager and CLI
-    will have access to several other functions that would rely on this.
+    To enable a Bio2BEL manager to use BEL utilities, the :mod:`pybel` libary needs to be installed
+    and the :py:class:`bio2bel.bel_manager.BELManagerMixin` needs to be used as a parent class.
     """
-
-    def __init__(self, connection=None, check_first=True):
-        """
-        :param Optional[str] connection: SQLAlchemy connection string
-        :param bool check_first: Defaults to True, don't issue CREATEs for tables already present
-         in the target database. Defers to :meth:`bio2bel.abstractmanager.AbstractManager.create_all`
-        """
-        super().__init__(connection=connection)
-        self.create_all(check_first=check_first)
 
     @property
     @abstractmethod
@@ -416,17 +484,21 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
         How to build an instance of :class:`sqlalchemy.ext.declarative.api.DeclarativeMeta` by using
         :func:`sqlalchemy.ext.declarative.declarative_base`:
 
-        >>> from sqlalchemy.ext.declarative import declarative_base
-        >>> Base = declarative_base()
+        >>> from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
+        >>> Base: DeclarativeMeta = declarative_base()
 
         Then just override this abstract property like:
 
         >>> @property
-        >>> def _base(self):
+        >>> def _base(self) -> DeclarativeMeta:
         >>>     return Base
 
         Note that this property could effectively also be a static method.
         """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.create_all()
 
     @abstractmethod
     def is_populated(self):
@@ -461,21 +533,8 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
         self._metadata.drop_all(self.engine, checkfirst=check_first)
         self._store_drop()
 
-    @classmethod
-    def ensure(cls, connection=None):
-        """Build a manager from a string, pass through a pre-built manager, or build the default manager.
+    def register_transformations(self):
+        """Register transformation functions from this instance to the global Pipeline framework.
 
-        This function is a polymorphic constructor inspired by the
-        `Factory Method <https://en.wikipedia.org/wiki/Factory_method_pattern>`_
-
-        :param connection: can be either a already build manager or a connection string to build a manager with.
-        :type connection: Optional[str or AbstractManager]
-        :rtype: AbstractManager
+        Must be overridden, otherwise does not do anything.
         """
-        if connection is None or isinstance(connection, str):
-            return cls(connection=connection)
-
-        if isinstance(connection, cls):
-            return connection
-
-        raise TypeError('passed invalid type: {}'.format(connection.__class__.__name__))
