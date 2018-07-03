@@ -3,9 +3,6 @@ cache: pip
 language: python
 python:
 - 3.6
-- 3.7
-- 3.5
-- 3.4
 env:
   - TOXENV=py
 matrix:
@@ -16,9 +13,6 @@ matrix:
     - env: TOXENV=flake8
   allow_failures:
     - env: TOXENV=flake8
-    - python: 3.7
-    - python: 3.5
-    - python: 3.4
 install:
 - pip install tox
 - pip install codecov
