@@ -3,6 +3,7 @@
 """Provides abstractions over the management of SQLAlchemy connections and sessions."""
 
 import logging
+import os
 from abc import ABCMeta, abstractmethod
 from functools import wraps
 
@@ -160,7 +161,6 @@ class AbstractManagerConnectionMixin(object):
             module_name=self.module_name.capitalize(),
             url=self.engine.url
         )
-
 
 class _QueryMixin(AbstractManagerConnectionMixin):
     """A mixin with convenient functions for querying the database."""

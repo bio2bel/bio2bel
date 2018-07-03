@@ -135,7 +135,7 @@ class TestCli(MockConnectionMixin):
         """Test the population function can be run."""
         self.assertEqual(5, self.manager.count_model(), msg='manager should be populated')
 
-        pybel_manager = pybel.Manager(connection=self.connection)
+        pybel_manager = pybel.Manager.from_connection(self.connection)
         self.assertEqual(0, pybel_manager.count_namespaces())
 
         args = [

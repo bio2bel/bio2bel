@@ -17,6 +17,7 @@ __all__ = [
     'add_cli_upload_bel',
     'add_cli_to_bel_namespace',
     'add_cli_clear_bel_namespace',
+    'add_cli_write_bel_namespace',
     'add_cli_cache',
 ]
 log = logging.getLogger(__name__)
@@ -77,10 +78,11 @@ def add_cli_flask(main):
     @click.option('-v', '--debug', is_flag=True)
     @click.option('-p', '--port')
     @click.option('-h', '--host')
+    @click.option('-k', '--secret-key')
     @click.pass_obj
-    def web(manager, debug, port, host):
+    def web(manager, debug, port, host, secret_key):
         """Run the web app."""
-        app = manager.get_flask_admin_app(url='/')
+        app = manager.get_flask_admin_app(url='/', secret_key=secret_key)
         app.run(debug=debug, host=host, port=port)
 
     return main
@@ -113,9 +115,9 @@ def add_cli_upload_bel(main):
     @click.pass_obj
     def upload_bel(manager, connection):
         """Upload BEL to network store."""
-        from pybel import to_database
+        from pybel import to_database, Manager as PybelManager
         graph = manager.to_bel()
-        to_database(graph, connection=connection)
+        to_database(graph, manager=PybelManager.from_connection(connection))
 
     return main
 
@@ -151,6 +153,22 @@ def add_cli_clear_bel_namespace(main):
 
         if namespace:
             click.echo('namespace {} was cleared'.format(namespace))
+
+    return main
+
+
+def add_cli_write_bel_namespace(main):
+    """Add a ``write_bel_namespace`` command to main :mod:`click` function.
+
+    :param main: A click-decorated main function
+    """
+
+    @main.command()
+    @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
+    @click.pass_obj
+    def write_bel_namespace(manager, file):
+        """Write a BEL namespace names/identifiers to terminology store."""
+        manager.write_bel_namespace(file)
 
     return main
 
