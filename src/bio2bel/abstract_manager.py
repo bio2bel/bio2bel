@@ -2,11 +2,10 @@
 
 """Provides abstractions over the management of SQLAlchemy connections and sessions."""
 
+import click
 import logging
-import os
 from abc import ABCMeta, abstractmethod
 from functools import wraps
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -111,6 +110,14 @@ class AbstractManagerConnectionMixin(object):
     module_name = ...
 
     def __init__(self, connection=None, engine=None, session=None, **kwargs):
+        """Build an abstract manager from either a connection or an engine/session.
+
+        The remaining keyword arguments are passed to :func:`build_engine_session`.
+
+        :param Optional[str] connection:
+        :param engine:
+        :param session:
+        """
         self._assert_module_name()
 
         if connection and (engine or session):
@@ -138,6 +145,10 @@ class AbstractManagerConnectionMixin(object):
 
     @classmethod
     def from_connection(cls, connection, **kwargs):
+        """Build a manager with the given connection string.
+
+        :param str connection: The connection string to use
+        """
         cls._assert_module_name()
         connection = cls._get_connection(connection=connection)
         engine, session = build_engine_session(connection=connection, **kwargs)
@@ -145,13 +156,15 @@ class AbstractManagerConnectionMixin(object):
 
     @classmethod
     def from_default_connection(cls, **kwargs):
+        """Build a manager using the default connection string."""
         connection = cls._get_connection()
         return cls.from_connection(connection, **kwargs)
 
     @classmethod
     def _get_connection(cls, connection=None):
-        """Gets the default connection string by wrapping :func:`bio2bel.utils.get_connection` and passing
-        this class's :data:`module_name` to it.
+        """Get a default connection string.
+
+        Wraps :func:`bio2bel.utils.get_connection` and passing this class's :data:`module_name` to it.
 
         :param Optional[str] connection: A custom connection to pass through
         :rtype: str
@@ -172,6 +185,7 @@ class AbstractManagerConnectionMixin(object):
             url=self.engine.url
         )
 
+
 class _QueryMixin(AbstractManagerConnectionMixin):
     """A mixin with convenient functions for querying the database."""
 
@@ -184,7 +198,7 @@ class _QueryMixin(AbstractManagerConnectionMixin):
         return self.session.query(model)
 
     def _count_model(self, model):
-        """Help count the number of a given model in the database.
+        """Count the number of the given model in the database.
 
         :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
         :rtype: int
@@ -192,7 +206,7 @@ class _QueryMixin(AbstractManagerConnectionMixin):
         return self._get_query(model).count()
 
     def _list_model(self, model):
-        """Help get all instances of the model in the database.
+        """Get all instances of the given model in the database.
 
         :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
         :rtype: list
@@ -210,7 +224,6 @@ class _CliMixin(AbstractManagerConnectionMixin):
         :param Type[AbstractManager] cls: A Manager class
         :return: The main function for click
         """
-        import click
 
         @click.group(help='Default connection at {}\n\nusing Bio2BEL v{}'.format(cls._get_connection(), get_version()))
         @click.option('-c', '--connection', default=cls._get_connection(),
@@ -290,8 +303,7 @@ class _FlaskMixin(_CliMixin, AbstractManagerConnectionMixin):
         return admin
 
     def get_flask_admin_app(self, url=None):
-        """Create a Flask application if this class has defined the :data:`flask_admin_models` variable a list of
-        model classes.
+        """Create a Flask application.
 
         :param Optional[str] url: Optional mount point of the admin application. Defaults to ``'/'``.
         :rtype: flask.Flask
@@ -512,7 +524,7 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     @abstractmethod
     def is_populated(self):
-        """Checks if the database is already populated.
+        """Check if the database is already populated.
 
         :rtype: bool
         """
@@ -523,7 +535,7 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
 
     @property
     def _metadata(self):
-        """Returns the metadata object associated with this manager's declarative base."""
+        """Return the metadata object associated with this manager's declarative base."""
         return self._base.metadata
 
     def create_all(self, check_first=True):
@@ -535,7 +547,7 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
         self._metadata.create_all(self.engine, checkfirst=check_first)
 
     def drop_all(self, check_first=True):
-        """Drops all tables from the database.
+        """Drop all tables from the database.
 
         :param bool check_first: Defaults to True, only issue DROPs for tables confirmed to be
           present in the target database. Defers to :meth:`sqlalchemy.sql.schema.MetaData.drop_all`
