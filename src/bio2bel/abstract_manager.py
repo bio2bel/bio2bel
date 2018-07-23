@@ -110,8 +110,18 @@ class AbstractManagerConnectionMixin(object):
     #: This represents the module name. Needs to be lower case
     module_name = ...
 
-    def __init__(self, engine, session):
+    def __init__(self, connection=None, engine=None, session=None, **kwargs):
         self._assert_module_name()
+
+        if connection and (engine or session):
+            raise ValueError('can not specify connection with engine/session')
+
+        if engine is None and session is None:
+            if connection is None:
+                connection = self._get_connection()
+
+            engine, session = build_engine_session(connection=connection, **kwargs)
+
         self.engine = engine
         self.session = session
 
