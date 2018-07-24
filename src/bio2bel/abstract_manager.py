@@ -216,7 +216,7 @@ class _CliMixin(AbstractManagerConnectionMixin):
             """Bio2BEL CLI."""
             logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
             logging.getLogger('bio2bel.utils').setLevel(logging.WARNING)
-            ctx.obj = cls.from_connection(connection=connection)
+            ctx.obj = cls(connection=connection)
 
         return main
 
