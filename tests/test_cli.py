@@ -26,7 +26,7 @@ class TestCli(MockConnectionMixin):
         ]
         self.runner.invoke(self.main, args)
 
-        manager = Manager.from_connection(connection=self.connection)
+        manager = Manager(connection=self.connection)
         self.assertEqual(5, manager.count_model())
 
         args = [

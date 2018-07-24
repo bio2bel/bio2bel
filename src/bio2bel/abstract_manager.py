@@ -144,23 +144,6 @@ class AbstractManagerConnectionMixin(object):
             raise Bio2BELModuleCaseError('module_name class variable should be lowercase')
 
     @classmethod
-    def from_connection(cls, connection, **kwargs):
-        """Build a manager with the given connection string.
-
-        :param str connection: The connection string to use
-        """
-        cls._assert_module_name()
-        connection = cls._get_connection(connection=connection)
-        engine, session = build_engine_session(connection=connection, **kwargs)
-        return cls(engine=engine, session=session)
-
-    @classmethod
-    def from_default_connection(cls, **kwargs):
-        """Build a manager using the default connection string."""
-        connection = cls._get_connection()
-        return cls.from_connection(connection, **kwargs)
-
-    @classmethod
     def _get_connection(cls, connection=None):
         """Get a default connection string.
 

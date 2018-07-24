@@ -3,7 +3,6 @@
 """Testing constants and utilities for Bio2BEL."""
 
 import logging
-
 from click.testing import CliRunner
 
 import pybel
@@ -55,7 +54,7 @@ class TestFailure(TemporaryConnectionMethodMixin):
 class TestNamespaceManagerMixin(TemporaryConnectionMethodMixin):
     def test_instantiation_success(self):
         """Test instantiation is possible."""
-        NamespaceManager.from_connection(connection=self.connection)
+        NamespaceManager(connection=self.connection)
 
 
 class TestAwesome(AbstractTemporaryCacheMethodMixin):
@@ -128,14 +127,14 @@ class TestCli(MockConnectionMixin):
         """Set up a CliRunner and an accompanying CLI for each test."""
         self.runner = CliRunner()
         self.main = NamespaceManager.get_cli()
-        self.manager = Manager.from_connection(connection=self.connection)
+        self.manager = Manager(connection=self.connection)
         self.manager.populate()
 
     def test_to_bel_namespace(self):
         """Test the population function can be run."""
         self.assertEqual(5, self.manager.count_model(), msg='manager should be populated')
 
-        pybel_manager = pybel.Manager.from_connection(self.connection)
+        pybel_manager = pybel.Manager(connection=self.connection)
         self.assertEqual(0, pybel_manager.count_namespaces())
 
         args = [

@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 class TestActions(TemporaryConnectionMethodMixin, MockConnectionMixin):
     def test_action(self):
-        manager = Manager.from_connection(self.connection)
+        manager = Manager(connection=self.connection)
         create_all(manager.engine)
 
         self.assertEqual(0, Action.count(session=manager.session))
@@ -35,7 +35,7 @@ class TestActions(TemporaryConnectionMethodMixin, MockConnectionMixin):
         with self.mock_global_connection:
             self.assertEqual(0, Action.count())
 
-            manager = Manager.from_connection(self.connection)
+            manager = Manager(self.connection)
             self.assertFalse(manager.is_populated())
             manager.populate()
             self.assertTrue(manager.is_populated())
