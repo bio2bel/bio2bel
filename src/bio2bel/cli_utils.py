@@ -34,7 +34,7 @@ def add_cli_populate(main):
     @click.option('--force', is_flag=True, help='Force overwrite if already populated')
     @click.pass_obj
     def populate(manager, reset, force):
-        """Populates the database"""
+        """Populate the database."""
 
         if reset:
             click.echo('Deleting the previous instance of the database')
@@ -61,7 +61,7 @@ def add_cli_drop(main):
     @click.option('-y', '--yes', is_flag=True)
     @click.pass_obj
     def drop(manager, yes):
-        """Drops database"""
+        """Drop the database."""
         if yes or click.confirm('Drop everything?'):
             manager.drop_all()
 
@@ -197,12 +197,12 @@ def add_cli_cache(main):
 
     @main.group()
     def cache():
-        """Manage cached data"""
+        """Manage cached data."""
 
     @cache.command()
     @click.pass_obj
     def ls(manager):
-        """Lists files in the cache."""
+        """List files in the cache."""
         data_dir = get_data_dir(manager.module_name)
 
         for path in os.listdir(data_dir):
@@ -211,7 +211,7 @@ def add_cli_cache(main):
     @cache.command()
     @click.pass_obj
     def clear(manager):
-        """Clears all files from the cache."""
+        """Clear all files from the cache."""
         data_dir = get_data_dir(manager.module_name)
 
         for path in os.listdir(data_dir):
