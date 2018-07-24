@@ -115,9 +115,10 @@ def add_cli_upload_bel(main):
     @click.pass_obj
     def upload_bel(manager, connection):
         """Upload BEL to network store."""
-        from pybel import to_database, Manager as PybelManager
+        from pybel import to_database, Manager
         graph = manager.to_bel()
-        to_database(graph, manager=PybelManager.from_connection(connection))
+        manager = Manager(connection=connection)
+        to_database(graph, manager=manager)
 
     return main
 
