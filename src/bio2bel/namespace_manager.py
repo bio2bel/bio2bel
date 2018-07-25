@@ -7,9 +7,9 @@ import time
 from abc import abstractmethod
 from tqdm import tqdm
 
+from pybel.constants import NAMESPACE_DOMAIN_OTHER
 from pybel.manager.models import Namespace
 from pybel.resources import write_namespace
-from pybel.constants import NAMESPACE_DOMAIN_OTHER
 from .abstract_manager import AbstractManager
 from .cli_utils import add_cli_clear_bel_namespace, add_cli_to_bel_namespace, add_cli_write_bel_namespace
 
@@ -207,7 +207,10 @@ class NamespaceManagerMixin(AbstractManager):
         return namespace
 
     def clear_bel_namespace(self):
-        """Remove the default namespace if it exists."""
+        """Remove the default namespace if it exists.
+
+        :rtype: Optional[pybel.manager.models.Namespace]
+        """
         ns = self._get_default_namespace()
 
         if ns is not None:
@@ -241,19 +244,37 @@ class NamespaceManagerMixin(AbstractManager):
 
     @staticmethod
     def _cli_add_to_bel_namespace(main):
+        """Add the export BEL namespace command.
+
+        :type main: click.core.Group
+        :rtype: click.core.Group
+        """
         return add_cli_to_bel_namespace(main)
 
     @staticmethod
     def _cli_add_clear_bel_namespace(main):
+        """Add the clear BEL namespace command.
+
+        :type main: click.core.Group
+        :rtype: click.core.Group
+        """
         return add_cli_clear_bel_namespace(main)
 
     @staticmethod
     def _cli_add_write_bel_namespace(main):
+        """Add the write BEL namespace command.
+
+        :type main: click.core.Group
+        :rtype: click.core.Group
+        """
         return add_cli_write_bel_namespace(main)
 
     @classmethod
     def get_cli(cls):
-        """Gets a :mod:`click` main function to use as a command line interface."""
+        """Get a :mod:`click` main function to use as a command line interface.
+
+        :rtype: click.core.Group
+        """
         main = super().get_cli()
         cls._cli_add_to_bel_namespace(main)
         cls._cli_add_clear_bel_namespace(main)

@@ -15,7 +15,6 @@ from .models import Action, create_all
 from .utils import get_connection, get_version
 
 __all__ = [
-    'AbstractManagerConnectionMixin',
     'AbstractManager',
 ]
 
@@ -98,7 +97,7 @@ class AbstractManagerConnectionMixin(object):
 
     Example for InterPro:
 
-    >>> from bio2bel import AbstractManagerConnectionMixin
+    >>> from bio2bel.abstract_manager import AbstractManagerConnectionMixin
     >>> class Manager(AbstractManagerConnectionMixin):
     >>>     module_name = 'interpro'
 
@@ -206,6 +205,7 @@ class _CliMixin(AbstractManagerConnectionMixin):
 
         :param Type[AbstractManager] cls: A Manager class
         :return: The main function for click
+        :rtype: click.core.Command
         """
 
         @click.group(help='Default connection at {}\n\nusing Bio2BEL v{}'.format(cls._get_connection(), get_version()))
@@ -222,23 +222,46 @@ class _CliMixin(AbstractManagerConnectionMixin):
 
     @staticmethod
     def _cli_add_populate(main):
+        """Add the populate command.
+
+        :type main: click.core.Group
+        :rtype: click.core.Group
+        """
         return add_cli_populate(main)
 
     @staticmethod
     def _cli_add_drop(main):
+        """Add the drop command.
+
+        :type main: click.core.Group
+        :rtype: click.core.Group
+        """
         return add_cli_drop(main)
 
     @staticmethod
     def _cli_add_cache(main):
+        """Add the cache command.
+
+        :type main: click.core.Group
+        :rtype: click.core.Group
+        """
         return add_cli_cache(main)
 
     @staticmethod
     def _cli_add_summarize(main):
+        """Add the summarize command.
+
+        :type main: click.core.Group
+        :rtype: click.core.Group
+        """
         return add_cli_summarize(main)
 
     @classmethod
     def get_cli(cls):
-        """Gets a :mod:`click` main function to use as a command line interface."""
+        """Gets a :mod:`click` main function to use as a command line interface.
+
+        :rtype: click.core.Group
+        """
         main = cls._get_cli_main()
 
         cls._cli_add_populate(main)
@@ -299,11 +322,19 @@ class _FlaskMixin(_CliMixin, AbstractManagerConnectionMixin):
 
     @staticmethod
     def _cli_add_flask(main):
+        """Add the web command.
+
+        :type main: click.core.Group
+        :rtype: click.core.Group
+        """
         return add_cli_flask(main)
 
     @classmethod
     def get_cli(cls):
-        """Add  a :mod:`click` main function to use as a command line interface."""
+        """Add  a :mod:`click` main function to use as a command line interface.
+
+        :rtype: click.core.Group
+        """
         main = super().get_cli()
 
         cls._cli_add_flask(main)
@@ -474,7 +505,7 @@ class AbstractManager(_FlaskMixin, _QueryMixin, _CliMixin, metaclass=AbstractMan
     **Exporting to BEL (Optional)**
 
     To enable a Bio2BEL manager to use BEL utilities, the :mod:`pybel` libary needs to be installed
-    and the :py:class:`bio2bel.bel_manager.BELManagerMixin` needs to be used as a parent class.
+    and the :py:class:`bio2bel.BELManagerMixin` needs to be used as a parent class.
     """
 
     @property

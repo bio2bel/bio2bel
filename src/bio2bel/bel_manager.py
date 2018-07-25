@@ -5,8 +5,6 @@
 import logging
 from abc import abstractmethod
 
-from pybel import BELGraph
-
 from .abstract_manager import AbstractManager
 from .cli_utils import add_cli_to_bel, add_cli_upload_bel
 
@@ -46,20 +44,36 @@ class BELManagerMixin(AbstractManager):
     """
 
     @abstractmethod
-    def to_bel(self, *args, **kwargs) -> BELGraph:
-        """Convert the database to BEL."""
+    def to_bel(self, *args, **kwargs):
+        """Convert the database to BEL.
+
+        :rtype: pybel.BELGraph
+        """
 
     @staticmethod
     def _cli_add_to_bel(main):
+        """Add the export BEL command.
+
+        :type main: click.core.Group
+        :rtype: click.core.Group
+        """
         return add_cli_to_bel(main)
 
     @staticmethod
     def _cli_add_upload_bel(main):
+        """Add the upload BEL command.
+
+        :type main: click.core.Group
+        :rtype: click.core.Group
+        """
         return add_cli_upload_bel(main)
 
     @classmethod
     def get_cli(cls):
-        """Gets a :mod:`click` main function to use as a command line interface."""
+        """Get a :mod:`click` main function to use as a command line interface.
+
+        :rtype: click.core.Group
+        """
         main = super().get_cli()
         cls._cli_add_to_bel(main)
         cls._cli_add_upload_bel(main)

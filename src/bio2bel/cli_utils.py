@@ -26,7 +26,8 @@ log = logging.getLogger(__name__)
 def add_cli_populate(main):
     """Add a ``populate`` command to main :mod:`click` function.
 
-    :param main: A click-decorated main function
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
     """
 
     @main.command()
@@ -54,7 +55,8 @@ def add_cli_populate(main):
 def add_cli_drop(main):
     """Add a ``drop`` command to main :mod:`click` function.
 
-    :param main: A click-decorated main function
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
     """
 
     @main.command()
@@ -71,7 +73,8 @@ def add_cli_drop(main):
 def add_cli_flask(main):
     """Add a ``web`` comand main :mod:`click` function.
 
-    :param main: A click-decorated main function
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
     """
 
     @main.command()
@@ -91,7 +94,8 @@ def add_cli_flask(main):
 def add_cli_to_bel(main):
     """Add several command to main :mod:`click` function related to export to BEL.
 
-    :param main: A click-decorated main function
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
     """
 
     @main.command()
@@ -107,7 +111,8 @@ def add_cli_to_bel(main):
 def add_cli_upload_bel(main):
     """Add several command to main :mod:`click` function related to export to BEL.
 
-    :param main: A click-decorated main function
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
     """
 
     @main.command()
@@ -126,7 +131,8 @@ def add_cli_upload_bel(main):
 def add_cli_to_bel_namespace(main):
     """Add a ``upload_bel_namespace`` command to main :mod:`click` function.
 
-    :param main: A click-decorated main function
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
     """
 
     @main.command()
@@ -143,7 +149,8 @@ def add_cli_to_bel_namespace(main):
 def add_cli_clear_bel_namespace(main):
     """Add a ``clear_bel_namespace`` command to main :mod:`click` function.
 
-    :param main: A click-decorated main function
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
     """
 
     @main.command()
@@ -161,7 +168,8 @@ def add_cli_clear_bel_namespace(main):
 def add_cli_write_bel_namespace(main):
     """Add a ``write_bel_namespace`` command to main :mod:`click` function.
 
-    :param main: A click-decorated main function
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
     """
 
     @main.command()
@@ -177,7 +185,8 @@ def add_cli_write_bel_namespace(main):
 def add_cli_summarize(main):
     """Add a ``summarize`` command to main :mod:`click` function.
 
-    :param main: A click-decorated main function
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
     """
 
     @main.command()
@@ -193,7 +202,8 @@ def add_cli_summarize(main):
 def add_cli_cache(main):
     """Add several commands to main :mod:`click` function for handling the cache.
 
-    :param main: A click-decorated main function
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
     """
 
     @main.group()
