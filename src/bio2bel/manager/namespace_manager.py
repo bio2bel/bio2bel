@@ -58,7 +58,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
     """
     namespace_model = ...
 
-    identifiers_reccommended = None
+    identifiers_recommended = None
     identifiers_pattern = None
     identifiers_miriam = None
     identifiers_namespace = None
@@ -107,7 +107,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         :rtype: str
         """
-        return cls.identifiers_reccommended or cls.module_name
+        return cls.identifiers_recommended or cls.module_name
 
     @classmethod
     def _get_namespace_keyword(cls):
