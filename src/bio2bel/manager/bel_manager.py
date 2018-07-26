@@ -2,11 +2,13 @@
 
 """Provide abstractions over BEL generation procedures."""
 
-import logging
-from abc import abstractmethod
+import sys
 
-from .abstract_manager import AbstractManager
-from .cli_utils import add_cli_to_bel, add_cli_upload_bel
+import click
+import logging
+from abc import ABC, abstractmethod
+
+from .cli_manager import CliMixin
 
 log = logging.getLogger(__name__)
 
@@ -15,7 +17,7 @@ __all__ = [
 ]
 
 
-class BELManagerMixin(AbstractManager):
+class BELManagerMixin(ABC, CliMixin):
     """This mixin adds functions for making a BEL from a repository.
 
     *How to Use This Mixin*
@@ -78,3 +80,40 @@ class BELManagerMixin(AbstractManager):
         cls._cli_add_to_bel(main)
         cls._cli_add_upload_bel(main)
         return main
+
+
+def add_cli_to_bel(main):
+    """Add several command to main :mod:`click` function related to export to BEL.
+
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
+    """
+
+    @main.command()
+    @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
+    @click.pass_obj
+    def to_bel(manager, output):
+        """Write as BEL Script."""
+        from pybel import to_bel
+        graph = manager.to_bel()
+        to_bel(graph, output)
+
+
+def add_cli_upload_bel(main):
+    """Add several command to main :mod:`click` function related to export to BEL.
+
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
+    """
+
+    @main.command()
+    @click.option('-c', '--connection')
+    @click.pass_obj
+    def upload_bel(manager, connection):
+        """Upload BEL to network store."""
+        from pybel import to_database, Manager
+        graph = manager.to_bel()
+        manager = Manager(connection=connection)
+        to_database(graph, manager=manager)
+
+    return main

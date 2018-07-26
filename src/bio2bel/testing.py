@@ -9,8 +9,8 @@ import tempfile
 import unittest
 from unittest import mock
 
-from .abstract_manager import AbstractManager
 from .exc import Bio2BELManagerTypeError, Bio2BELTestMissingManagerError
+from .manager.abstract_manager import AbstractManager
 
 __all__ = [
     'TemporaryConnectionMethodMixin',

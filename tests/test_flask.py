@@ -4,18 +4,18 @@
 
 from flask_admin.contrib.sqla import ModelView
 
-from bio2bel.abstract_manager import _FlaskMixin
 from bio2bel.exc import Bio2BELMissingModelsError
+from bio2bel.manager.flask_manager import FlaskMixin
 from bio2bel.testing import TemporaryConnectionMethodMixin
 from tests.constants import Manager, Model
 
 
-class WrongFlaskTestManager(_FlaskMixin):
+class WrongFlaskTestManager(FlaskMixin):
     """An implementation of an AbstractManager that is unable to produce a Flask app."""
     module_name = 'test'
 
 
-class FlaskTestManager(Manager):
+class FlaskTestManager(FlaskMixin, Manager):
     """Extends the test Manager for generating a Flask application."""
     flask_admin_models = [Model]
 
@@ -25,12 +25,12 @@ class TruncatedModelView(ModelView):
     column_exclude_list = ['model_id']
 
 
-class FlaskTestViewManager(Manager):
+class FlaskTestViewManager(Manager, FlaskMixin):
     """Extends the test Manager for generating a Flask application."""
     flask_admin_models = [(Model, TruncatedModelView)]
 
 
-class FlaskFailureTestViewManager(Manager):
+class FlaskFailureTestViewManager(Manager, FlaskMixin):
     """Extends the test Manager for generating a Flask application."""
     flask_admin_models = [(Model, TruncatedModelView, 'junk!')]
 
@@ -42,11 +42,8 @@ class TestFlask(TemporaryConnectionMethodMixin):
         """Test exceptions are thrown properly for an improperly implemented AbstractManager."""
         self.assertIs(WrongFlaskTestManager.flask_admin_models, ...)
 
-        manager = WrongFlaskTestManager(connection=self.connection)
-        self.assertIs(manager.flask_admin_models, ...)
-
         with self.assertRaises(Bio2BELMissingModelsError):
-            manager.get_flask_admin_app()
+            manager = WrongFlaskTestManager(connection=self.connection)
 
     def test_app(self):
         """Test the successful generation of a flask application."""

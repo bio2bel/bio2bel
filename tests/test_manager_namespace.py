@@ -6,7 +6,7 @@ import logging
 from click.testing import CliRunner
 
 import pybel
-from bio2bel.namespace_manager import Bio2BELMissingNamespaceModelError, NamespaceManagerMixin
+from bio2bel.manager.namespace_manager import BELNamespaceManagerMixin, Bio2BELMissingNamespaceModelError
 from bio2bel.testing import AbstractTemporaryCacheMethodMixin, MockConnectionMixin, TemporaryConnectionMethodMixin
 from pybel.manager.models import Base as PyBELBase, Namespace, NamespaceEntry
 from tests.constants import Manager, Model, NUMBER_TEST_MODELS, TEST_MODEL_ID_FORMAT, TEST_MODEL_NAME_FORMAT
@@ -14,7 +14,7 @@ from tests.constants import Manager, Model, NUMBER_TEST_MODELS, TEST_MODEL_ID_FO
 log = logging.getLogger(__name__)
 
 
-class NamespaceManager(Manager, NamespaceManagerMixin):
+class NamespaceManager(Manager, BELNamespaceManagerMixin):
     """Use parts of the test manager and finish the abstract namespace manager"""
 
     namespace_model = Model
@@ -31,19 +31,27 @@ class NamespaceManager(Manager, NamespaceManagerMixin):
 class TestFailure(TemporaryConnectionMethodMixin):
 
     def test_type_failure(self):
-        class _TestManager(Manager, NamespaceManagerMixin):
+        """Test that a manager with implemented functions, but no class variable, fails to instantiate."""
+
+        class _TestManager(Manager, BELNamespaceManagerMixin):
+            """A manager that has functions implemented, but no class variables."""
+
             def _create_namespace_entry_from_model(self, model, namespace=None):
+                """Create a namespace entry."""
                 return NamespaceEntry(name=model.name, identifier=model.model_id, namespace=namespace)
 
             def _get_identifier(self, model):
+                """Get the identifier from a model."""
                 return model.model_id
 
         with self.assertRaises(Bio2BELMissingNamespaceModelError):
             _TestManager(connection=self.connection)
 
     def test_instantiation_failure(self):
-        class _TestManager(Manager, NamespaceManagerMixin):
-            """Use parts of the test manager and finish the abstract namespace manager"""
+        """Test that a manager without implemn"""
+
+        class _TestManager(Manager, BELNamespaceManagerMixin):
+            """Use parts of the test manager and finish the abstract namespace manager."""
 
             namespace_model = Model
 

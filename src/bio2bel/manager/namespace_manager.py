@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
 
-"""Provide abstractions over BEL namespace generation procedures"""
+"""Provide abstractions over BEL namespace generation procedures."""
 
+import sys
+
+import click
 import logging
 import time
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from tqdm import tqdm
 
 from pybel.constants import NAMESPACE_DOMAIN_OTHER
 from pybel.manager.models import Namespace
 from pybel.resources import write_namespace
-from .abstract_manager import AbstractManager
-from .cli_utils import add_cli_clear_bel_namespace, add_cli_to_bel_namespace, add_cli_write_bel_namespace
+from .cli_manager import CliMixin
+from .connection_manager import ConnectionManager
 
 log = logging.getLogger(__name__)
 
 __all__ = [
     'Bio2BELMissingNamespaceModelError',
-    'NamespaceManagerMixin',
+    'BELNamespaceManagerMixin',
 ]
 
 
@@ -25,7 +28,7 @@ class Bio2BELMissingNamespaceModelError(TypeError):
     """Raised when the namespace_model class variable is not defined."""
 
 
-class NamespaceManagerMixin(AbstractManager):
+class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
     """This mixin adds functions for making a BEL namespace to a repository.
 
     *How to Use This Mixin*
@@ -54,6 +57,7 @@ class NamespaceManagerMixin(AbstractManager):
 
     """
     namespace_model = ...
+    identifiers_url = None
 
     def __init__(self, *args, **kwargs):
         if self.namespace_model is ...:
@@ -102,11 +106,11 @@ class NamespaceManagerMixin(AbstractManager):
 
     @classmethod
     def _get_namespace_url(cls):
-        """Gets the URL to use as the reference BEL namespace. Not really the real one.
+        """Get the URL to use as the reference BEL namespace.
 
         :rtype: str
         """
-        return '_{}'.format(cls.module_name.upper())
+        return cls.identifiers_url or '_{}'.format(cls.module_name.upper())
 
     def _get_default_namespace(self):
         """Get the reference BEL namespace if it exists.
@@ -280,3 +284,57 @@ class NamespaceManagerMixin(AbstractManager):
         cls._cli_add_clear_bel_namespace(main)
         cls._cli_add_write_bel_namespace(main)
         return main
+
+
+def add_cli_to_bel_namespace(main):
+    """Add a ``upload_bel_namespace`` command to main :mod:`click` function.
+
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
+    """
+
+    @main.command()
+    @click.option('-u', '--update', is_flag=True)
+    @click.pass_obj
+    def upload_bel_namespace(manager, update):
+        """Upload names/identifiers to terminology store."""
+        namespace = manager.upload_bel_namespace(update=update)
+        click.echo('uploaded [{}] {}'.format(namespace.id, namespace.keyword))
+
+    return main
+
+
+def add_cli_clear_bel_namespace(main):
+    """Add a ``clear_bel_namespace`` command to main :mod:`click` function.
+
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
+    """
+
+    @main.command()
+    @click.pass_obj
+    def clear_bel_namespace(manager):
+        """Clear names/identifiers to terminology store."""
+        namespace = manager.clear_bel_namespace()
+
+        if namespace:
+            click.echo('namespace {} was cleared'.format(namespace))
+
+    return main
+
+
+def add_cli_write_bel_namespace(main):
+    """Add a ``write_bel_namespace`` command to main :mod:`click` function.
+
+    :param click.core.Group main: A click-decorated main function
+    :rtype: click.core.Group
+    """
+
+    @main.command()
+    @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
+    @click.pass_obj
+    def write_bel_namespace(manager, file):
+        """Write a BEL namespace names/identifiers to terminology store."""
+        manager.write_bel_namespace(file)
+
+    return main

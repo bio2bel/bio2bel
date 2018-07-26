@@ -42,11 +42,11 @@ Bio2BEL is tested with Python3 on Linux using `Travis CI <https://travis-ci.org/
 
 from pkg_resources import iter_entry_points
 
-from . import abstract_manager, bel_manager, cli_utils, utils
-from .abstract_manager import *
-from .bel_manager import *
-from .cli_utils import *
+from . import utils
 from .downloading import *
+from .manager import abstract_manager, bel_manager
+from .manager.abstract_manager import AbstractManager
+from .manager.bel_manager import BELManagerMixin
 from .utils import *
 
 GROUP_NAME = 'bio2bel'
@@ -84,6 +84,5 @@ __all__ = (
         entries +
         abstract_manager.__all__ +
         bel_manager.__all__ +
-        utils.__all__ +
-        cli_utils.__all__
+        utils.__all__
 )
