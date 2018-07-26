@@ -44,14 +44,13 @@ from pkg_resources import iter_entry_points
 
 from . import utils
 from .downloading import *
-from .manager import abstract_manager, bel_manager
+from .manager import abstract_manager
 from .manager.abstract_manager import AbstractManager
-from .manager.bel_manager import BELManagerMixin
 from .utils import *
 
 GROUP_NAME = 'bio2bel'
 
-# Allow `from bio2bel.ext import *`
+# Allow `from bio2bel import *`
 entries = [
     entry_point.name
     for entry_point in iter_entry_points(group=GROUP_NAME, name=None)
@@ -83,6 +82,5 @@ __copyright__ = 'Copyright (c) 2017-2018 Charles Tapley Hoyt'
 __all__ = (
         entries +
         abstract_manager.__all__ +
-        bel_manager.__all__ +
         utils.__all__
 )
