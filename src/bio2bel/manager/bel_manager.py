@@ -78,8 +78,14 @@ class BELManagerMixin(ABC, CliMixin):
         :rtype: click.core.Group
         """
         main = super().get_cli()
-        cls._cli_add_to_bel(main)
-        cls._cli_add_upload_bel(main)
+
+        @main.group()
+        def bel():
+            """Manage BEL."""
+
+        cls._cli_add_to_bel(bel)
+        cls._cli_add_upload_bel(bel)
+
         return main
 
 
@@ -93,7 +99,7 @@ def add_cli_to_bel(main):
     @main.command()
     @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
     @click.pass_obj
-    def to_bel(manager, output):
+    def write(manager, output):
         """Write as BEL Script."""
         graph = manager.to_bel()
         to_bel(graph, output)
@@ -109,7 +115,7 @@ def add_cli_upload_bel(main):
     @main.command()
     @click.option('-c', '--connection')
     @click.pass_obj
-    def upload_bel(manager, connection):
+    def upload(manager, connection):
         """Upload BEL to network store."""
         graph = manager.to_bel()
         manager = Manager(connection=connection)

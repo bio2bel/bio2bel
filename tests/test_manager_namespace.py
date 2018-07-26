@@ -148,7 +148,8 @@ class TestCli(MockConnectionMixin):
         args = [
             '--connection',
             self.connection,
-            'upload_bel_namespace'
+            'belns',
+            'upload',
         ]
         self.runner.invoke(self.main, args)
 

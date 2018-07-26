@@ -205,8 +205,9 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         log.info('committed models in %.2f seconds', time.time() - t)
 
     def upload_bel_namespace(self, update=False):
-        """
-        :param bool update: Should the namespae be updated first?
+        """Upload the namespace to the PyBEL database.
+
+        :param bool update: Should the namespace be updated first?
         :rtype: pybel.manager.models.Namespace
         """
         if not self.is_populated():
@@ -223,7 +224,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         return namespace
 
-    def clear_bel_namespace(self):
+    def drop_bel_namespace(self):
         """Remove the default namespace if it exists.
 
         :rtype: Optional[pybel.manager.models.Namespace]
@@ -244,14 +245,13 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         :param file:
         """
-        _namespace_keyword = self._get_namespace_keyword()
-
         values = {self._get_identifier(model) for model in self._iterate_namespace_models()}
 
         write_namespace(
-            namespace_name=_namespace_keyword,
-            namespace_keyword=_namespace_keyword,
+            namespace_name=self._get_namespace_name(),
+            namespace_keyword=self._get_namespace_keyword(),
             namespace_domain=NAMESPACE_DOMAIN_OTHER,
+            namespace_query_url=self.identifiers_url,
             author_name='',
             citation_name='',
             values=values,
@@ -293,9 +293,15 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         :rtype: click.core.Group
         """
         main = super().get_cli()
-        cls._cli_add_to_bel_namespace(main)
-        cls._cli_add_clear_bel_namespace(main)
-        cls._cli_add_write_bel_namespace(main)
+
+        @main.group()
+        def belns():
+            """Manage BEL namespace."""
+
+        cls._cli_add_to_bel_namespace(belns)
+        cls._cli_add_clear_bel_namespace(belns)
+        cls._cli_add_write_bel_namespace(belns)
+
         return main
 
 
@@ -309,7 +315,7 @@ def add_cli_to_bel_namespace(main):
     @main.command()
     @click.option('-u', '--update', is_flag=True)
     @click.pass_obj
-    def upload_bel_namespace(manager, update):
+    def upload(manager, update):
         """Upload names/identifiers to terminology store."""
         namespace = manager.upload_bel_namespace(update=update)
         click.echo('uploaded [{}] {}'.format(namespace.id, namespace.keyword))
@@ -326,9 +332,9 @@ def add_cli_clear_bel_namespace(main):
 
     @main.command()
     @click.pass_obj
-    def clear_bel_namespace(manager):
+    def drop(manager):
         """Clear names/identifiers to terminology store."""
-        namespace = manager.clear_bel_namespace()
+        namespace = manager.drop_bel_namespace()
 
         if namespace:
             click.echo('namespace {} was cleared'.format(namespace))
@@ -346,7 +352,7 @@ def add_cli_write_bel_namespace(main):
     @main.command()
     @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
     @click.pass_obj
-    def write_bel_namespace(manager, file):
+    def write(manager, file):
         """Write a BEL namespace names/identifiers to terminology store."""
         manager.write_bel_namespace(file)
 
