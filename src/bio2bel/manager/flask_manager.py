@@ -3,6 +3,7 @@
 """Provides abstractions over the management of SQLAlchemy connections and sessions."""
 
 import click
+import os
 from flask import Flask
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -51,13 +52,17 @@ class FlaskMixin(ConnectionManager, CliMixin):
 
         return admin
 
-    def get_flask_admin_app(self, url=None):
+    def get_flask_admin_app(self, url=None, secret_key=None):
         """Create a Flask application.
 
         :param Optional[str] url: Optional mount point of the admin application. Defaults to ``'/'``.
         :rtype: flask.Flask
         """
         app = Flask(__name__)
+
+        if secret_key:
+            app.secret_key = secret_key
+
         self._add_admin(app, url=(url or '/'))
         return app
 
@@ -94,7 +99,7 @@ def add_cli_flask(main):
     @click.option('-v', '--debug', is_flag=True)
     @click.option('-p', '--port')
     @click.option('-h', '--host')
-    @click.option('-k', '--secret-key')
+    @click.option('-k', '--secret-key', default=os.urandom(8))
     @click.pass_obj
     def web(manager, debug, port, host, secret_key):
         """Run the web app."""
