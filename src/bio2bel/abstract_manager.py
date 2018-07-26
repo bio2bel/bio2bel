@@ -131,6 +131,11 @@ class AbstractManagerConnectionMixin(object):
         self.engine = engine
         self.session = session
 
+    @property
+    def connection(self):
+        """Return this manager's connection string."""
+        return str(self.engine.url)
+
     @classmethod
     def _assert_module_name(cls):
         if cls.module_name is ...:
