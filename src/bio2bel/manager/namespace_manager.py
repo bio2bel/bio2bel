@@ -57,6 +57,11 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
     """
     namespace_model = ...
+
+    identifiers_reccommended = None
+    identifiers_pattern = None
+    identifiers_miriam = None
+    identifiers_namespace = None
     identifiers_url = None
 
     def __init__(self, *args, **kwargs):
@@ -93,16 +98,24 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         return tqdm(
             self._get_query(self.namespace_model),
             total=self._count_model(self.namespace_model),
-            desc='Mapping {} to BEL namespace'.format(self.module_name)
+            desc='Mapping {} to BEL namespace'.format(self._get_namespace_name())
         )
 
     @classmethod
-    def _get_namespace_keyword(cls):
-        """Gets the keyword to use as the reference BEL namespace.
+    def _get_namespace_name(cls):
+        """Get the nicely formatted name of this namespace.
 
         :rtype: str
         """
-        return cls.module_name.upper()
+        return cls.identifiers_reccommended or cls.module_name
+
+    @classmethod
+    def _get_namespace_keyword(cls):
+        """Get the keyword to use as the reference BEL namespace.
+
+        :rtype: str
+        """
+        return cls.identifiers_namespace or cls.module_name.upper()
 
     @classmethod
     def _get_namespace_url(cls):
@@ -134,7 +147,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         :rtype: pybel.manager.models.Namespace
         """
         namespace = Namespace(
-            name=self.module_name,
+            name=self._get_namespace_name(),
             keyword=self._get_namespace_keyword(),
             url=self._get_namespace_url(),
             version=str(time.asctime()),
@@ -202,7 +215,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         namespace = self._get_default_namespace()
 
         if namespace is None:
-            log.info('making namespace for %s', self.module_name)
+            log.info('making namespace for %s', self._get_namespace_name())
             return self._make_namespace()
 
         if update:
@@ -218,7 +231,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         ns = self._get_default_namespace()
 
         if ns is not None:
-            for entry in tqdm(ns.entries, desc='deleting entries in {}'.format(self.module_name)):
+            for entry in tqdm(ns.entries, desc='deleting entries in {}'.format(self._get_namespace_name())):
                 self.session.delete(entry)
             self.session.delete(ns)
 
