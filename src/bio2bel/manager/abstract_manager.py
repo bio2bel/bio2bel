@@ -2,13 +2,13 @@
 
 """Provides abstractions over the management of SQLAlchemy connections and sessions."""
 
+from abc import ABCMeta, abstractmethod
+from functools import wraps
+import logging
+import os
 import sys
 
 import click
-import logging
-import os
-from abc import ABCMeta, abstractmethod
-from functools import wraps
 
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
@@ -24,14 +24,14 @@ log = logging.getLogger(__name__)
 class AbstractManagerMeta(ABCMeta):
     """Crazy metaclass to hack in a decorator to the populate function."""
 
-    def __new__(mcs, name, bases, namespace, **kwargs):
+    def __new__(mcs, name, bases, namespace, **kwargs):  # noqa: N804
         cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
         cls._populate_original = cls.populate
 
         @wraps(cls._populate_original)
         def populate_wrapped(self, *populate_args, **populate_kwargs):
-            """Populates the database."""
+            """Populate the database."""
             cls._populate_original(self, *populate_args, **populate_kwargs)
 
             # Hack in the action storage
@@ -211,7 +211,7 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
     @property
     @abstractmethod
     def _base(self):
-        """Returns the declarative base.
+        """Return the declarative base.
 
         It is usually sufficient to return an instance that is module-level.
 
@@ -232,7 +232,7 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
         Note that this property could effectively also be a static method.
         """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # noqa: D107
         super().__init__(*args, **kwargs)
         self.create_all()
 
@@ -338,7 +338,7 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
 
     @classmethod
     def get_cli(cls):
-        """Gets a :mod:`click` main function to use as a command line interface.
+        """Get the :mod:`click` main function to use as a command line interface.
 
         :rtype: click.core.Group
         """
@@ -358,14 +358,12 @@ def add_cli_populate(main):
     :param click.core.Group main: A click-decorated main function
     :rtype: click.core.Group
     """
-
     @main.command()
     @click.option('--reset', is_flag=True, help='Nuke database first')
     @click.option('--force', is_flag=True, help='Force overwrite if already populated')
     @click.pass_obj
     def populate(manager, reset, force):
         """Populate the database."""
-
         if reset:
             click.echo('Deleting the previous instance of the database')
             manager.drop_all()
@@ -387,7 +385,6 @@ def add_cli_drop(main):
     :param click.core.Group main: A click-decorated main function
     :rtype: click.core.Group
     """
-
     @main.command()
     @click.option('-y', '--yes', is_flag=True)
     @click.pass_obj
@@ -405,7 +402,6 @@ def add_cli_cache(main):
     :param click.core.Group main: A click-decorated main function
     :rtype: click.core.Group
     """
-
     @main.group()
     def cache():
         """Manage cached data."""
@@ -439,7 +435,6 @@ def add_cli_summarize(main):
     :param click.core.Group main: A click-decorated main function
     :rtype: click.core.Group
     """
-
     @main.command()
     @click.pass_obj
     def summarize(manager):

@@ -18,7 +18,8 @@ class ExtensionImporter(object):
     """An importer and loader for package resources registered under a particular group."""
 
     def __init__(self, group):
-        """
+        """Initialize the importer with the group name.
+
         :param str group: a string representing the package resources entry_points group that will be used
         """
         self.group = group

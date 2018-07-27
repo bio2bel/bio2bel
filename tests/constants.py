@@ -3,10 +3,10 @@
 """Testing constants and utilities for Bio2BEL."""
 
 import logging
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
 
 from bio2bel.manager.abstract_manager import AbstractManager
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
 
 log = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ TEST_MODEL_NAME_FORMAT = '{0}{0}{0}{0}{0}'
 
 class Model(TestBase):
     """A test model."""
+
     __tablename__ = 'test_model'
 
     id = Column(Integer, primary_key=True)
@@ -45,6 +46,7 @@ class Manager(AbstractManager):
     module_name = 'test'
 
     def __init__(self, *args, **kwargs):
+        """Instantiate the manager."""
         super().__init__(*args, **kwargs)
 
         self.last_populate_args = []

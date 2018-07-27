@@ -16,10 +16,8 @@ class Bio2BELMissingModelsError(TypeError):
 
 
 class Bio2BELTestMissingManagerError(TypeError):
-    """Raised when implementing :class:`bio2bel.testing.AbstractTemporaryCacheClassMixin` but the class-level variable,
-    Manager was not set."""
+    """Raised when "Manager" was not set as a class-level variable.."""
 
 
 class Bio2BELManagerTypeError(TypeError):
-    """Raised when implementing :class:`bio2bel.testing.AbstractTemporaryCacheClassMixin` but the class-level variable,
-    Manager is not a subclass of :class:`bio2bel.AbstractManager`."""
+    """Raised when the class-level variable "Manager" is not a subclass of :class:`bio2bel.AbstractManager`."""

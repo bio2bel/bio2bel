@@ -2,13 +2,13 @@
 
 """Provide abstractions over BEL generation procedures."""
 
+from abc import ABC, abstractmethod
+import logging
 import sys
 
 import click
-import logging
-from abc import ABC, abstractmethod
-
 from pybel import Manager, to_bel, to_database
+
 from .cli_manager import CliMixin
 
 log = logging.getLogger(__name__)
@@ -95,7 +95,6 @@ def add_cli_to_bel(main):
     :param click.core.Group main: A click-decorated main function
     :rtype: click.core.Group
     """
-
     @main.command()
     @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
     @click.pass_obj
@@ -111,7 +110,6 @@ def add_cli_upload_bel(main):
     :param click.core.Group main: A click-decorated main function
     :rtype: click.core.Group
     """
-
     @main.command()
     @click.option('-c', '--connection')
     @click.pass_obj

@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
-"""This module has tools for quickly writing unit tests with :mod:`unittest` that involve the usage of a mock data with
-a Bio2BEL manager."""
+"""Testing utilities for Bio2BEL.
+
+This module has tools for quickly writing unit tests with :mod:`unittest` that involve the usage of a mock data with
+a Bio2BEL manager.
+"""
 
 import logging
 import os
@@ -71,9 +74,11 @@ class MockConnectionMixin(TemporaryConnectionMixin):
     """Allows for testing with a consistent connection without changing the configuration."""
 
     def setUp(self):
-        """Add two class-level variables: ``mock_global_connection`` and ``mock_module_connection`` that can be
-        used as context managers to mock the bio2bel connection getter functions."""
+        """Set up the test with a mock connection string.
 
+        Add two class-level variables: ``mock_global_connection`` and ``mock_module_connection`` that can be
+        used as context managers to mock the bio2bel connection getter functions.
+        """
         super().setUp()
 
         def mock_connection():
@@ -93,6 +98,7 @@ class AbstractTemporaryCacheMethodMixin(TemporaryConnectionMethodMixin):
     Requires the class variable ``Manager`` to be overriden with the class corresponding to the manager to be used that
     is a subclass of :class:`bio2bel.AbstractManager`.
     """
+
     Manager = ...
     manager = None
 
@@ -116,7 +122,10 @@ class AbstractTemporaryCacheMethodMixin(TemporaryConnectionMethodMixin):
         super().tearDown()
 
     def populate(self):
-        """A stub that can be overridden to populate the manager."""
+        """Populate the database.
+
+        This stub should be overridden.
+        """
 
 
 class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
@@ -125,6 +134,7 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
     Requires the class variable ``Manager`` to be overriden with the class corresponding to the manager to be used that
     is a subclass of :class:`bio2bel.AbstractManager`.
     """
+
     Manager = ...
     manager = None
 
@@ -151,7 +161,10 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
 
     @classmethod
     def populate(cls):
-        """A stub that can be overridden to populate the manager."""
+        """Populate the database.
+
+        This stub should be overridden.
+        """
 
 
 def make_temporary_cache_class_mixin(manager_cls):
@@ -160,7 +173,6 @@ def make_temporary_cache_class_mixin(manager_cls):
     :param type[bio2bel.AbstractManager] manager_cls: A Bio2BEL manager
     :rtype: type[AbstractTemporaryCacheClassMixin]
     """
-
     class TemporaryCacheClassMixin(AbstractTemporaryCacheClassMixin):
         Manager = manager_cls
 

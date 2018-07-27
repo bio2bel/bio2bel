@@ -2,36 +2,40 @@
 
 """Tests the Flask web application generation utilities."""
 
-from flask_admin.contrib.sqla import ModelView
-
 from bio2bel.exc import Bio2BELMissingModelsError
 from bio2bel.manager.flask_manager import FlaskMixin
 from bio2bel.testing import TemporaryConnectionMethodMixin
+from flask_admin.contrib.sqla import ModelView
 from tests.constants import Manager, Model
 
 
 class WrongFlaskTestManager(FlaskMixin):
     """An implementation of an AbstractManager that is unable to produce a Flask app."""
+
     module_name = 'test'
 
 
 class FlaskTestManager(FlaskMixin, Manager):
     """Extends the test Manager for generating a Flask application."""
+
     flask_admin_models = [Model]
 
 
 class TruncatedModelView(ModelView):
     """A truncated Flask Admin view."""
+
     column_exclude_list = ['model_id']
 
 
 class FlaskTestViewManager(Manager, FlaskMixin):
     """Extends the test Manager for generating a Flask application."""
+
     flask_admin_models = [(Model, TruncatedModelView)]
 
 
 class FlaskFailureTestViewManager(Manager, FlaskMixin):
     """Extends the test Manager for generating a Flask application."""
+
     flask_admin_models = [(Model, TruncatedModelView, 'junk!')]
 
 
@@ -43,7 +47,7 @@ class TestFlask(TemporaryConnectionMethodMixin):
         self.assertIs(WrongFlaskTestManager.flask_admin_models, ...)
 
         with self.assertRaises(Bio2BELMissingModelsError):
-            manager = WrongFlaskTestManager(connection=self.connection)
+            WrongFlaskTestManager(connection=self.connection)
 
     def test_app(self):
         """Test the successful generation of a flask application."""
@@ -84,5 +88,6 @@ class TestFlask(TemporaryConnectionMethodMixin):
         """Test the ability to define tuple views."""
         manager = FlaskFailureTestViewManager(connection=self.connection)
         manager.populate()
+
         with self.assertRaises(TypeError):
             manager.get_flask_admin_app()

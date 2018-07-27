@@ -2,8 +2,9 @@
 
 """Provides abstractions over the management of SQLAlchemy connections and sessions."""
 
-import click
 import os
+
+import click
 from flask import Flask
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -23,7 +24,7 @@ class FlaskMixin(ConnectionManager, CliMixin):
     #: Represents a list of SQLAlchemy classes to make a Flask-Admin interface.
     flask_admin_models = ...
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # noqa: D107
         if self.flask_admin_models is ...:
             raise Bio2BELMissingModelsError(
                 'FlaskMixin necessitates definition of class variable "flask_admin_models".')
@@ -94,7 +95,6 @@ def add_cli_flask(main):
     :param click.core.Group main: A click-decorated main function
     :rtype: click.core.Group
     """
-
     @main.command()
     @click.option('-v', '--debug', is_flag=True)
     @click.option('-p', '--port')

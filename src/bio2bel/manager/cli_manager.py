@@ -2,8 +2,9 @@
 
 """Provides abstractions over the generation of a command line interface."""
 
-import click
 import logging
+
+import click
 
 from ..utils import get_version
 

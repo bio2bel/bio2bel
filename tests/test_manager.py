@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import unittest
-from sqlalchemy.exc import OperationalError
-from sqlalchemy.ext.declarative import declarative_base
+"""Tests for the Bio2BEL AbstractManager."""
 
-import tests.constants
+import unittest
+
 from bio2bel import AbstractManager
 from bio2bel.exc import Bio2BELMissingNameError, Bio2BELModuleCaseError
 from bio2bel.models import Action
 from bio2bel.testing import AbstractTemporaryCacheClassMixin, MockConnectionMixin, TemporaryConnectionMethodMixin
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.ext.declarative import declarative_base
+import tests.constants
 from tests.constants import NUMBER_TEST_MODELS
 
 
@@ -17,9 +19,8 @@ class TestManagerFailures(TemporaryConnectionMethodMixin):
 
     def test_missing_all_abstract(self):
         """Test that the abstract class can't be instantiated."""
-
         class Manager(AbstractManager):
-            """An incompletely implement AbstractManager"""
+            """An incompletely implement AbstractManager."""
 
         with self.assertRaises(TypeError):  # cant's instantiate abstract class
             Manager(self.connection)
@@ -29,7 +30,7 @@ class TestManagerFailures(TemporaryConnectionMethodMixin):
         base = declarative_base()
 
         class Manager(AbstractManager):
-            """An incompletely implement AbstractManager"""
+            """An incompletely implement AbstractManager."""
 
             @property
             def _base(self):
@@ -40,7 +41,6 @@ class TestManagerFailures(TemporaryConnectionMethodMixin):
 
     def test_fail_instantiation_3(self):
         """Test that the abstract class can't be instantiated."""
-
         class Manager(AbstractManager):
             """An incompletely implement AbstractManager."""
 
@@ -63,9 +63,11 @@ class TestManagerFailures(TemporaryConnectionMethodMixin):
 
             def is_populated(self):
                 """Check if the database is already populated."""
+                pass
 
             def populate(self):
                 """Populate the database."""
+                pass
 
             def summarize(self):
                 """Summarize the database."""
@@ -79,6 +81,8 @@ class TestManagerFailures(TemporaryConnectionMethodMixin):
         base = declarative_base()
 
         class Manager(AbstractManager):
+            """A test manager that checks the module name is lower cased."""
+
             module_name = 'TESTOMG'
 
             @property
@@ -87,9 +91,11 @@ class TestManagerFailures(TemporaryConnectionMethodMixin):
 
             def is_populated(self):
                 """Check if the database is already populated."""
+                pass
 
             def populate(self):
                 """Populate the database."""
+                pass
 
             def summarize(self):
                 """Summarize the database."""
@@ -101,11 +107,11 @@ class TestManagerFailures(TemporaryConnectionMethodMixin):
 
 class TestConnectionDropping(MockConnectionMixin, AbstractTemporaryCacheClassMixin):
     """Tests dropping the database."""
+
     Manager = tests.constants.Manager
 
     def test_no_exist(self):
         """Check if the database gets dropped that stuff breaks."""
-
         with self.mock_global_connection:  # don't want to worry about that drop_app hook
             self.assertEqual(0, Action.count())
             self.manager.drop_all()
@@ -121,12 +127,12 @@ class TestConnectionLoading(AbstractTemporaryCacheClassMixin):
     Manager = tests.constants.Manager
 
     def test_connection(self):
-        """Tests the type of the connection"""
+        """Test the type of the connection."""
         self.assertIsNotNone(self.connection)
         self.assertIsInstance(self.connection, str)
 
     def test_manager_passes(self):
-        """Test the connection is inside the manager properly"""
+        """Test the connection is inside the manager properly."""
         self.assertEqual(self.connection, str(self.manager.engine.url))
 
     def test_repr(self):

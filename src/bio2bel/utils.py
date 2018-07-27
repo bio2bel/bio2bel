@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+"""Utilities for Bio2BEL."""
+
+from configparser import ConfigParser
 import logging
 import os
-from configparser import ConfigParser
 
 from .constants import BIO2BEL_DIR, DEFAULT_CACHE_CONNECTION, DEFAULT_CONFIG_PATH, VERSION
 
@@ -16,7 +18,7 @@ __all__ = [
 
 
 def get_data_dir(module_name):
-    """Ensures the appropriate Bio2BEL data directory exists for the given module, then returns the file path
+    """Ensure the appropriate Bio2BEL data directory exists for the given module, then returns the file path.
 
     :param str module_name: The name of the module. Ex: 'chembl'
     :return: The module's data directory
@@ -29,7 +31,7 @@ def get_data_dir(module_name):
 
 
 def get_connection(module_name, connection=None):
-    """Return the SQLAlchemy connection string if it is set
+    """Return the SQLAlchemy connection string if it is set.
 
     Order of operations:
 
@@ -112,4 +114,5 @@ def get_connection(module_name, connection=None):
 
 
 def get_version():
+    """Get the software version of Bio2BEL."""
     return VERSION

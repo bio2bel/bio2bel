@@ -8,7 +8,7 @@ import os
 import sys
 
 import click
-from pkg_resources import VersionConflict, iter_entry_points
+from pkg_resources import iter_entry_points, VersionConflict
 
 from .constants import DEFAULT_CACHE_CONNECTION
 from .models import Action
@@ -32,6 +32,7 @@ for entry_point in iter_entry_points(group='bio2bel', name=None):
         log.exception('Issue with importing module %s', entry)
         continue
 
+for entry, module in modules.items():
     try:
         cli_modules[entry] = modules[entry].cli
     except AttributeError:
@@ -89,7 +90,7 @@ def populate(connection, reset, force, skip):
 
         try:
             manager.populate()
-        except:
+        except Exception:
             log.exception('%s population failed', name)
             click.echo(click.style('👎 {} population failed'.format(name), fg='red', bold=True))
 

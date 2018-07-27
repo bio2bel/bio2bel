@@ -12,7 +12,10 @@ log = logging.getLogger(__name__)
 
 
 class TestActions(TemporaryConnectionMethodMixin, MockConnectionMixin):
+    """Test actions."""
+
     def test_action(self):
+        """Test actions with live database."""
         manager = Manager(connection=self.connection)
         create_all(manager.engine)
 
@@ -32,6 +35,7 @@ class TestActions(TemporaryConnectionMethodMixin, MockConnectionMixin):
         self.assertEqual('populate', action.action)
 
     def test_action_mocked(self):
+        """Test actions with mocked database."""
         with self.mock_global_connection:
             self.assertEqual(0, Action.count())
 

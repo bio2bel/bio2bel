@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
+"""The Bio2BEL web application."""
+
 import importlib
 import logging
 
-import flask
-import flask_bootstrap
-from flask_admin import Admin
-from pkg_resources import VersionConflict, iter_entry_points
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-
 from bio2bel.constants import DEFAULT_CACHE_CONNECTION
+from bio2bel.manager.connection_manager import build_engine_session
+import flask
+from flask_admin import Admin
+import flask_bootstrap
+from pkg_resources import iter_entry_points, VersionConflict
 
 log = logging.getLogger(__name__)
 
@@ -46,14 +46,14 @@ for entry_point in iter_entry_points(group='bio2bel', name=None):
 
 @ui.route('/')
 def home():
-    """no place like home"""
+    """Show the home page."""
     return flask.render_template('index.html', entries=sorted(add_admins))
 
 
 def create_application(connection=None):
-    """
+    """Create a Flask application.
 
-    :param Optional[str] connection:
+    :param Optional[str] connection: A connection string
     :rtype: flask.Flask
     """
     app = flask.Flask(__name__)
@@ -62,9 +62,7 @@ def create_application(connection=None):
     Admin(app)
 
     connection = connection or DEFAULT_CACHE_CONNECTION
-    engine = create_engine(connection)
-    session_maker = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
-    session = scoped_session(session_maker)
+    engine, session = build_engine_session(connection)
 
     for name, add_admin in add_admins.items():
         url = '/{}'.format(name)

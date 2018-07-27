@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+"""Constants for Bio2BEL."""
+
+from configparser import ConfigParser
 import logging
 import os
-from configparser import ConfigParser
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +21,7 @@ UNCONFIGURED_CACHE_CONNECTION = 'sqlite:///' + UNCONFIGURED_CACHE_PATH
 
 
 def get_global_connection():
-    """Return connection string
+    """Return the global connection string.
 
     :rtype: str
     """

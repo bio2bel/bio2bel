@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-"""Bio2BEL is a project aimed at bringing biological databases and other structured knowledge sources in a wide variety
-of schemata into the unified framework of `Biological Expression Language <http://http://openbel.org/>`_.
+"""Bio2BEL is a project aimed at integrating biological databases and other structured knowledge sources.
+
+Because they come from a wide variety of schemata, this package provides tools for converting them into the unified
+framework of `Biological Expression Language <http://http://openbel.org/>`_.
 
 This package provides guidelines, tutorials, and tools for making standardized ``bio2bel`` packages as well as a
 unifying framework for integrating them.
@@ -40,32 +42,10 @@ Testing
 Bio2BEL is tested with Python3 on Linux using `Travis CI <https://travis-ci.org/bio2bel/bio2bel>`_.
 """
 
-from pkg_resources import iter_entry_points
-
-from . import utils
-from .downloading import *
-from .manager import abstract_manager
-from .manager.abstract_manager import AbstractManager
-from .utils import *
-
-GROUP_NAME = 'bio2bel'
-
-# Allow `from bio2bel import *`
-entries = [
-    entry_point.name
-    for entry_point in iter_entry_points(group=GROUP_NAME, name=None)
-]
-
-
-def setup():
-    """Add the :code:`bio2bel.ext` importer/loader to the meta_path. Should probably only be called once."""
-    from .exthook import ExtensionImporter
-    importer = ExtensionImporter(GROUP_NAME)
-    importer.install()
-
-
-setup()
-del setup  # Do a bit of cleanup. Not sure if it's necessary, but Flask did...
+from .downloading import make_df_getter, make_downloader  # noqa: F401
+from .manager import abstract_manager  # noqa: F401
+from .manager.abstract_manager import AbstractManager  # noqa: F401
+from .utils import get_data_dir, get_version  # noqa: F401
 
 __version__ = '0.1.0-dev'
 
@@ -78,9 +58,3 @@ __email__ = 'charles.hoyt@scai.fraunhofer.de'
 
 __license__ = 'Apache 2.0 License'
 __copyright__ = 'Copyright (c) 2017-2018 Charles Tapley Hoyt'
-
-__all__ = (
-        entries +
-        abstract_manager.__all__ +
-        utils.__all__
-)

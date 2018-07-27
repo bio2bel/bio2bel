@@ -2,17 +2,17 @@
 
 """Provide abstractions over BEL namespace generation procedures."""
 
+from abc import ABC, abstractmethod
+import logging
 import sys
+import time
 
 import click
-import logging
-import time
-from abc import ABC, abstractmethod
-from tqdm import tqdm
-
 from pybel.constants import NAMESPACE_DOMAIN_OTHER
 from pybel.manager.models import Namespace
 from pybel.resources import write_namespace
+from tqdm import tqdm
+
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
 
@@ -56,6 +56,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             ...
 
     """
+
     namespace_model = ...
 
     identifiers_recommended = None
@@ -64,7 +65,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
     identifiers_namespace = None
     identifiers_url = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # noqa: D107
         if self.namespace_model is ...:
             raise Bio2BELMissingNamespaceModelError
 
@@ -72,7 +73,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
     @abstractmethod
     def _create_namespace_entry_from_model(self, model, namespace):
-        """
+        """Create a PyBEL NamespaceEntry model from a Bio2BEL model.
+
         :param model: The model to convert
         :type namespace: pybel.manager.models.Namespace
         :rtype: Optional[pybel.manager.models.NamespaceEntry]
@@ -87,14 +89,14 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
     @staticmethod
     @abstractmethod
     def _get_identifier(model):
-        """Given an instance of namespace_model, extract its identifier.
+        """Extract the identifier from an instance of namespace_model..
 
         :param model: The model to convert
         :rtype: str
         """
 
     def _iterate_namespace_models(self):
-        """Return an iterator over the models to be converted to the namespace"""
+        """Return an iterator over the models to be converted to the namespace."""
         return tqdm(
             self._get_query(self.namespace_model),
             total=self._count_model(self.namespace_model),
@@ -143,7 +145,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         ]
 
     def _make_namespace(self):
-        """
+        """Make a namespace.
+
         :rtype: pybel.manager.models.Namespace
         """
         namespace = Namespace(
@@ -166,7 +169,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
     @staticmethod
     def _get_old_entry_identifiers(namespace):
-        """Converts PyBEL generalized namespace entries to a set.
+        """Convert a PyBEL generalized namespace entries to a set.
 
         Default to using the identifier, but can be overridden to use the name instead.
 
@@ -178,11 +181,12 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         return {term.identifier for term in namespace.entries}
 
     def _update_namespace(self, namespace):
-        """Only call this if namespace won't be none!
+        """Update an already-created namespace.
+
+        Note: Only call this if namespace won't be none!
 
         :type namespace: pybel.manager.models.Namespace
         """
-
         old_entry_identifiers = self._get_old_entry_identifiers(namespace)
         new_count = 0
         skip_count = 0
@@ -311,7 +315,6 @@ def add_cli_to_bel_namespace(main):
     :param click.core.Group main: A click-decorated main function
     :rtype: click.core.Group
     """
-
     @main.command()
     @click.option('-u', '--update', is_flag=True)
     @click.pass_obj
@@ -329,7 +332,6 @@ def add_cli_clear_bel_namespace(main):
     :param click.core.Group main: A click-decorated main function
     :rtype: click.core.Group
     """
-
     @main.command()
     @click.pass_obj
     def drop(manager):
@@ -348,7 +350,6 @@ def add_cli_write_bel_namespace(main):
     :param click.core.Group main: A click-decorated main function
     :rtype: click.core.Group
     """
-
     @main.command()
     @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
     @click.pass_obj

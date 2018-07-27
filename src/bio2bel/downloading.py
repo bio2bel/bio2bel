@@ -24,7 +24,6 @@ def make_downloader(url, path):
     :return: A function that downloads the data and returns the path of the data
     :rtype: (bool -> str)
     """
-
     def download_data(force_download=False):
         """Download the data.
 

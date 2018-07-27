@@ -3,6 +3,7 @@
 """Provides abstractions over the management of SQLAlchemy connections and sessions."""
 
 import logging
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -93,7 +94,7 @@ class ConnectionManager(object):
         create_all(self.engine)
         Action.store_drop(self.module_name, session=self.session)
 
-    def __repr__(self):
+    def __repr__(self):  # noqa: D105
         return '<{module_name}Manager url={url}>'.format(
             module_name=self.module_name.capitalize(),
             url=self.engine.url

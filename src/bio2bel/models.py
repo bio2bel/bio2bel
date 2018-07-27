@@ -5,11 +5,10 @@
 import datetime
 import logging
 
-from sqlalchemy import Column, DateTime, Integer, String, create_engine
+from bio2bel.constants import get_global_connection
+from sqlalchemy import Column, create_engine, DateTime, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
-from bio2bel.constants import get_global_connection
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +43,8 @@ def _make_session(connection=None):
 
 
 def _store_helper(make_method, resource, session=None):
-    """
+    """Help store an action.
+
     :param make_method: Either :meth:`Action.make_populate` or :meth:`Action.make_drop`
     :param str resource: The lowercase name of the resource. Ex: 'interpro'
     :param Optional[sqlalchemy.orm.Session] session: A pre-built session
@@ -73,7 +73,7 @@ class Action(Base):
     action = Column(String(32), nullable=False)
     created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow, doc='The date and time of upload')
 
-    def __repr__(self):
+    def __repr__(self):  # noqa: D105
         return '{} {} at {}'.format(self.resource, self.action, self.created)
 
     @staticmethod

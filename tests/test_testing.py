@@ -16,7 +16,6 @@ class TestMethodCacheBuild(unittest.TestCase):
 
     def test_missing_manager(self):
         """Test that an incorrectly built AbstractTemporaryCacheMethodMixin won't run."""
-
         class TestMissingManagerMixin(AbstractTemporaryCacheMethodMixin):
             """An :class:`AbstractTemporaryCacheClassMixin` that is missing the Manager class variable."""
 
@@ -30,7 +29,6 @@ class TestMethodCacheBuild(unittest.TestCase):
 
     def test_manager_wrong_type(self):
         """Test that an incorrectly built AbstractTemporaryCacheClassMixin won't run."""
-
         class RandomClass(object):
             """This class is not the right type and should throw a Bio2BELManagerTypeError."""
 
@@ -53,7 +51,6 @@ class TestClassCacheBuild(unittest.TestCase):
 
     def test_missing_manager(self):
         """Test that an incorrectly built AbstractTemporaryCacheClassMixin won't run."""
-
         class TestMissingManagerMixin(AbstractTemporaryCacheClassMixin):
             """An :class:`AbstractTemporaryCacheClassMixin` that is missing the Manager class variable."""
 
@@ -66,7 +63,6 @@ class TestClassCacheBuild(unittest.TestCase):
 
     def test_manager_wrong_type(self):
         """Test that an incorrectly built AbstractTemporaryCacheClassMixin won't run."""
-
         class RandomClass(object):
             """This class is not the right type and should throw a Bio2BELManagerTypeError."""
 

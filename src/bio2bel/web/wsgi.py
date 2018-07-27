@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""Run Bio2BEL with WSGI."""
+
 from bio2bel.web.application import create_application
 
 if __name__ == '__main__':
