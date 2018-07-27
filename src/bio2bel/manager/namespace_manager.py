@@ -8,9 +8,6 @@ import sys
 import time
 
 import click
-from pybel.constants import NAMESPACE_DOMAIN_OTHER
-from pybel.manager.models import Namespace
-from pybel.resources import write_namespace
 from tqdm import tqdm
 
 from .cli_manager import CliMixin
@@ -217,6 +214,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         :rtype: Optional[pybel.manager.models.Namespace]
         """
+        from pybel.manager.models import Namespace
+
         return self._get_query(Namespace).filter(Namespace.url == self._get_namespace_url()).one_or_none()
 
     def _get_namespace_entries(self, namespace):
@@ -234,6 +233,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         :rtype: pybel.manager.models.Namespace
         """
+        from pybel.manager.models import Namespace
+
         namespace = Namespace(
             name=self._get_namespace_name(),
             keyword=self._get_namespace_keyword(),
@@ -334,6 +335,9 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         :param file:
         """
+        from pybel.constants import NAMESPACE_DOMAIN_OTHER
+        from pybel.resources import write_namespace
+
         values = {self._get_identifier(model) for model in self._iterate_namespace_models()}
 
         write_namespace(

@@ -7,7 +7,6 @@ import logging
 import sys
 
 import click
-from pybel import Manager, to_bel, to_database
 
 from .cli_manager import CliMixin
 
@@ -125,6 +124,7 @@ def add_cli_to_bel(main):
     @click.pass_obj
     def write(manager, output):
         """Write as BEL Script."""
+        from pybel import to_bel
         graph = manager.to_bel()
         to_bel(graph, output)
 
@@ -140,8 +140,9 @@ def add_cli_upload_bel(main):
     @click.pass_obj
     def upload(manager, connection):
         """Upload BEL to network store."""
+        import pybel
         graph = manager.to_bel()
-        manager = Manager(connection=connection)
-        to_database(graph, manager=manager)
+        pybel_manager = pybel.Manager(connection=connection)
+        pybel.to_database(graph, manager=pybel_manager)
 
     return main

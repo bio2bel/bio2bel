@@ -5,9 +5,6 @@
 import os
 
 import click
-from flask import Flask
-from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
 
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
@@ -80,6 +77,9 @@ class FlaskMixin(ConnectionManager, CliMixin):
         :param kwargs: Keyword arguments are passed through to :class:`flask_admin.Admin`
         :rtype: flask_admin.Admin
         """
+        from flask_admin import Admin
+        from flask_admin.contrib.sqla import ModelView
+
         admin = Admin(app, **kwargs)
 
         for flask_admin_model in self.flask_admin_models:
@@ -101,6 +101,8 @@ class FlaskMixin(ConnectionManager, CliMixin):
         :param Optional[str] url: Optional mount point of the admin application. Defaults to ``'/'``.
         :rtype: flask.Flask
         """
+        from flask import Flask
+
         app = Flask(__name__)
 
         if secret_key:
