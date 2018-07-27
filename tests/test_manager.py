@@ -67,6 +67,10 @@ class TestManagerFailures(TemporaryConnectionMethodMixin):
             def populate(self):
                 """Populate the database."""
 
+            def summarize(self):
+                """Summarize the database."""
+                pass
+
         with self.assertRaises(Bio2BELMissingNameError):
             Manager(connection=self.connection)
 
@@ -86,6 +90,10 @@ class TestManagerFailures(TemporaryConnectionMethodMixin):
 
             def populate(self):
                 """Populate the database."""
+
+            def summarize(self):
+                """Summarize the database."""
+                pass
 
         with self.assertRaises(Bio2BELModuleCaseError):
             Manager(connection=self.connection)

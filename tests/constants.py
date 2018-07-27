@@ -3,7 +3,6 @@
 """Testing constants and utilities for Bio2BEL."""
 
 import logging
-
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -100,3 +99,12 @@ class Manager(AbstractManager):
         if kwargs:
             self.last_populate_kwargs = kwargs
             log.critical('kwargs: %s', kwargs)
+
+    def summarize(self):
+        """Summarize the database.
+
+        :rtype: dict[str,int]
+        """
+        return dict(
+            models=self.count_model(),
+        )

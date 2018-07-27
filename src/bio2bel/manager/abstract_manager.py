@@ -247,6 +247,13 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
     def populate(self, *args, **kwargs):
         """Populate the database."""
 
+    @abstractmethod
+    def summarize(self):
+        """Summarize the database.
+
+        :rtype: dict[str,int]
+        """
+
     @property
     def _metadata(self):
         """Return the metadata object associated with this manager's declarative base."""
@@ -340,9 +347,7 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
         cls._cli_add_populate(main)
         cls._cli_add_drop(main)
         cls._cli_add_cache(main)
-
-        if hasattr(cls, 'summarize'):
-            cls._cli_add_summarize(main)
+        cls._cli_add_summarize(main)
 
         return main
 
