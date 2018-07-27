@@ -185,6 +185,9 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'sqlalchemy': ('https://docs.sqlalchemy.org/en/latest', None),
     'flask': ('http://flask.pocoo.org/docs/', None),
+    'click': ('http://click.pocoo.org/latest', None),
+    'pybel': ('https://pybel.readthedocs.io/en/latest/', None),
+    'pandas': ('https://pandas-docs.github.io/pandas-docs-travis/', None),
 }
 
 autodoc_member_order = 'bysource'

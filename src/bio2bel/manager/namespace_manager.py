@@ -29,32 +29,118 @@ class Bio2BELMissingNamespaceModelError(TypeError):
 
 
 class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
-    """This mixin adds functions for making a BEL namespace to a repository.
-
-    *How to Use This Mixin*
-
-    1. Either include it as a second inheriting class after :class:`AbstractManager` (this is how mixins are usually
-    used):
-
-    ..code-block:: python
+    """A mixin for generating a BEL namespace file and uploading it to the PyBEL database.
 
 
-        from bio2bel import AbstractManager
-        from bio2bel.namespace_manager import NamespaceManagerMixin
+    First, you'll have to make sure that :mod:`pybel` is installed. This can be done with pip like:
 
-        class MyManager(AbstractManager, NamespaceManagerMixin):
-            ...
+    .. code-block:: bash
 
+        $ pip install pybel
 
-    1. Or subclass it directly, since it also inherits from :class:`AbstractManager`, like:
+    To use this mixin, you need to properly implement the AbstractManager, and add additional class variables and
+    functions.
 
-    ..code-block:: python
+    ``namespace_model``: The SQLAlchemy class that represents the entity to serialize into the namespace
 
-        from bio2bel.namespace_manager import NamespaceManagerMixin
+    .. code-block:: python
 
-        class MyManager(NamespaceManagerMixin):
-            ...
+        >>> from bio2bel import AbstractManager
+        >>> from bio2bel.namespace_manager import NamespaceManagerMixin
+        >>> from .models import HumanGene
+        >>>
+        >>> class MyManager(AbstractManager, NamespaceManagerMixin):
+        ...     module_name = 'hgnc'
+        ...     ...
+        ...     namespace_model = HumanGene
 
+    Several fields from Identifiers.org should be populated, including:
+
+    1. ``identifiers_recommended``
+    2. ``identifiers_pattern``
+    3. ``identifiers_miriam``
+    4. ``identifiers_namespace``
+    5. ``identifiers_url``
+
+    .. code-block:: python
+
+        >>> from bio2bel import AbstractManager
+        >>> from bio2bel.namespace_manager import NamespaceManagerMixin
+        >>> from .models import HumanGene
+        >>>
+        >>> class MyManager(AbstractManager, NamespaceManagerMixin):
+        ...     module_name = 'hgnc'
+        ...     ...
+        ...     namespace_model = HumanGene
+        ...     identifiers_recommended = 'HGNC'
+        ...     identifiers_pattern = '^((HGNC|hgnc):)?\d{1,5}$'
+        ...     identifiers_miriam = 'MIR:00000080'
+        ...     identifiers_namespace = 'hgnc'
+        ...     identifiers_url = 'http://identifiers.org/hgnc/'
+
+    Two methods need to be implemented. First, the static method ``_get_identifier`` should take in the namespace model
+    and give back the database identifier. for us, this is easy, since the HumanGene class has an attribute called
+    ``hgnc_id``.
+
+    Perhaps in the future, we will enfoce the convention that the namespace model should have a field
+    called <module name>_id, but having this method gives lots of flexibility.
+
+    This is also a good place to add more specific type annotations (not yet tested with MyPy).
+
+    .. code-block:: python
+
+        >>> from bio2bel import AbstractManager
+        >>> from bio2bel.namespace_manager import NamespaceManagerMixin
+        >>> from .models import HumanGene
+        >>>
+        >>> class MyManager(AbstractManager, NamespaceManagerMixin):
+        ...     module_name = 'hgnc'
+        ...     ...
+        ...     namespace_model = HumanGene
+        ...     identifiers_recommended = 'HGNC'
+        ...     identifiers_pattern = '^((HGNC|hgnc):)?\d{1,5}$'
+        ...     identifiers_miriam = 'MIR:00000080'
+        ...     identifiers_namespace = 'hgnc'
+        ...     identifiers_url = 'http://identifiers.org/hgnc/'
+        ...
+        ...     @staticmethod
+        ...     def _get_identifier(model: HumanGene) -> str:
+        ...         return model.hgnc_id
+
+    Last, we must implement the method ``_create_namespace_entry_from_model``, which encodes the logic of building a
+    :class:`pybel.manager.models.NamespaceEntry` from the Bio2BEL repository's namespace model.
+
+    For a repository like ChEBI, this is very simple, but for HGNC there is reason to add additional logic
+    to get the proper encodings.
+
+    .. code-block:: python
+
+        >>> from bio2bel import AbstractManager
+        >>> from bio2bel.namespace_manager import NamespaceManagerMixin
+        >>> from pybel.manager.models import Namespace, NamespaceEntry
+        >>> from .models import HumanGene
+        >>>
+        >>> class MyManager(AbstractManager, NamespaceManagerMixin):
+        ...     module_name = 'hgnc'
+        ...     ...
+        ...     namespace_model = HumanGene
+        ...     identifiers_recommended = 'HGNC'
+        ...     identifiers_pattern = '^((HGNC|hgnc):)?\d{1,5}$'
+        ...     identifiers_miriam = 'MIR:00000080'
+        ...     identifiers_namespace = 'hgnc'
+        ...     identifiers_url = 'http://identifiers.org/hgnc/'
+        ...
+        ...     @staticmethod
+        ...     def _get_identifier(model: HumanGene) -> str:
+        ...         return model.hgnc_id
+        ...
+        ...     def _create_namespace_entry_from_model(self, model: HumanGene, namespace: Namespace) -> NamespaceEntry:
+        ...         return NamespaceEntry(
+        ...             encoding=encodings.get(model.locus_type, 'GRP'),
+        ...             identifier=model.hgnc_id,
+        ...             name=model.hgnc_symbol,
+        ...             namespace=namespace,
+        ...         )
     """
 
     namespace_model = ...
@@ -267,8 +353,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
     def _cli_add_to_bel_namespace(main):
         """Add the export BEL namespace command.
 
-        :type main: click.core.Group
-        :rtype: click.core.Group
+        :type main: click.Group
+        :rtype: click.Group
         """
         return add_cli_to_bel_namespace(main)
 
@@ -276,8 +362,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
     def _cli_add_clear_bel_namespace(main):
         """Add the clear BEL namespace command.
 
-        :type main: click.core.Group
-        :rtype: click.core.Group
+        :type main: click.Group
+        :rtype: click.Group
         """
         return add_cli_clear_bel_namespace(main)
 
@@ -285,16 +371,16 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
     def _cli_add_write_bel_namespace(main):
         """Add the write BEL namespace command.
 
-        :type main: click.core.Group
-        :rtype: click.core.Group
+        :type main: click.Group
+        :rtype: click.Group
         """
         return add_cli_write_bel_namespace(main)
 
     @classmethod
     def get_cli(cls):
-        """Get a :mod:`click` main function to use as a command line interface.
+        """Get a :mod:`click` main function with added BEL namespace commands.
 
-        :rtype: click.core.Group
+        :rtype: click.Group
         """
         main = super().get_cli()
 
@@ -312,8 +398,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 def add_cli_to_bel_namespace(main):
     """Add a ``upload_bel_namespace`` command to main :mod:`click` function.
 
-    :param click.core.Group main: A click-decorated main function
-    :rtype: click.core.Group
+    :param click.Group main: A click-decorated main function
+    :rtype: click.Group
     """
     @main.command()
     @click.option('-u', '--update', is_flag=True)
@@ -329,8 +415,8 @@ def add_cli_to_bel_namespace(main):
 def add_cli_clear_bel_namespace(main):
     """Add a ``clear_bel_namespace`` command to main :mod:`click` function.
 
-    :param click.core.Group main: A click-decorated main function
-    :rtype: click.core.Group
+    :param click.Group main: A click-decorated main function
+    :rtype: click.Group
     """
     @main.command()
     @click.pass_obj
@@ -347,8 +433,8 @@ def add_cli_clear_bel_namespace(main):
 def add_cli_write_bel_namespace(main):
     """Add a ``write_bel_namespace`` command to main :mod:`click` function.
 
-    :param click.core.Group main: A click-decorated main function
-    :rtype: click.core.Group
+    :param click.Group main: A click-decorated main function
+    :rtype: click.Group
     """
     @main.command()
     @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)

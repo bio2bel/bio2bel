@@ -46,8 +46,8 @@ def make_df_getter(data_url, data_path, **kwargs):
 
     :param str data_url: The URL of the data
     :param str data_path: The path where the data should get stored
-    :param kwargs: Any other arguments to pass to :func:`pandas.read_csv1`
-    :rtype: Optional[str],bool,bool -> pandas.DataFrame
+    :param kwargs: Any other arguments to pass to :func:`pandas.read_csv`
+    :rtype: (Optional[str], bool, bool) -> pandas.DataFrame
     """
     download_function = make_downloader(data_url, data_path)
 

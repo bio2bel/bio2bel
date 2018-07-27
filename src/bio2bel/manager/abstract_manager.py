@@ -142,7 +142,7 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
             def populate(self) -> None:
                 ...
 
-    **Checking the Database Is Populated**
+    **Checking the Database is Populated**
 
     A method for checking if the database has been populated already must be implemented as well. The easiest way to
     implement this is to check that there's a non-zero count of whatever the most important model in the database is.
@@ -169,43 +169,13 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
             def is_populated(self) -> bool:
                 return 0 < self.session.query(MyImportantModel).count()
 
+    There are several mixins that can be optionally inherited:
 
-    **Preparing Flask Admin (Optional)**
-
-    This class also contains a function to build a :mod:`flask` application for easy viewing of the contents of the
-    database. Besides installing the optional requirements with ``python3 -m pip install flask flask-admin``, all
-    that's necessary to make this available is to override the class variable ``flask_admin_models``.
-
-    .. code-block:: python
-
-        from sqlalchemy.ext.declarative import DeclarativeMeta
-
-        from bio2bel import AbstractManager
-
-        from .constants import MODULE_NAME
-        from .models import Base, Evidence, Interaction, Mirna, Species, Target
-
-        class Manager(AbstractManager):
-            module_name = MODULE_NAME
-            flask_admin_models = [Evidence, Interaction, Mirna, Species, Target]
-
-            @property
-            def _base(self) -> DeclarativeMeta:
-                return Base
-
-            def populate(self) -> None:
-                ...
-
-    **Exporting a BEL Namespace (Optional)**
-
-    To enable a Bio2BEL manager to use the namespace utilities, the :mod:`pybel`
-    library needs to be installed and the :py:class:`bio2bel.namespace_manager.NamespaceManagerMixin`
-    needs to be used as one of the parent classes of the manager. See its documentation for a guide.
-
-    **Exporting to BEL (Optional)**
-
-    To enable a Bio2BEL manager to use BEL utilities, the :mod:`pybel` libary needs to be installed
-    and the :py:class:`bio2bel.BELManagerMixin` needs to be used as a parent class.
+    1. :py:class:`bio2bel.manager.flask_manager.FlaskMixin`: the Flask Mixin creates a Flask-Admin web application.
+    2. :py:class:`bio2bel.manager.namespace_manager.BELNamespaceManagerMixin`: the BEL Namespace Manager Mixin exports
+       a BEL namespace and interact with PyBEL.
+    3. :py:class:`bio2bel.manager.bel_manager.BELManagerMixin`: the BEL Manager Mixin exports a BEL script
+       and interact with PyBEL.
     """
 
     @property
@@ -304,8 +274,8 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
     def _cli_add_populate(main):
         """Add the populate command.
 
-        :type main: click.core.Group
-        :rtype: click.core.Group
+        :type main: click.Group
+        :rtype: click.Group
         """
         return add_cli_populate(main)
 
@@ -313,8 +283,8 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
     def _cli_add_drop(main):
         """Add the drop command.
 
-        :type main: click.core.Group
-        :rtype: click.core.Group
+        :type main: click.Group
+        :rtype: click.Group
         """
         return add_cli_drop(main)
 
@@ -322,8 +292,8 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
     def _cli_add_cache(main):
         """Add the cache command.
 
-        :type main: click.core.Group
-        :rtype: click.core.Group
+        :type main: click.Group
+        :rtype: click.Group
         """
         return add_cli_cache(main)
 
@@ -331,8 +301,8 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
     def _cli_add_summarize(main):
         """Add the summarize command.
 
-        :type main: click.core.Group
-        :rtype: click.core.Group
+        :type main: click.Group
+        :rtype: click.Group
         """
         return add_cli_summarize(main)
 
@@ -340,7 +310,7 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
     def get_cli(cls):
         """Get the :mod:`click` main function to use as a command line interface.
 
-        :rtype: click.core.Group
+        :rtype: click.Group
         """
         main = super().get_cli()
 
@@ -355,8 +325,8 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
 def add_cli_populate(main):
     """Add a ``populate`` command to main :mod:`click` function.
 
-    :param click.core.Group main: A click-decorated main function
-    :rtype: click.core.Group
+    :param click.Group main: A click-decorated main function
+    :rtype: click.Group
     """
     @main.command()
     @click.option('--reset', is_flag=True, help='Nuke database first')
@@ -382,8 +352,8 @@ def add_cli_populate(main):
 def add_cli_drop(main):
     """Add a ``drop`` command to main :mod:`click` function.
 
-    :param click.core.Group main: A click-decorated main function
-    :rtype: click.core.Group
+    :param click.Group main: A click-decorated main function
+    :rtype: click.Group
     """
     @main.command()
     @click.option('-y', '--yes', is_flag=True)
@@ -399,8 +369,8 @@ def add_cli_drop(main):
 def add_cli_cache(main):
     """Add several commands to main :mod:`click` function for handling the cache.
 
-    :param click.core.Group main: A click-decorated main function
-    :rtype: click.core.Group
+    :param click.Group main: A click-decorated main function
+    :rtype: click.Group
     """
     @main.group()
     def cache():
@@ -432,8 +402,8 @@ def add_cli_cache(main):
 def add_cli_summarize(main):
     """Add a ``summarize`` command to main :mod:`click` function.
 
-    :param click.core.Group main: A click-decorated main function
-    :rtype: click.core.Group
+    :param click.Group main: A click-decorated main function
+    :rtype: click.Group
     """
     @main.command()
     @click.pass_obj

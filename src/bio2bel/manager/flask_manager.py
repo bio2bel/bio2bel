@@ -19,7 +19,49 @@ __all__ = [
 
 
 class FlaskMixin(ConnectionManager, CliMixin):
-    """Mixin for making the AbstractManager build a Flask application."""
+    """A mixin for building a Flask-Admin interface.
+
+    This class can be used as a mixin, meaning that a class inheriting from AbstractManager can also multiple-inherit
+    from this class. It contains functions to build a :mod:`flask` application for easy viewing of the contents of the
+    database.
+
+    First, you'll have to make sure that the :mod:`flask` and :mod:`flask-admin` are installed. They can be installed
+    with Bio2BEL using the package extra called "web" like:
+
+    .. code-block:: bash
+
+        $ pip install bio2bel[web]
+
+    Or, installed directly with `pip`:
+
+    .. code-block:: bash
+
+        $ pip install flask flask-admin
+
+    Besides this, all that's necessary to use this mixin is to define the class variable ``flask_admin_models`` as a
+    list of SQLAlchemy models you'd like to see.
+
+    .. code-block:: python
+
+        >>> from sqlalchemy.ext.declarative import DeclarativeMeta
+        >>>
+        >>> from bio2bel import AbstractManager
+        >>> from bio2bel.manager.flask_manager.FlaskMixin
+        >>>
+        >>> from .constants import MODULE_NAME
+        >>> from .models import Base, Evidence, Interaction, Mirna, Species, Target
+        >>>
+        >>> class Manager(AbstractManager):
+        ...    module_name = MODULE_NAME
+        ...    flask_admin_models = [Evidence, Interaction, Mirna, Species, Target]
+        ...
+        ...    @property
+        ...    def _base(self) -> DeclarativeMeta:
+        ...        return Base
+        ...
+        ...    def populate(self) -> None:
+        ...        ...
+    """
 
     #: Represents a list of SQLAlchemy classes to make a Flask-Admin interface.
     flask_admin_models = ...
@@ -71,8 +113,8 @@ class FlaskMixin(ConnectionManager, CliMixin):
     def _cli_add_flask(main):
         """Add the web command.
 
-        :type main: click.core.Group
-        :rtype: click.core.Group
+        :type main: click.Group
+        :rtype: click.Group
         """
         return add_cli_flask(main)
 
@@ -80,7 +122,7 @@ class FlaskMixin(ConnectionManager, CliMixin):
     def get_cli(cls):
         """Add  a :mod:`click` main function to use as a command line interface.
 
-        :rtype: click.core.Group
+        :rtype: click.Group
         """
         main = super().get_cli()
 
@@ -92,8 +134,8 @@ class FlaskMixin(ConnectionManager, CliMixin):
 def add_cli_flask(main):
     """Add a ``web`` comand main :mod:`click` function.
 
-    :param click.core.Group main: A click-decorated main function
-    :rtype: click.core.Group
+    :param click.Group main: A click-decorated main function
+    :rtype: click.Group
     """
     @main.command()
     @click.option('-v', '--debug', is_flag=True)

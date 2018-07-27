@@ -19,31 +19,26 @@ __all__ = [
 
 
 class BELManagerMixin(ABC, CliMixin):
-    """This mixin adds functions for making a BEL from a repository.
+    """A mixin for generating a :class:`pybel.BELGraph` representing BEL.
 
-    *How to Use This Mixin*
+    First, you'll have to make sure that :mod:`pybel` is installed. This can be done with pip like:
 
-    1. Either include it as a second inheriting class after :class:`AbstractManager` (this is how mixins are usually
-    used):
+    .. code-block:: bash
 
-    ..code-block:: python
+        $ pip install pybel
 
+    To use this mixin, you need to properly implement the AbstractManager, and additionally define a function
+    named ``to_bel`` that returns a BEL graph.
 
-        from bio2bel import AbstractManager
-        from bio2bel.bel_manager import BELManagerMixin
+    .. code-block:: python
 
-        class MyManager(AbstractManager, BELManagerMixin):
-            ...
-
-
-    1. Or subclass it directly, since it also inherits from :class:`AbstractManager`, like:
-
-    ..code-block:: python
-
-        from bio2bel.bel_manager import BELManagerMixin
-
-        class MyManager(BELManagerMixin):
-            ...
+        >>> from bio2bel import AbstractManager
+        >>> from bio2bel.manager.bel_manager import BELManagerMixin
+        >>> from pybel import BELGraph
+        >>>
+        >>> class MyManager(AbstractManager, BELManagerMixin):
+        ...     def to_bel(self) -> BELGraph:
+        ...         pass
     """
 
     @abstractmethod
@@ -51,14 +46,44 @@ class BELManagerMixin(ABC, CliMixin):
         """Convert the database to BEL.
 
         :rtype: pybel.BELGraph
+
+        Example implementation outline:
+
+        .. code-block:: python
+
+            from bio2bel import AbstractManager
+            from bio2bel.manager.bel_manager import BELManagerMixin
+            from pybel import BELGraph
+            from .models import Interaction
+
+            class MyManager(AbstractManager, BELManagerMixin):
+                module_name = 'mirtarbase'
+                def to_bel(self):
+                    rv = BELGraph(
+                        name='miRTarBase',
+                        version='1.0.0',
+                    )
+
+                    for interaction in self.session.query(Interaction):
+                        mirna = mirna_dsl('mirtarbase', interaction.mirna.mirtarbase_id)
+                        rna = rna_dsl('hgnc', interaction.target.hgnc_id)
+
+                        rv.add_qualified_edge(
+                            mirna,
+                            rna,
+                            DECREASES,
+                            ...
+                        )
+
+                    return rv
         """
 
     @staticmethod
     def _cli_add_to_bel(main):
         """Add the export BEL command.
 
-        :type main: click.core.Group
-        :rtype: click.core.Group
+        :type main: click.Group
+        :rtype: click.Group
         """
         return add_cli_to_bel(main)
 
@@ -66,16 +91,16 @@ class BELManagerMixin(ABC, CliMixin):
     def _cli_add_upload_bel(main):
         """Add the upload BEL command.
 
-        :type main: click.core.Group
-        :rtype: click.core.Group
+        :type main: click.Group
+        :rtype: click.Group
         """
         return add_cli_upload_bel(main)
 
     @classmethod
     def get_cli(cls):
-        """Get a :mod:`click` main function to use as a command line interface.
+        """Get a :mod:`click` main function with added BEL commands.
 
-        :rtype: click.core.Group
+        :rtype: click.Group
         """
         main = super().get_cli()
 
@@ -92,8 +117,8 @@ class BELManagerMixin(ABC, CliMixin):
 def add_cli_to_bel(main):
     """Add several command to main :mod:`click` function related to export to BEL.
 
-    :param click.core.Group main: A click-decorated main function
-    :rtype: click.core.Group
+    :param click.Group main: A click-decorated main function
+    :rtype: click.Group
     """
     @main.command()
     @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
@@ -107,8 +132,8 @@ def add_cli_to_bel(main):
 def add_cli_upload_bel(main):
     """Add several command to main :mod:`click` function related to export to BEL.
 
-    :param click.core.Group main: A click-decorated main function
-    :rtype: click.core.Group
+    :param click.Group main: A click-decorated main function
+    :rtype: click.Group
     """
     @main.command()
     @click.option('-c', '--connection')

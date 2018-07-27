@@ -42,6 +42,23 @@ repository for an example of the
     :inherited-members:
     :members:
 
+Mixins
+------
+Flask
+~~~~~
+.. autoclass:: bio2bel.manager.flask_manager.FlaskMixin
+    :members:
+
+BEL Namespace
+~~~~~~~~~~~~~
+.. autoclass:: bio2bel.manager.namespace_manager.BELNamespaceManagerMixin
+    :members:
+
+BEL Network
+~~~~~~~~~~~
+.. autoclass:: bio2bel.manager.bel_manager.BELManagerMixin
+    :members:
+
 Organizing the Manager
 ----------------------
 This class should be importable from the top-level. In our example, this means that you can either import the manager
