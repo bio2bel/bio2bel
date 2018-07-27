@@ -31,7 +31,6 @@ class Bio2BELMissingNamespaceModelError(TypeError):
 class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
     """A mixin for generating a BEL namespace file and uploading it to the PyBEL database.
 
-
     First, you'll have to make sure that :mod:`pybel` is installed. This can be done with pip like:
 
     .. code-block:: bash
@@ -73,7 +72,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         ...     ...
         ...     namespace_model = HumanGene
         ...     identifiers_recommended = 'HGNC'
-        ...     identifiers_pattern = '^((HGNC|hgnc):)?\d{1,5}$'
+        ...     identifiers_pattern = '...'
         ...     identifiers_miriam = 'MIR:00000080'
         ...     identifiers_namespace = 'hgnc'
         ...     identifiers_url = 'http://identifiers.org/hgnc/'
@@ -98,7 +97,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         ...     ...
         ...     namespace_model = HumanGene
         ...     identifiers_recommended = 'HGNC'
-        ...     identifiers_pattern = '^((HGNC|hgnc):)?\d{1,5}$'
+        ...     identifiers_pattern = '...'
         ...     identifiers_miriam = 'MIR:00000080'
         ...     identifiers_namespace = 'hgnc'
         ...     identifiers_url = 'http://identifiers.org/hgnc/'
@@ -125,7 +124,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         ...     ...
         ...     namespace_model = HumanGene
         ...     identifiers_recommended = 'HGNC'
-        ...     identifiers_pattern = '^((HGNC|hgnc):)?\d{1,5}$'
+        ...     identifiers_pattern = '...'
         ...     identifiers_miriam = 'MIR:00000080'
         ...     identifiers_namespace = 'hgnc'
         ...     identifiers_url = 'http://identifiers.org/hgnc/'
