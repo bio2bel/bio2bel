@@ -8,7 +8,7 @@ import os
 
 log = logging.getLogger(__name__)
 
-VERSION = '0.1.2'
+VERSION = '0.1.3-dev'
 
 BIO2BEL_DIR = os.environ.get('BIO2BEL_DIRECTORY', os.path.join(os.path.expanduser('~'), '.pybel', 'bio2bel'))
 os.makedirs(BIO2BEL_DIR, exist_ok=True)
