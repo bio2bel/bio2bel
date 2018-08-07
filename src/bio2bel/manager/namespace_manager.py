@@ -330,6 +330,14 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             self.session.commit()
             return ns
 
+    def add_namespace_to_graph(self, graph):
+        """Adds this manager's namespace to the graph.
+
+        :param pybel.BELGraph graph:
+        """
+        namespace = self.upload_bel_namespace()
+        graph.namespace_url[namespace.keyword] = namespace.url
+
     def write_bel_namespace(self, file):
         """Write as a BEL namespace file.
 
