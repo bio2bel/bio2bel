@@ -331,7 +331,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             return ns
 
     def add_namespace_to_graph(self, graph):
-        """Adds this manager's namespace to the graph.
+        """Add this manager's namespace to the graph.
 
         :param pybel.BELGraph graph:
         """
