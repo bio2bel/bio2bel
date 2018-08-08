@@ -294,6 +294,16 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         self.session.commit()
         log.info('committed models in %.2f seconds', time.time() - t)
 
+    def add_namespace_to_graph(self, graph):
+        """Add this manager's namespace to the graph.
+
+        :type graph: pybel.BELGraph
+        :rtype: pybel.manager.models.Namespace
+        """
+        namespace = self.upload_bel_namespace()
+        graph.namespace_url[namespace.keyword] = namespace.url
+        return namespace
+
     def upload_bel_namespace(self, update=False):
         """Upload the namespace to the PyBEL database.
 
@@ -329,14 +339,6 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             log.info('committing deletions')
             self.session.commit()
             return ns
-
-    def add_namespace_to_graph(self, graph):
-        """Add this manager's namespace to the graph.
-
-        :param pybel.BELGraph graph:
-        """
-        namespace = self.upload_bel_namespace()
-        graph.namespace_url[namespace.keyword] = namespace.url
 
     def write_bel_namespace(self, file):
         """Write as a BEL namespace file.
