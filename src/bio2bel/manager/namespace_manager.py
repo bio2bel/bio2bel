@@ -233,7 +233,10 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         :rtype: pybel.manager.models.Namespace
         """
-        from pybel.manager.models import Namespace
+        from pybel.manager.models import Base, Namespace
+
+        # Ensure that the PyBEL database is ready to go
+        Base.metadata.create_all(self.engine)
 
         namespace = Namespace(
             name=self._get_namespace_name(),

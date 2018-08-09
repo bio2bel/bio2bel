@@ -63,11 +63,6 @@ class TestAwesome(AbstractTemporaryCacheMethodMixin):
 
     Manager = NamespaceManager
 
-    def setUp(self):
-        """Set up the class with a PyBEL database."""
-        super().setUp()
-        PyBELBase.metadata.create_all(self.manager.engine, checkfirst=True)
-
     def populate(self):
         """Populate the manager."""
         self.manager.populate()
