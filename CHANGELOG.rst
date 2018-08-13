@@ -1,5 +1,11 @@
 Changelog
 =========
+1.4 2018-08-13
+--------------
+Fixed
+~~~~~
+- PyBEL database is now ensured before trying to populate with a BELNamespaceManager
+
 1.3 2018-08-08
 --------------
 Added
