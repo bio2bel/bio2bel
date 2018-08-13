@@ -2,10 +2,10 @@
 
 """Provide abstractions over BEL namespace generation procedures."""
 
-from abc import ABC, abstractmethod
 import logging
 import sys
 import time
+from abc import ABC, abstractmethod
 
 import click
 from tqdm import tqdm
@@ -411,12 +411,13 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         return main
 
 
-def add_cli_to_bel_namespace(main):
+def add_cli_to_bel_namespace(main):  # noqa: D202
     """Add a ``upload_bel_namespace`` command to main :mod:`click` function.
 
     :param click.Group main: A click-decorated main function
     :rtype: click.Group
     """
+
     @main.command()
     @click.option('-u', '--update', is_flag=True)
     @click.pass_obj
@@ -428,12 +429,13 @@ def add_cli_to_bel_namespace(main):
     return main
 
 
-def add_cli_clear_bel_namespace(main):
+def add_cli_clear_bel_namespace(main):  # noqa: D202
     """Add a ``clear_bel_namespace`` command to main :mod:`click` function.
 
     :param click.Group main: A click-decorated main function
     :rtype: click.Group
     """
+
     @main.command()
     @click.pass_obj
     def drop(manager):
@@ -446,12 +448,13 @@ def add_cli_clear_bel_namespace(main):
     return main
 
 
-def add_cli_write_bel_namespace(main):
+def add_cli_write_bel_namespace(main):  # noqa: D202
     """Add a ``write_bel_namespace`` command to main :mod:`click` function.
 
     :param click.Group main: A click-decorated main function
     :rtype: click.Group
     """
+
     @main.command()
     @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
     @click.pass_obj

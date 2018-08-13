@@ -8,7 +8,7 @@ import os
 import sys
 
 import click
-from pkg_resources import iter_entry_points, VersionConflict
+from pkg_resources import VersionConflict, iter_entry_points
 
 from .constants import DEFAULT_CACHE_CONNECTION
 from .models import Action

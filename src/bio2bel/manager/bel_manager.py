@@ -2,9 +2,9 @@
 
 """Provide abstractions over BEL generation procedures."""
 
-from abc import ABC, abstractmethod
 import logging
 import sys
+from abc import ABC, abstractmethod
 
 import click
 
@@ -113,12 +113,13 @@ class BELManagerMixin(ABC, CliMixin):
         return main
 
 
-def add_cli_to_bel(main):
+def add_cli_to_bel(main):  # noqa: D202
     """Add several command to main :mod:`click` function related to export to BEL.
 
     :param click.Group main: A click-decorated main function
     :rtype: click.Group
     """
+
     @main.command()
     @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
     @click.pass_obj
@@ -129,12 +130,13 @@ def add_cli_to_bel(main):
         to_bel(graph, output)
 
 
-def add_cli_upload_bel(main):
+def add_cli_upload_bel(main):  # noqa: D202
     """Add several command to main :mod:`click` function related to export to BEL.
 
     :param click.Group main: A click-decorated main function
     :rtype: click.Group
     """
+
     @main.command()
     @click.option('-c', '--connection')
     @click.pass_obj

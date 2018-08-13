@@ -2,10 +2,11 @@
 
 """Tests the Flask web application generation utilities."""
 
+from flask_admin.contrib.sqla import ModelView
+
 from bio2bel.exc import Bio2BELMissingModelsError
 from bio2bel.manager.flask_manager import FlaskMixin
 from bio2bel.testing import TemporaryConnectionMethodMixin
-from flask_admin.contrib.sqla import ModelView
 from tests.constants import Manager, Model
 
 

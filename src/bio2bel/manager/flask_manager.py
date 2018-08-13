@@ -133,12 +133,13 @@ class FlaskMixin(ConnectionManager, CliMixin):
         return main
 
 
-def add_cli_flask(main):
+def add_cli_flask(main):  # noqa: D202
     """Add a ``web`` comand main :mod:`click` function.
 
     :param click.Group main: A click-decorated main function
     :rtype: click.Group
     """
+
     @main.command()
     @click.option('-v', '--debug', is_flag=True)
     @click.option('-p', '--port')

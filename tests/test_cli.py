@@ -2,9 +2,10 @@
 
 """Tests the CLI generation utilities."""
 
-from bio2bel.testing import MockConnectionMixin
 from click.testing import CliRunner
 from sqlalchemy.exc import OperationalError
+
+from bio2bel.testing import MockConnectionMixin
 from tests.constants import Manager
 
 

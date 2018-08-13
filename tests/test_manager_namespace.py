@@ -4,11 +4,12 @@
 
 import logging
 
+import pybel
+from click.testing import CliRunner
+from pybel.manager.models import Namespace, NamespaceEntry
+
 from bio2bel.manager.namespace_manager import BELNamespaceManagerMixin, Bio2BELMissingNamespaceModelError
 from bio2bel.testing import AbstractTemporaryCacheMethodMixin, MockConnectionMixin, TemporaryConnectionMethodMixin
-from click.testing import CliRunner
-import pybel
-from pybel.manager.models import Base as PyBELBase, Namespace, NamespaceEntry
 from tests.constants import Manager, Model, NUMBER_TEST_MODELS, TEST_MODEL_ID_FORMAT, TEST_MODEL_NAME_FORMAT
 
 log = logging.getLogger(__name__)
@@ -31,8 +32,9 @@ class NamespaceManager(Manager, BELNamespaceManagerMixin):
 class TestFailure(TemporaryConnectionMethodMixin):
     """Test various failures and exceptions."""
 
-    def test_type_failure(self):
+    def test_type_failure(self):  # noqa: D202
         """Test that a manager with implemented functions, but no class variable, fails to instantiate."""
+
         class _TestManager(Manager, BELNamespaceManagerMixin):
             """A manager that has functions implemented, but no class variables."""
 
@@ -47,8 +49,9 @@ class TestFailure(TemporaryConnectionMethodMixin):
         with self.assertRaises(Bio2BELMissingNamespaceModelError):
             _TestManager(connection=self.connection)
 
-    def test_instantiation_failure(self):
+    def test_instantiation_failure(self):  # noqa: D202
         """Test that a manager without implementation fails to instantiate."""
+
         class _TestManager(Manager, BELNamespaceManagerMixin):
             """Use parts of the test manager and finish the abstract namespace manager."""
 

@@ -5,10 +5,11 @@
 import datetime
 import logging
 
-from bio2bel.constants import get_global_connection
-from sqlalchemy import Column, create_engine, DateTime, Integer, String
+from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
+from bio2bel.constants import get_global_connection
 
 log = logging.getLogger(__name__)
 

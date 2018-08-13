@@ -5,12 +5,13 @@
 import importlib
 import logging
 
+import flask
+import flask_bootstrap
+from flask_admin import Admin
+from pkg_resources import VersionConflict, iter_entry_points
+
 from bio2bel.constants import DEFAULT_CACHE_CONNECTION
 from bio2bel.manager.connection_manager import build_engine_session
-import flask
-from flask_admin import Admin
-import flask_bootstrap
-from pkg_resources import iter_entry_points, VersionConflict
 
 log = logging.getLogger(__name__)
 

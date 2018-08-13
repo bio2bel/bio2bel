@@ -2,11 +2,11 @@
 
 """Provides abstractions over the management of SQLAlchemy connections and sessions."""
 
-from abc import ABCMeta, abstractmethod
-from functools import wraps
 import logging
 import os
 import sys
+from abc import ABCMeta, abstractmethod
+from functools import wraps
 
 import click
 
@@ -322,12 +322,13 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
         return main
 
 
-def add_cli_populate(main):
+def add_cli_populate(main):  # noqa: D202
     """Add a ``populate`` command to main :mod:`click` function.
 
     :param click.Group main: A click-decorated main function
     :rtype: click.Group
     """
+
     @main.command()
     @click.option('--reset', is_flag=True, help='Nuke database first')
     @click.option('--force', is_flag=True, help='Force overwrite if already populated')
@@ -349,12 +350,13 @@ def add_cli_populate(main):
     return main
 
 
-def add_cli_drop(main):
+def add_cli_drop(main):  # noqa: D202
     """Add a ``drop`` command to main :mod:`click` function.
 
     :param click.Group main: A click-decorated main function
     :rtype: click.Group
     """
+
     @main.command()
     @click.option('-y', '--yes', is_flag=True)
     @click.pass_obj
@@ -366,12 +368,13 @@ def add_cli_drop(main):
     return main
 
 
-def add_cli_cache(main):
+def add_cli_cache(main):  # noqa: D202
     """Add several commands to main :mod:`click` function for handling the cache.
 
     :param click.Group main: A click-decorated main function
     :rtype: click.Group
     """
+
     @main.group()
     def cache():
         """Manage cached data."""
@@ -399,12 +402,13 @@ def add_cli_cache(main):
     return main
 
 
-def add_cli_summarize(main):
+def add_cli_summarize(main):  # noqa: D202
     """Add a ``summarize`` command to main :mod:`click` function.
 
     :param click.Group main: A click-decorated main function
     :rtype: click.Group
     """
+
     @main.command()
     @click.pass_obj
     def summarize(manager):

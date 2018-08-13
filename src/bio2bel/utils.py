@@ -2,9 +2,9 @@
 
 """Utilities for Bio2BEL."""
 
-from configparser import ConfigParser
 import logging
 import os
+from configparser import ConfigParser
 
 from .constants import BIO2BEL_DIR, DEFAULT_CACHE_CONNECTION, DEFAULT_CONFIG_PATH, VERSION
 

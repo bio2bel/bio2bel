@@ -2,9 +2,9 @@
 
 """Constants for Bio2BEL."""
 
-from configparser import ConfigParser
 import logging
 import os
+from configparser import ConfigParser
 
 log = logging.getLogger(__name__)
 

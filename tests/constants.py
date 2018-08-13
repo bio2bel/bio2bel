@@ -4,9 +4,10 @@
 
 import logging
 
-from bio2bel.manager.abstract_manager import AbstractManager
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
+
+from bio2bel.manager.abstract_manager import AbstractManager
 
 log = logging.getLogger(__name__)
 
