@@ -6,6 +6,7 @@ import logging
 
 import pybel
 from click.testing import CliRunner
+from pybel import BELGraph
 from pybel.manager.models import Namespace, NamespaceEntry
 
 from bio2bel.manager.namespace_manager import BELNamespaceManagerMixin, Bio2BELMissingNamespaceModelError
@@ -124,6 +125,15 @@ class TestAwesome(AbstractTemporaryCacheMethodMixin):
 
         self.manager._update_namespace(namespace)
         self.assertEqual(NUMBER_TEST_MODELS + _number_to_add, namespace.entries.count())
+
+    def test_add_namespace_to_graph(self):
+        """Test adding namespace information to a graph."""
+        graph = BELGraph()
+        self.manager.add_namespace_to_graph(graph)
+
+        self.assertIn(self.manager._get_namespace_keyword(), graph.namespace_url)
+        self.assertIn('bio2bel', graph.annotation_list)
+        self.assertIn(self.manager.module_name, graph.annotation_list['bio2bel'])
 
 
 class TestCli(MockConnectionMixin):

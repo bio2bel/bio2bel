@@ -153,6 +153,11 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         super().__init__(*args, **kwargs)
 
+        from pybel.manager.models import Base
+
+        # Ensure that the PyBEL database is ready to go
+        Base.metadata.create_all(self.engine, checkfirst=True)
+
     @abstractmethod
     def _create_namespace_entry_from_model(self, model, namespace):
         """Create a PyBEL NamespaceEntry model from a Bio2BEL model.
@@ -233,10 +238,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         :rtype: pybel.manager.models.Namespace
         """
-        from pybel.manager.models import Base, Namespace
-
-        # Ensure that the PyBEL database is ready to go
-        Base.metadata.create_all(self.engine)
+        from pybel.manager.models import Namespace
 
         namespace = Namespace(
             name=self._get_namespace_name(),
@@ -305,7 +307,21 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         """
         namespace = self.upload_bel_namespace()
         graph.namespace_url[namespace.keyword] = namespace.url
+
+        # Add this manager as an annotation, too
+        self._add_annotation_to_graph(graph)
+
         return namespace
+
+    def _add_annotation_to_graph(self, graph):
+        """Add this manager as an annotation to the graph.
+
+        :type graph: pybel.BELGraph
+        """
+        if 'bio2bel' not in graph.annotation_list:
+            graph.annotation_list['bio2bel'] = set()
+
+        graph.annotation_list['bio2bel'].add(self.module_name)
 
     def upload_bel_namespace(self, update=False):
         """Upload the namespace to the PyBEL database.
@@ -332,16 +348,16 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         :rtype: Optional[pybel.manager.models.Namespace]
         """
-        ns = self._get_default_namespace()
+        namespace = self._get_default_namespace()
 
-        if ns is not None:
-            for entry in tqdm(ns.entries, desc='deleting entries in {}'.format(self._get_namespace_name())):
+        if namespace is not None:
+            for entry in tqdm(namespace.entries, desc='deleting entries in {}'.format(self._get_namespace_name())):
                 self.session.delete(entry)
-            self.session.delete(ns)
+            self.session.delete(namespace)
 
             log.info('committing deletions')
             self.session.commit()
-            return ns
+            return namespace
 
     def write_bel_namespace(self, file):
         """Write as a BEL namespace file.
