@@ -10,6 +10,7 @@ Table of Contents
    introduction
    repositories
    tutorial
+   reproducibility
    cli
 
 .. toctree::

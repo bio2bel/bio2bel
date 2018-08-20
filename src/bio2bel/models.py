@@ -1,6 +1,19 @@
 # -*- coding: utf-8 -*-
 
-"""Bio2BEL database models."""
+"""Bio2BEL database models.
+
+Bio2BEL adds hooks to the populate and drop_all methods in the :py:`bio2bel.AbstractManager` class to track when they
+are run and therefore create provenance information for a given analysis.
+
+The most recent population action from a given module can be retrieved with the following code:
+
+.. code-block:: python
+
+    from bio2bel.models import Action, _make_session
+    session = _make_session()
+    action = session.query(Action).filter(Action.resource == 'kegg').order_by(Action.created).first()
+
+"""
 
 import datetime
 import logging
