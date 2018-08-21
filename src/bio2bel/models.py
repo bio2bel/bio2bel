@@ -10,8 +10,10 @@ The most recent population action from a given module can be retrieved with the 
 .. code-block:: python
 
     from bio2bel.models import Action, _make_session
+    from sqlalchemy import desc
+
     session = _make_session()
-    action = session.query(Action).filter(Action.resource == 'kegg').order_by(Action.created).first()
+    action = session.query(Action).filter(Action.resource == 'kegg').order_by(Action.created.desc()).first()
 
 """
 
