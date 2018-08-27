@@ -167,12 +167,6 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         :rtype: Optional[pybel.manager.models.NamespaceEntry]
         """
 
-    def _get_encoding(self, model):
-        """Get the encoding for the model."""
-
-    def _get_name(self, model):
-        """Get the name for the namespace model."""
-
     @staticmethod
     @abstractmethod
     def _get_identifier(model):
@@ -359,25 +353,27 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             self.session.commit()
             return namespace
 
-    def write_bel_namespace(self, file):
+    def write_bel_namespace(self, file, use_names=False):
         """Write as a BEL namespace file.
 
         :param file:
+        :param bool use_names:
         """
         from pybel.constants import NAMESPACE_DOMAIN_OTHER
         from pybel.resources import write_namespace
 
-        values = {self._get_identifier(model) for model in self._iterate_namespace_models()}
+        namespace = self.upload_bel_namespace()
+
+        if use_names:
+            values = {term.name: term.encoding for term in namespace.entries}
+        else:
+            values = {term.identifier: term.encoding for term in namespace.entries}
 
         write_namespace(
             namespace_name=self._get_namespace_name(),
             namespace_keyword=self._get_namespace_keyword(),
-            namespace_domain=NAMESPACE_DOMAIN_OTHER,
             namespace_query_url=self.identifiers_url,
-            author_name='',
-            citation_name='',
             values=values,
-            functions='A',
             file=file,
         )
 
@@ -473,9 +469,10 @@ def add_cli_write_bel_namespace(main):  # noqa: D202
 
     @main.command()
     @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
+    @click.option('-n', '--use-names', is_flag=True)
     @click.pass_obj
-    def write(manager, file):
+    def write(manager, file, use_names):
         """Write a BEL namespace names/identifiers to terminology store."""
-        manager.write_bel_namespace(file)
+        manager.write_bel_namespace(file, use_names=use_names)
 
     return main
