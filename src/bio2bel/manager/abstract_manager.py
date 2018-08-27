@@ -394,10 +394,12 @@ def add_cli_cache(main):  # noqa: D202
         """Clear all files from the cache."""
         data_dir = get_data_dir(manager.module_name)
 
-        for path in os.listdir(data_dir):
-            if path in {'config.ini', 'cache.db'}:
+        for name in os.listdir(data_dir):
+            if name in {'config.ini', 'cache.db'}:
                 continue
-            os.remove(os.path.join(data_dir, path))
+            path = os.path.join(data_dir, name)
+            click.echo('removing {path}'.format(path=path))
+            os.remove(path)
 
     return main
 
