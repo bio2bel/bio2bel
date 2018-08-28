@@ -11,7 +11,7 @@ import click
 from pkg_resources import VersionConflict, iter_entry_points
 
 from .constants import DEFAULT_CACHE_CONNECTION
-from .models import Action
+from .models import Action, _make_session
 from .utils import get_version
 
 log = logging.getLogger(__name__)
@@ -162,9 +162,11 @@ def web(connection):
 
 
 @main.command()
-def actions():
+@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+def actions(connection):
     """List all actions."""
-    for action in Action.ls():
+    session = _make_session(connection=connection)
+    for action in Action.ls(session=session):
         click.echo('{} {} {}'.format(action.created, action.action, action.resource))
 
 
