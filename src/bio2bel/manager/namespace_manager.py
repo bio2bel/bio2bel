@@ -6,6 +6,7 @@ import logging
 import sys
 import time
 from abc import ABC, abstractmethod
+from typing import TextIO
 
 import click
 from tqdm import tqdm
@@ -353,13 +354,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             self.session.commit()
             return namespace
 
-    def write_bel_namespace(self, file, use_names=False):
-        """Write as a BEL namespace file.
-
-        :param file:
-        :param bool use_names:
-        """
-        from pybel.constants import NAMESPACE_DOMAIN_OTHER
+    def write_bel_namespace(self, file: TextIO, use_names: bool = False) -> None:
+        """Write as a BEL namespace file."""
         from pybel.resources import write_namespace
 
         namespace = self.upload_bel_namespace()
@@ -378,38 +374,23 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         )
 
     @staticmethod
-    def _cli_add_to_bel_namespace(main):
-        """Add the export BEL namespace command.
-
-        :type main: click.Group
-        :rtype: click.Group
-        """
+    def _cli_add_to_bel_namespace(main: click.Group) -> click.Group:
+        """Add the export BEL namespace command."""
         return add_cli_to_bel_namespace(main)
 
     @staticmethod
-    def _cli_add_clear_bel_namespace(main):
-        """Add the clear BEL namespace command.
-
-        :type main: click.Group
-        :rtype: click.Group
-        """
+    def _cli_add_clear_bel_namespace(main: click.Group) -> click.Group:
+        """Add the clear BEL namespace command."""
         return add_cli_clear_bel_namespace(main)
 
     @staticmethod
-    def _cli_add_write_bel_namespace(main):
-        """Add the write BEL namespace command.
-
-        :type main: click.Group
-        :rtype: click.Group
-        """
+    def _cli_add_write_bel_namespace(main: click.Group) -> click.Group:
+        """Add the write BEL namespace command."""
         return add_cli_write_bel_namespace(main)
 
     @classmethod
-    def get_cli(cls):
-        """Get a :mod:`click` main function with added BEL namespace commands.
-
-        :rtype: click.Group
-        """
+    def get_cli(cls) -> click.Group:
+        """Get a :mod:`click` main function with added BEL namespace commands."""
         main = super().get_cli()
 
         @main.group()
@@ -423,12 +404,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         return main
 
 
-def add_cli_to_bel_namespace(main):  # noqa: D202
-    """Add a ``upload_bel_namespace`` command to main :mod:`click` function.
-
-    :param click.Group main: A click-decorated main function
-    :rtype: click.Group
-    """
+def add_cli_to_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
+    """Add a ``upload_bel_namespace`` command to main :mod:`click` function."""
 
     @main.command()
     @click.option('-u', '--update', is_flag=True)
@@ -441,12 +418,8 @@ def add_cli_to_bel_namespace(main):  # noqa: D202
     return main
 
 
-def add_cli_clear_bel_namespace(main):  # noqa: D202
-    """Add a ``clear_bel_namespace`` command to main :mod:`click` function.
-
-    :param click.Group main: A click-decorated main function
-    :rtype: click.Group
-    """
+def add_cli_clear_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
+    """Add a ``clear_bel_namespace`` command to main :mod:`click` function."""
 
     @main.command()
     @click.pass_obj
@@ -460,12 +433,8 @@ def add_cli_clear_bel_namespace(main):  # noqa: D202
     return main
 
 
-def add_cli_write_bel_namespace(main):  # noqa: D202
-    """Add a ``write_bel_namespace`` command to main :mod:`click` function.
-
-    :param click.Group main: A click-decorated main function
-    :rtype: click.Group
-    """
+def add_cli_write_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
+    """Add a ``write_bel_namespace`` command to main :mod:`click` function."""
 
     @main.command()
     @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
