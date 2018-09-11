@@ -100,4 +100,5 @@ if __name__ == '__main__':
         extras_require=EXTRAS_REQUIRE,
         tests_require=TESTS_REQUIRE,
         entry_points=ENTRY_POINTS,
+        zip_safe=False,
     )
