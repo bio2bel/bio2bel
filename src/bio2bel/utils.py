@@ -5,6 +5,7 @@
 import logging
 import os
 from configparser import ConfigParser
+from typing import Optional
 
 from .constants import BIO2BEL_DIR, DEFAULT_CACHE_CONNECTION, DEFAULT_CONFIG_PATH, VERSION
 
@@ -17,12 +18,11 @@ __all__ = [
 ]
 
 
-def get_data_dir(module_name):
+def get_data_dir(module_name: str) -> str:
     """Ensure the appropriate Bio2BEL data directory exists for the given module, then returns the file path.
 
-    :param str module_name: The name of the module. Ex: 'chembl'
+    :param module_name: The name of the module. Ex: 'chembl'
     :return: The module's data directory
-    :rtype: str
     """
     module_name = module_name.lower()
     data_dir = os.path.join(BIO2BEL_DIR, module_name)
@@ -30,7 +30,7 @@ def get_data_dir(module_name):
     return data_dir
 
 
-def get_connection(module_name, connection=None):
+def get_connection(module_name: str, connection: Optional[str] = None) -> str:
     """Return the SQLAlchemy connection string if it is set.
 
     Order of operations:
@@ -45,10 +45,9 @@ def get_connection(module_name, connection=None):
     6. Check the bio2bel config file for default
     7. Fall back to standard default cache connection
 
-    :param str module_name: The name of the module to get the configuration for
-    :param Optional[str] connection: get the SQLAlchemy connection string
+    :param module_name: The name of the module to get the configuration for
+    :param connection: get the SQLAlchemy connection string
     :return: The SQLAlchemy connection string based on the configuration
-    :rtype: str
     """
     module_name = module_name.lower()
 
@@ -57,38 +56,23 @@ def get_connection(module_name, connection=None):
         return connection
 
     # 2. Check the environment for the module
-    bio2bel_module_env = 'BIO2BEL_{}_CONNECTION'.format(module_name.upper())
-    bio2bel_module_env_value = os.environ.get(bio2bel_module_env)
-    if bio2bel_module_env_value is not None:
-        log.debug('loaded connection from environment (%s): %s', bio2bel_module_env, bio2bel_module_env_value)
+    bio2bel_module_env_value = _get_environment_connection(module_name)
+    if bio2bel_module_env_value:
         return bio2bel_module_env_value
 
     # 4. Check the global Bio2BEL configuration for module-specific connection information
-    global_config = ConfigParser()
-    local_config = ConfigParser()
-
-    if os.path.exists(DEFAULT_CONFIG_PATH):
-        global_config.read(DEFAULT_CONFIG_PATH)
-        if global_config.has_option(module_name, 'connection'):
-            global_module_connection = global_config.get(module_name, 'connection')
-            log.debug('loading connection string from global configuration (%s): %s', DEFAULT_CONFIG_PATH,
-                      global_module_connection)
-            return global_module_connection
+    global_module_connection = _get_global_module_connection(module_name)
+    if global_module_connection is not None:
+        return global_module_connection
 
     # 5. Check if there is module-specific configuration
-    module_config_path = os.path.join(BIO2BEL_DIR, module_name, 'config.ini')
-    if os.path.exists(module_config_path):
-        local_config.read(module_config_path)
-        if local_config.has_option(local_config.default_section, 'connection'):
-            local_module_connection = local_config.get(local_config.default_section, 'connection')
-            log.debug('loading connection string from local configuration (%s)', module_config_path,
-                      local_module_connection)
-            return local_module_connection
+    local_module_connection = _get_local_connection(module_name)
+    if local_module_connection is not None:
+        return local_module_connection
 
     # 6. Check if there is a global connection
-    global_environ_connection = os.environ.get('BIO2BEL_CONNECTION')
+    global_environ_connection = _get_global_connection()
     if global_environ_connection is not None:
-        log.debug('loading global bio2bel connection from environ: %s', global_environ_connection)
         return global_environ_connection
 
     # 7. Use the global configuration file's global default cache connection string
@@ -111,6 +95,44 @@ def get_connection(module_name, connection=None):
     log.debug('load default connection string from %s', default_connection)
 
     return default_connection
+
+
+def _get_environment_connection(module_name: str) -> Optional[str]:
+    bio2bel_module_env = 'BIO2BEL_{}_CONNECTION'.format(module_name.upper())
+    bio2bel_module_env_value = os.environ.get(bio2bel_module_env)
+    if bio2bel_module_env_value is not None:
+        log.debug('loaded connection from environment (%s): %s', bio2bel_module_env, bio2bel_module_env_value)
+        return bio2bel_module_env_value
+
+
+def _get_global_module_connection(module_name: str) -> Optional[str]:
+    global_config = ConfigParser()
+    if os.path.exists(DEFAULT_CONFIG_PATH):
+        global_config.read(DEFAULT_CONFIG_PATH)
+        if global_config.has_option(module_name, 'connection'):
+            global_module_connection = global_config.get(module_name, 'connection')
+            log.debug('loading connection string from global configuration (%s): %s', DEFAULT_CONFIG_PATH,
+                      global_module_connection)
+            return global_module_connection
+
+
+def _get_local_connection(module_name: str) -> Optional[str]:
+    local_config = ConfigParser()
+    module_config_path = os.path.join(BIO2BEL_DIR, module_name, 'config.ini')
+    if os.path.exists(module_config_path):
+        local_config.read(module_config_path)
+        if local_config.has_option(local_config.default_section, 'connection'):
+            local_module_connection = local_config.get(local_config.default_section, 'connection')
+            log.debug('loading connection string from local configuration (%s)', module_config_path,
+                      local_module_connection)
+            return local_module_connection
+
+
+def _get_global_connection() -> Optional[str]:
+    global_environ_connection = os.environ.get('BIO2BEL_CONNECTION')
+    if global_environ_connection is not None:
+        log.debug('loading global bio2bel connection from environ: %s', global_environ_connection)
+        return global_environ_connection
 
 
 def get_version():
