@@ -32,10 +32,13 @@ class AbstractManagerMeta(ABCMeta):
         @wraps(cls._populate_original)
         def populate_wrapped(self, *populate_args, **populate_kwargs):
             """Populate the database."""
-            cls._populate_original(self, *populate_args, **populate_kwargs)
-
-            # Hack in the action storage
-            self._store_populate()
+            try:
+                cls._populate_original(self, *populate_args, **populate_kwargs)
+            except Exception:
+                self._store_populate_failed()
+            else:
+                # Hack in the action storage
+                self._store_populate()
 
         cls.populate = populate_wrapped
 

@@ -2,7 +2,7 @@
 
 """Bio2BEL database models.
 
-Bio2BEL adds hooks to the populate and drop_all methods in the :py:`bio2bel.AbstractManager` class to track when they
+Bio2BEL adds hooks to the populate and drop_all methods in the :py:class:`bio2bel.AbstractManager` class to track when they
 are run and therefore create provenance information for a given analysis.
 
 The most recent population action from a given module can be retrieved with the following code:
@@ -19,6 +19,7 @@ The most recent population action from a given module can be retrieved with the 
 
 import datetime
 import logging
+from typing import Optional
 
 from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -36,10 +37,10 @@ ACTION_TABLE_NAME = '{}_action'.format(TABLE_PREFIX)
 
 def create_all(engine, checkfirst=True):
     """Create the tables for Bio2BEL."""
-    Base.metadata.create_all(engine, checkfirst=checkfirst)
+    Base.metadata.create_all(bind=engine, checkfirst=checkfirst)
 
 
-def _make_session(connection=None):
+def _make_session(connection: Optional[str] = None):
     """Make a session.
 
     :type connection: Optional[str]
@@ -58,18 +59,16 @@ def _make_session(connection=None):
     return session
 
 
-def _store_helper(make_method, resource, session=None):
+def _store_helper(model, session=None):
     """Help store an action.
 
-    :param make_method: Either :meth:`Action.make_populate` or :meth:`Action.make_drop`
-    :param str resource: The lowercase name of the resource. Ex: 'interpro'
+    :param Action model:
     :param Optional[sqlalchemy.orm.Session] session: A pre-built session
     :rtype: Action
     """
     if session is None:
         session = _make_session()
 
-    model = make_method(resource)
     session.add(model)
     session.commit()
     session.close()
@@ -93,50 +92,61 @@ class Action(Base):
         return '{} {} at {}'.format(self.resource, self.action, self.created)
 
     @staticmethod
-    def make_populate(resource):
-        """Make a ``populate`` instance of :class:`Action`.
-
-        :rtype: Action
-        """
+    def make_populate(resource) -> 'Action':
+        """Make a ``populate`` instance of :class:`Action`."""
         return Action(resource=resource.lower(), action='populate')
 
     @staticmethod
-    def make_drop(resource):
-        """Make a ``drop`` instance of :class:`Action`.
+    def make_populate_failed(resource) -> 'Action':
+        """Make a ``populate_failed`` instance of :class:`Action`."""
+        return Action(resource=resource.lower(), action='populate_failed')
 
-        :rtype: Action
-        """
+    @staticmethod
+    def make_drop(resource) -> 'Action':
+        """Make a ``drop`` instance of :class:`Action`."""
         return Action(resource=resource.lower(), action='drop')
 
     @classmethod
-    def store_populate(cls, resource, session=None):
-        """Store a populate event.
+    def store_populate(cls, resource: str, session=None) -> 'Action':
+        """Store a "populate" event.
 
-        :param str resource: The normalized name of the resource to store
+        :param resource: The normalized name of the resource to store
         :param Optional[sqlalchemy.orm.Session] session: A pre-built session
-        :rtype: Action
 
         Example:
 
         >>> from bio2bel.models import Action
         >>> Action.store_populate('hgnc')
         """
-        return _store_helper(cls.make_populate, resource, session=session)
+        return _store_helper(cls.make_populate(resource), session=session)
 
     @classmethod
-    def store_drop(cls, resource, session=None):
-        """Store a drop event.
+    def store_populate_failed(cls, resource: str, session=None) -> 'Action':
+        """Store a "populate failed" event.
 
-        :param str resource: The normalized name of the resource to store
+        :param resource: The normalized name of the resource to store
         :param Optional[sqlalchemy.orm.Session] session: A pre-built session
-        :rtype: Action
+
+        Example:
+
+        >>> from bio2bel.models import Action
+        >>> Action.store_populate_failed('hgnc')
+        """
+        return _store_helper(cls.make_populate_failed(resource), session=session)
+
+    @classmethod
+    def store_drop(cls, resource: str, session=None) -> 'Action':
+        """Store a "drop" event.
+
+        :param resource: The normalized name of the resource to store
+        :param Optional[sqlalchemy.orm.Session] session: A pre-built session
 
         Example:
 
         >>> from bio2bel.models import Action
         >>> Action.store_drop('hgnc')
         """
-        return _store_helper(cls.make_drop, resource, session=session)
+        return _store_helper(cls.make_drop(resource), session=session)
 
     @classmethod
     def ls(cls, session=None):
@@ -153,11 +163,10 @@ class Action(Base):
         return actions
 
     @classmethod
-    def count(cls, session=None):
+    def count(cls, session=None) -> int:
         """Count all actions.
 
         :param Optional[sqlalchemy.orm.Session] session: A pre-built session
-        :rtype: int
         """
         if session is None:
             session = _make_session()

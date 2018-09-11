@@ -59,6 +59,8 @@ class ConnectionManager(object):
         self.engine = engine
         self.session = session
 
+        create_all(self.engine)
+
     @property
     def connection(self):
         """Return this manager's connection string."""
@@ -87,11 +89,12 @@ class ConnectionManager(object):
         return get_connection(cls.module_name, connection=connection)
 
     def _store_populate(self):
-        create_all(self.engine)
         Action.store_populate(self.module_name, session=self.session)
 
+    def _store_populate_failed(self):
+        Action.store_populate_failed(self.module_name, session=self.session)
+
     def _store_drop(self):
-        create_all(self.engine)
         Action.store_drop(self.module_name, session=self.session)
 
     def __repr__(self):  # noqa: D105
