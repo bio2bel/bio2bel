@@ -20,11 +20,8 @@ UNCONFIGURED_CACHE_PATH = os.path.join(BIO2BEL_DIR, UNCONFIGURED_CACHE_NAME)
 UNCONFIGURED_CACHE_CONNECTION = 'sqlite:///' + UNCONFIGURED_CACHE_PATH
 
 
-def get_global_connection():
-    """Return the global connection string.
-
-    :rtype: str
-    """
+def get_global_connection() -> str:
+    """Return the global connection string."""
     # 6. Check if there is a global connection
     global_environ_connection = os.environ.get('BIO2BEL_CONNECTION')
     if global_environ_connection is not None:

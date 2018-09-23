@@ -4,9 +4,10 @@
 
 import importlib
 import logging
+from typing import Optional
 
-import flask
 import flask_bootstrap
+from flask import Blueprint, Flask, render_template
 from flask_admin import Admin
 from pkg_resources import VersionConflict, iter_entry_points
 
@@ -15,7 +16,7 @@ from bio2bel.manager.connection_manager import build_engine_session
 
 log = logging.getLogger(__name__)
 
-ui = flask.Blueprint('ui', __name__)
+ui = Blueprint('ui', __name__)
 
 web_modules = {}
 add_admins = {}
@@ -48,16 +49,12 @@ for entry_point in iter_entry_points(group='bio2bel', name=None):
 @ui.route('/')
 def home():
     """Show the home page."""
-    return flask.render_template('index.html', entries=sorted(add_admins))
+    return render_template('index.html', entries=sorted(add_admins))
 
 
-def create_application(connection=None):
-    """Create a Flask application.
-
-    :param Optional[str] connection: A connection string
-    :rtype: flask.Flask
-    """
-    app = flask.Flask(__name__)
+def create_application(connection: Optional[str] = None) -> Flask:
+    """Create a Flask application."""
+    app = Flask(__name__)
 
     flask_bootstrap.Bootstrap(app)
     Admin(app)

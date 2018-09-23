@@ -4,6 +4,7 @@
 
 import os
 import sys
+from typing import Optional
 
 import click
 
@@ -96,10 +97,10 @@ class FlaskMixin(ConnectionManager, CliMixin):
 
         return admin
 
-    def get_flask_admin_app(self, url=None, secret_key=None):
+    def get_flask_admin_app(self, url: Optional[str] = None, secret_key: Optional[str] = None):
         """Create a Flask application.
 
-        :param Optional[str] url: Optional mount point of the admin application. Defaults to ``'/'``.
+        :param url: Optional mount point of the admin application. Defaults to ``'/'``.
         :rtype: flask.Flask
         """
         from flask import Flask
@@ -113,20 +114,13 @@ class FlaskMixin(ConnectionManager, CliMixin):
         return app
 
     @staticmethod
-    def _cli_add_flask(main):
-        """Add the web command.
-
-        :type main: click.Group
-        :rtype: click.Group
-        """
+    def _cli_add_flask(main: click.Group) -> click.Group:
+        """Add the web command."""
         return add_cli_flask(main)
 
     @classmethod
-    def get_cli(cls):
-        """Add  a :mod:`click` main function to use as a command line interface.
-
-        :rtype: click.Group
-        """
+    def get_cli(cls) -> click.Group:
+        """Add  a :mod:`click` main function to use as a command line interface."""
         main = super().get_cli()
 
         cls._cli_add_flask(main)
@@ -134,12 +128,8 @@ class FlaskMixin(ConnectionManager, CliMixin):
         return main
 
 
-def add_cli_flask(main):  # noqa: D202
-    """Add a ``web`` comand main :mod:`click` function.
-
-    :param click.Group main: A click-decorated main function
-    :rtype: click.Group
-    """
+def add_cli_flask(main: click.Group) -> click.Group:  # noqa: D202
+    """Add a ``web`` comand main :mod:`click` function."""
 
     @main.command()
     @click.option('-v', '--debug', is_flag=True)

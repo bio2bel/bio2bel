@@ -78,29 +78,18 @@ class BELManagerMixin(ABC, CliMixin):
         """
 
     @staticmethod
-    def _cli_add_to_bel(main):
-        """Add the export BEL command.
-
-        :type main: click.Group
-        :rtype: click.Group
-        """
+    def _cli_add_to_bel(main: click.Group) -> click.Group:
+        """Add the export BEL command."""
         return add_cli_to_bel(main)
 
     @staticmethod
-    def _cli_add_upload_bel(main):
-        """Add the upload BEL command.
-
-        :type main: click.Group
-        :rtype: click.Group
-        """
+    def _cli_add_upload_bel(main: click.Group) -> click.Group:
+        """Add the upload BEL command."""
         return add_cli_upload_bel(main)
 
     @classmethod
-    def get_cli(cls):
-        """Get a :mod:`click` main function with added BEL commands.
-
-        :rtype: click.Group
-        """
+    def get_cli(cls) -> click.Group:
+        """Get a :mod:`click` main function with added BEL commands."""
         main = super().get_cli()
 
         @main.group()
@@ -113,12 +102,8 @@ class BELManagerMixin(ABC, CliMixin):
         return main
 
 
-def add_cli_to_bel(main):  # noqa: D202
-    """Add several command to main :mod:`click` function related to export to BEL.
-
-    :param click.Group main: A click-decorated main function
-    :rtype: click.Group
-    """
+def add_cli_to_bel(main: click.Group) -> click.Group:  # noqa: D202
+    """Add several command to main :mod:`click` function related to export to BEL."""
 
     @main.command()
     @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
@@ -130,12 +115,8 @@ def add_cli_to_bel(main):  # noqa: D202
         to_bel(graph, output)
 
 
-def add_cli_upload_bel(main):  # noqa: D202
-    """Add several command to main :mod:`click` function related to export to BEL.
-
-    :param click.Group main: A click-decorated main function
-    :rtype: click.Group
-    """
+def add_cli_upload_bel(main: click.Group) -> click.Group:  # noqa: D202
+    """Add several command to main :mod:`click` function related to export to BEL."""
 
     @main.command()
     @click.option('-c', '--connection')

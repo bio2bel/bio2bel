@@ -7,8 +7,10 @@ import os
 import sys
 from abc import ABCMeta, abstractmethod
 from functools import wraps
+from typing import List, Mapping, Type
 
 import click
+from sqlalchemy.ext.declarative.api import DeclarativeMeta
 
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
@@ -183,12 +185,10 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
 
     @property
     @abstractmethod
-    def _base(self):
+    def _base(self) -> DeclarativeMeta:
         """Return the declarative base.
 
         It is usually sufficient to return an instance that is module-level.
-
-        :rtype: sqlalchemy.ext.declarative.api.DeclarativeMeta
 
         How to build an instance of :class:`sqlalchemy.ext.declarative.api.DeclarativeMeta` by using
         :func:`sqlalchemy.ext.declarative.declarative_base`:
@@ -210,29 +210,23 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
         self.create_all()
 
     @abstractmethod
-    def is_populated(self):
-        """Check if the database is already populated.
-
-        :rtype: bool
-        """
+    def is_populated(self) -> bool:
+        """Check if the database is already populated."""
 
     @abstractmethod
-    def populate(self, *args, **kwargs):
+    def populate(self, *args, **kwargs) -> None:
         """Populate the database."""
 
     @abstractmethod
-    def summarize(self):
-        """Summarize the database.
-
-        :rtype: dict[str,int]
-        """
+    def summarize(self) -> Mapping[str, int]:
+        """Summarize the database."""
 
     @property
     def _metadata(self):
         """Return the metadata object associated with this manager's declarative base."""
         return self._base.metadata
 
-    def create_all(self, check_first=True):
+    def create_all(self, check_first: bool = True):
         """Create the empty database (tables).
 
         :param bool check_first: Defaults to True, don't issue CREATEs for tables already present
@@ -240,7 +234,7 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
         """
         self._metadata.create_all(self.engine, checkfirst=check_first)
 
-    def drop_all(self, check_first=True):
+    def drop_all(self, check_first: bool = True):
         """Drop all tables from the database.
 
         :param bool check_first: Defaults to True, only issue DROPs for tables confirmed to be
@@ -249,72 +243,52 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
         self._metadata.drop_all(self.engine, checkfirst=check_first)
         self._store_drop()
 
-    def _get_query(self, model):
+    def _get_query(self, model: Type[DeclarativeMeta]):
         """Get a query for the given model using this manager's session.
 
-        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
+        :param model: A SQLAlchemy model class
         :return: a SQLAlchemy query
         """
         return self.session.query(model)
 
-    def _count_model(self, model):
+    def _count_model(self, model: Type[DeclarativeMeta]) -> int:
         """Count the number of the given model in the database.
 
-        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
-        :rtype: int
+        :param model: A SQLAlchemy model class
         """
         return self._get_query(model).count()
 
-    def _list_model(self, model):
+    def _list_model(self, model: Type[DeclarativeMeta]) -> List[Type[DeclarativeMeta]]:
         """Get all instances of the given model in the database.
 
-        :param sqlalchemy.ext.declarative.api.DeclarativeMeta model: A SQLAlchemy model class
+        :param model: A SQLAlchemy model class
         :rtype: list
         """
         return self._get_query(model).all()
 
     @staticmethod
-    def _cli_add_populate(main):
-        """Add the populate command.
-
-        :type main: click.Group
-        :rtype: click.Group
-        """
+    def _cli_add_populate(main: click.Group) -> click.Group:
+        """Add the populate command."""
         return add_cli_populate(main)
 
     @staticmethod
-    def _cli_add_drop(main):
-        """Add the drop command.
-
-        :type main: click.Group
-        :rtype: click.Group
-        """
+    def _cli_add_drop(main: click.Group) -> click.Group:
+        """Add the drop command."""
         return add_cli_drop(main)
 
     @staticmethod
-    def _cli_add_cache(main):
-        """Add the cache command.
-
-        :type main: click.Group
-        :rtype: click.Group
-        """
+    def _cli_add_cache(main: click.Group) -> click.Group:
+        """Add the cache command."""
         return add_cli_cache(main)
 
     @staticmethod
-    def _cli_add_summarize(main):
-        """Add the summarize command.
-
-        :type main: click.Group
-        :rtype: click.Group
-        """
+    def _cli_add_summarize(main: click.Group) -> click.Group:
+        """Add the summarize command."""
         return add_cli_summarize(main)
 
     @classmethod
-    def get_cli(cls):
-        """Get the :mod:`click` main function to use as a command line interface.
-
-        :rtype: click.Group
-        """
+    def get_cli(cls) -> click.Group:
+        """Get the :mod:`click` main function to use as a command line interface."""
         main = super().get_cli()
 
         cls._cli_add_populate(main)
@@ -325,12 +299,8 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
         return main
 
 
-def add_cli_populate(main):  # noqa: D202
-    """Add a ``populate`` command to main :mod:`click` function.
-
-    :param click.Group main: A click-decorated main function
-    :rtype: click.Group
-    """
+def add_cli_populate(main: click.Group) -> click.Group:  # noqa: D202
+    """Add a ``populate`` command to main :mod:`click` function."""
 
     @main.command()
     @click.option('--reset', is_flag=True, help='Nuke database first')
@@ -353,12 +323,8 @@ def add_cli_populate(main):  # noqa: D202
     return main
 
 
-def add_cli_drop(main):  # noqa: D202
-    """Add a ``drop`` command to main :mod:`click` function.
-
-    :param click.Group main: A click-decorated main function
-    :rtype: click.Group
-    """
+def add_cli_drop(main: click.Group) -> click.Group:  # noqa: D202
+    """Add a ``drop`` command to main :mod:`click` function."""
 
     @main.command()
     @click.option('-y', '--yes', is_flag=True)
@@ -371,12 +337,8 @@ def add_cli_drop(main):  # noqa: D202
     return main
 
 
-def add_cli_cache(main):  # noqa: D202
-    """Add several commands to main :mod:`click` function for handling the cache.
-
-    :param click.Group main: A click-decorated main function
-    :rtype: click.Group
-    """
+def add_cli_cache(main: click.Group) -> click.Group:  # noqa: D202
+    """Add several commands to main :mod:`click` function for handling the cache."""
 
     @main.group()
     def cache():
@@ -407,12 +369,8 @@ def add_cli_cache(main):  # noqa: D202
     return main
 
 
-def add_cli_summarize(main):  # noqa: D202
-    """Add a ``summarize`` command to main :mod:`click` function.
-
-    :param click.Group main: A click-decorated main function
-    :rtype: click.Group
-    """
+def add_cli_summarize(main: click.Group) -> click.Group:  # noqa: D202
+    """Add a ``summarize`` command to main :mod:`click` function."""
 
     @main.command()
     @click.pass_obj

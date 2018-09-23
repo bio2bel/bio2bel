@@ -36,6 +36,14 @@ EXTRAS_REQUIRE = {
     ],
     'namespaces': [
         'pybel',
+    ],
+    'docs': [
+        'pybel',
+        'flask',
+        'flask-admin',
+        'sphinx',
+        'sphinx-rtd-theme',
+        'sphinx-autodoc-typehints',
     ]
 }
 TESTS_REQUIRE = [

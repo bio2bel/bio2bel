@@ -135,6 +135,6 @@ def _get_global_connection() -> Optional[str]:
         return global_environ_connection
 
 
-def get_version():
+def get_version() -> str:
     """Get the software version of Bio2BEL."""
     return VERSION

@@ -10,6 +10,7 @@ import logging
 import os
 import tempfile
 import unittest
+from typing import Type
 from unittest import mock
 
 from .exc import Bio2BELManagerTypeError, Bio2BELTestMissingManagerError
@@ -81,11 +82,8 @@ class MockConnectionMixin(TemporaryConnectionMixin):
         """
         super().setUp()
 
-        def mock_connection():
-            """Get the connection enclosed by this class.
-
-            :rtype: str
-            """
+        def mock_connection() -> str:
+            """Get the connection enclosed by this class."""
             return self.connection
 
         self.mock_global_connection = mock.patch('bio2bel.models.get_global_connection', mock_connection)
@@ -121,7 +119,7 @@ class AbstractTemporaryCacheMethodMixin(TemporaryConnectionMethodMixin):
         self.manager.session.close()
         super().tearDown()
 
-    def populate(self):
+    def populate(self) -> None:
         """Populate the database.
 
         This stub should be overridden.
@@ -167,12 +165,10 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
         """
 
 
-def make_temporary_cache_class_mixin(manager_cls):
-    """Build a testing class that has a Bio2BEL manager instance ready to go.
+def make_temporary_cache_class_mixin(manager_cls: Type[AbstractManager]) -> Type[
+    AbstractTemporaryCacheClassMixin]:  # noqa: D202
+    """Build a testing class that has a Bio2BEL manager instance ready to go."""
 
-    :param type[bio2bel.AbstractManager] manager_cls: A Bio2BEL manager
-    :rtype: type[AbstractTemporaryCacheClassMixin]
-    """
     class TemporaryCacheClassMixin(AbstractTemporaryCacheClassMixin):
         Manager = manager_cls
 

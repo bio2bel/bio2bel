@@ -1,9 +1,0 @@
-sqlalchemy
-click
-pandas
-tqdm
-
-# Added for Read the Docs
-flask
-flask-admin
-pybel

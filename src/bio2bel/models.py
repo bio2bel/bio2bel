@@ -19,11 +19,11 @@ The most recent population action from a given module can be retrieved with the 
 
 import datetime
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from bio2bel.constants import get_global_connection
 
@@ -33,47 +33,6 @@ Base = declarative_base()
 
 TABLE_PREFIX = 'bio2bel'
 ACTION_TABLE_NAME = '{}_action'.format(TABLE_PREFIX)
-
-
-def create_all(engine, checkfirst=True):
-    """Create the tables for Bio2BEL."""
-    Base.metadata.create_all(bind=engine, checkfirst=checkfirst)
-
-
-def _make_session(connection: Optional[str] = None):
-    """Make a session.
-
-    :type connection: Optional[str]
-    :rtype: sqlalchemy.orm.Session
-    """
-    if connection is None:
-        connection = get_global_connection()
-
-    engine = create_engine(connection)
-
-    create_all(engine)
-
-    session_cls = sessionmaker(bind=engine)
-    session = session_cls()
-
-    return session
-
-
-def _store_helper(model, session=None):
-    """Help store an action.
-
-    :param Action model:
-    :param Optional[sqlalchemy.orm.Session] session: A pre-built session
-    :rtype: Action
-    """
-    if session is None:
-        session = _make_session()
-
-    session.add(model)
-    session.commit()
-    session.close()
-
-    return model
 
 
 class Action(Base):
@@ -92,69 +51,68 @@ class Action(Base):
         return '{} {} at {}'.format(self.resource, self.action, self.created)
 
     @staticmethod
-    def make_populate(resource) -> 'Action':
+    def make_populate(resource: str) -> 'Action':
         """Make a ``populate`` instance of :class:`Action`."""
         return Action(resource=resource.lower(), action='populate')
 
     @staticmethod
-    def make_populate_failed(resource) -> 'Action':
+    def make_populate_failed(resource: str) -> 'Action':
         """Make a ``populate_failed`` instance of :class:`Action`."""
         return Action(resource=resource.lower(), action='populate_failed')
 
     @staticmethod
-    def make_drop(resource) -> 'Action':
+    def make_drop(resource: str) -> 'Action':
         """Make a ``drop`` instance of :class:`Action`."""
         return Action(resource=resource.lower(), action='drop')
 
     @classmethod
-    def store_populate(cls, resource: str, session=None) -> 'Action':
+    def store_populate(cls, resource: str, session: Optional[Session] = None) -> 'Action':
         """Store a "populate" event.
 
         :param resource: The normalized name of the resource to store
-        :param Optional[sqlalchemy.orm.Session] session: A pre-built session
 
         Example:
 
         >>> from bio2bel.models import Action
         >>> Action.store_populate('hgnc')
         """
-        return _store_helper(cls.make_populate(resource), session=session)
+        action = cls.make_populate(resource)
+        _store_helper(action, session=session)
+        return action
 
     @classmethod
-    def store_populate_failed(cls, resource: str, session=None) -> 'Action':
+    def store_populate_failed(cls, resource: str, session: Optional[Session] = None) -> 'Action':
         """Store a "populate failed" event.
 
         :param resource: The normalized name of the resource to store
-        :param Optional[sqlalchemy.orm.Session] session: A pre-built session
 
         Example:
 
         >>> from bio2bel.models import Action
         >>> Action.store_populate_failed('hgnc')
         """
-        return _store_helper(cls.make_populate_failed(resource), session=session)
+        action = cls.make_populate_failed(resource)
+        _store_helper(action, session=session)
+        return action
 
     @classmethod
-    def store_drop(cls, resource: str, session=None) -> 'Action':
+    def store_drop(cls, resource: str, session: Optional[Session] = None) -> 'Action':
         """Store a "drop" event.
 
         :param resource: The normalized name of the resource to store
-        :param Optional[sqlalchemy.orm.Session] session: A pre-built session
 
         Example:
 
         >>> from bio2bel.models import Action
         >>> Action.store_drop('hgnc')
         """
-        return _store_helper(cls.make_drop(resource), session=session)
+        action = cls.make_drop(resource)
+        _store_helper(action, session=session)
+        return action
 
     @classmethod
-    def ls(cls, session=None):
-        """Get all actions.
-
-        :param Optional[sqlalchemy.orm.Session] session: A pre-built session
-        :rtype: list[Action]
-        """
+    def ls(cls, session: Optional[Session] = None) -> List['Action']:
+        """Get all actions."""
         if session is None:
             session = _make_session()
 
@@ -163,14 +121,41 @@ class Action(Base):
         return actions
 
     @classmethod
-    def count(cls, session=None) -> int:
-        """Count all actions.
-
-        :param Optional[sqlalchemy.orm.Session] session: A pre-built session
-        """
+    def count(cls, session: Optional[Session] = None) -> int:
+        """Count all actions."""
         if session is None:
             session = _make_session()
 
         count = session.query(cls).count()
         session.close()
         return count
+
+
+def _store_helper(model: Action, session: Optional[Session] = None) -> None:
+    """Help store an action."""
+    if session is None:
+        session = _make_session()
+
+    session.add(model)
+    session.commit()
+    session.close()
+
+
+def _make_session(connection: Optional[str] = None) -> Session:
+    """Make a session."""
+    if connection is None:
+        connection = get_global_connection()
+
+    engine = create_engine(connection)
+
+    create_all(engine)
+
+    session_cls = sessionmaker(bind=engine)
+    session = session_cls()
+
+    return session
+
+
+def create_all(engine, checkfirst=True):
+    """Create the tables for Bio2BEL."""
+    Base.metadata.create_all(bind=engine, checkfirst=checkfirst)

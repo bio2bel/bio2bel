@@ -3,6 +3,7 @@
 """Provides abstractions over the management of SQLAlchemy connections and sessions."""
 
 import logging
+from typing import Optional
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -36,7 +37,7 @@ class ConnectionManager(object):
     #: This represents the module name. Needs to be lower case
     module_name = ...
 
-    def __init__(self, connection=None, engine=None, session=None, **kwargs):
+    def __init__(self, connection: Optional[str] = None, engine=None, session=None, **kwargs):
         """Build an abstract manager from either a connection or an engine/session.
 
         The remaining keyword arguments are passed to :func:`build_engine_session`.
@@ -62,7 +63,7 @@ class ConnectionManager(object):
         create_all(self.engine)
 
     @property
-    def connection(self):
+    def connection(self) -> str:
         """Return this manager's connection string."""
         return str(self.engine.url)
 
@@ -78,13 +79,10 @@ class ConnectionManager(object):
             raise Bio2BELModuleCaseError('module_name class variable should be lowercase')
 
     @classmethod
-    def _get_connection(cls, connection=None):
+    def _get_connection(cls, connection: Optional[str] = None) -> str:
         """Get a default connection string.
 
         Wraps :func:`bio2bel.utils.get_connection` and passing this class's :data:`module_name` to it.
-
-        :param Optional[str] connection: A custom connection to pass through
-        :rtype: str
         """
         return get_connection(cls.module_name, connection=connection)
 
