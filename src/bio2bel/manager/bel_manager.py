@@ -114,6 +114,8 @@ def add_cli_to_bel(main: click.Group) -> click.Group:  # noqa: D202
         graph = manager.to_bel()
         to_bel(graph, output)
 
+    return main
+
 
 def add_cli_upload_bel(main: click.Group) -> click.Group:  # noqa: D202
     """Add several command to main :mod:`click` function related to export to BEL."""
