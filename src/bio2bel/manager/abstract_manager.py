@@ -346,6 +346,13 @@ def add_cli_cache(main: click.Group) -> click.Group:  # noqa: D202
 
     @cache.command()
     @click.pass_obj
+    def locate(manager):
+        """Print the location of the data directory."""
+        data_dir = get_data_dir(manager.module_name)
+        click.echo(data_dir)
+
+    @cache.command()
+    @click.pass_obj
     def ls(manager):
         """List files in the cache."""
         data_dir = get_data_dir(manager.module_name)
