@@ -10,7 +10,7 @@ import sys
 import click
 from pkg_resources import VersionConflict, iter_entry_points
 
-from .constants import DEFAULT_CACHE_CONNECTION
+from .constants import get_global_connection
 from .models import Action, _make_session
 from .utils import get_version
 
@@ -48,6 +48,14 @@ for entry, module in modules.items():
         log.warning('no command group bio2bel_%s.cli:main', entry)
         continue
 
+connection_option = click.option(
+    '-c',
+    '--connection',
+    default=get_global_connection(),
+    show_default=True,
+    help='Database connection string.',
+)
+
 main = click.Group(commands=main_commands)
 main.help = "Bio2BEL Command Line Utilities on {}\nBio2BEL v{}".format(sys.executable, get_version())
 
@@ -65,7 +73,7 @@ def _iterate_managers(connection, skip):
 
 
 @main.command()
-@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+@connection_option
 @click.option('--reset', is_flag=True, help='Nuke database first')
 @click.option('--force', is_flag=True, help='Force overwrite if already populated')
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
@@ -96,7 +104,7 @@ def populate(connection, reset, force, skip):
 
 
 @main.command(help='Drop all')
-@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+@connection_option
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 def drop(connection, skip):
     """Drop all."""
@@ -107,7 +115,7 @@ def drop(connection, skip):
 
 
 @main.command()
-@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+@connection_option
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 def summarize(connection, skip):
     """Summarize all."""
@@ -127,11 +135,11 @@ def summarize(connection, skip):
 
 
 @main.command()
+@connection_option
 @click.option('-d', '--directory', type=click.Path(), default=os.getcwd(), help='output directory')
 @click.option('--force', is_flag=True, help='Force overwrite if already exported')
-@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
-def to_bel(directory, force, connection, skip):
+def to_bel(connection, directory, force, , skip):
     """Write all as BEL."""
     os.makedirs(directory, exist_ok=True)
     lm, manager_list = _iterate_managers(connection, skip)
@@ -153,7 +161,7 @@ def to_bel(directory, force, connection, skip):
 
 
 @main.command()
-@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+@connection_option
 def web(connection):
     """Run a combine web interface."""
     from bio2bel.web.application import create_application
@@ -162,7 +170,7 @@ def web(connection):
 
 
 @main.command()
-@click.option('-c', '--connection', help='Defaults to {}'.format(DEFAULT_CACHE_CONNECTION))
+@connection_option
 def actions(connection):
     """List all actions."""
     session = _make_session(connection=connection)
