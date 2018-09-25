@@ -139,7 +139,7 @@ def summarize(connection, skip):
 @click.option('-d', '--directory', type=click.Path(), default=os.getcwd(), help='output directory')
 @click.option('--force', is_flag=True, help='Force overwrite if already exported')
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
-def to_bel(connection, directory, force, , skip):
+def to_bel(connection, directory, force, skip):
     """Write all as BEL."""
     os.makedirs(directory, exist_ok=True)
     lm, manager_list = _iterate_managers(connection, skip)
@@ -162,11 +162,13 @@ def to_bel(connection, directory, force, , skip):
 
 @main.command()
 @connection_option
-def web(connection):
+@click.option('--host', default='0.0.0.0')
+@click.option('--port', type=int, default=5000)
+def web(connection, host, port):
     """Run a combine web interface."""
     from bio2bel.web.application import create_application
     app = create_application(connection=connection)
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host=host, port=port)
 
 
 @main.command()
