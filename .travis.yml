@@ -13,7 +13,6 @@ jobs:
     - stage: lint
       env: TOXENV=manifest
     - env: TOXENV=flake8
-    - env: TOXENV=pylint
     - env: TOXENV=vulture
     - env: TOXENV=mypy
     - env: TOXENV=pyroma
@@ -27,7 +26,6 @@ jobs:
       env: TOXENV=py
 matrix:
   allow_failures:
-      - env: TOXENV=pylint
       - env: TOXENV=vulture
       - env: TOXENV=mypy
 install:
