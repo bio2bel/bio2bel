@@ -10,7 +10,7 @@ import sys
 import click
 from pkg_resources import VersionConflict, iter_entry_points
 
-from .constants import get_global_connection
+from .constants import config
 from .models import Action, _make_session
 from .utils import get_version
 
@@ -51,7 +51,7 @@ for entry, module in modules.items():
 connection_option = click.option(
     '-c',
     '--connection',
-    default=get_global_connection(),
+    default=config.connection,
     show_default=True,
     help='Database connection string.',
 )

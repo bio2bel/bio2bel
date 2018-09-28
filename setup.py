@@ -28,6 +28,7 @@ INSTALL_REQUIRES = [
     'click',
     'pandas',
     'tqdm',
+    'easy_config',
 ]
 EXTRAS_REQUIRE = {
     'web': [
