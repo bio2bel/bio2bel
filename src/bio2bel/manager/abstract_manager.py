@@ -243,7 +243,7 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
         self._metadata.drop_all(self.engine, checkfirst=check_first)
         self._store_drop()
 
-    def _get_query(self, model: Type[DeclarativeMeta]):
+    def _get_query(self, model):
         """Get a query for the given model using this manager's session.
 
         :param model: A SQLAlchemy model class
@@ -251,14 +251,14 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
         """
         return self.session.query(model)
 
-    def _count_model(self, model: Type[DeclarativeMeta]) -> int:
+    def _count_model(self, model) -> int:
         """Count the number of the given model in the database.
 
         :param model: A SQLAlchemy model class
         """
         return self._get_query(model).count()
 
-    def _list_model(self, model: Type[DeclarativeMeta]) -> List[Type[DeclarativeMeta]]:
+    def _list_model(self, model) -> List:
         """Get all instances of the given model in the database.
 
         :param model: A SQLAlchemy model class
