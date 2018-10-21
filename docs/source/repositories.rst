@@ -15,11 +15,11 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | Entrez                 | |entrez_pypi|       | |entrez_docs|       | |entrez_build|       |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| ExCAPE-DB              | |excape_pypi|       | |excape_docs|       | |excape_build|       | |excape_zenodo|       |
+| ExCAPE-DB              | |excape_pypi|       | |excape_docs|       | |excape_build|       |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | ExPASy                 | |expasy_pypi|       | |expasy_docs|       | |expasy_build|       | |expasy_zenodo|       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| FlyBase                | |flybase_pypi|      | |flybase_docs|      | |flybase_build|      | |flybase_zenodo|      |
+| FlyBase                | |flybase_pypi|      |                     | |flybase_build|      |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | GO                     | |go_pypi|           | |go_docs|           | |go_build|           |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
@@ -34,6 +34,8 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 | KEGG                   | |kegg_pypi|         | |kegg_docs|         | |kegg_build|         | |kegg_zenodo|         |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | MeSH                   | |mesh_pypi|         | |mesh_docs|         | |mesh_build|         |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| MGI                    | |mgi_pypi|          |                     | |mgi_build|          |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | miRBase                | |mirbase_pypi|      | |mirbase_docs|      | |mirbase_build|      | |mirbase_zenodo|      |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
@@ -53,6 +55,52 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | WikiPathways           | |wikipathways_pypi| | |wikipathways_docs| | |wikipathways_build| | |wikipathways_zenodo| |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
+
+.. |excape_pypi| image:: https://img.shields.io/pypi/v/bio2bel_excape.svg
+    :alt: Current ExCAPE-DB version on PyPI
+.. |excape_docs| image:: https://readthedocs.org/projects/bio2bel-excape-db/badge/?version=latest
+    :target: https://bio2bel.readthedocs.io/projects/excape/en/latest/?badge=latest
+    :alt: ExCAPE-DB Documentation Status
+.. |excape_build| image:: https://travis-ci.com/bio2bel/excape.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/excape
+    :alt: ExCAPE-DB Build Status
+
+.. |flybase_pypi| image:: https://img.shields.io/pypi/v/bio2bel_flybase.svg
+    :alt: Current FlyBase version on PyPI
+.. |flybase_build| image:: https://travis-ci.org/bio2bel/flybase.svg?branch=master
+    :target: https://travis-ci.org/bio2bel/flybase
+    :alt: FlyBase Build Status
+
+.. |hippie_pypi| image:: https://img.shields.io/pypi/v/bio2bel_hippie.svg
+    :alt: Current HIPPIE version on PyPI
+.. |hippie_docs| image:: https://readthedocs.org/projects/hippie/badge/?version=latest
+    :target: http://hippie.readthedocs.io
+    :alt: HIPPIE Documentation Status
+.. |hippie_build| image:: https://travis-ci.com/bio2bel/hippie.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/hippie
+    :alt: HIPPIE Build Status
+.. |hippie_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1435930.svg
+    :target: https://doi.org/10.5281/zenodo.1435930
+    :alt: HIPPIE Zenodo DOI
+
+.. |mgi_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mgi.svg
+    :alt: Current MGI version on PyPI
+.. |mgi_build| image:: https://travis-ci.org/bio2bel/mgi.svg?branch=master
+    :target: https://travis-ci.org/bio2bel/mgi
+    :alt: MGI Build Status
+
+.. |mirbase_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mirbase.svg
+    :alt: Current miRBase version on PyPI
+.. |mirbase_docs| image:: https://readthedocs.org/projects/mirbase/badge/?version=latest
+    :target: http://mirbase.readthedocs.io
+    :alt: miRBase Documentation Status
+.. |mirbase_build| image:: https://travis-ci.com/bio2bel/mirbase.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/mirbase
+    :alt: miRBase Build Status
+.. |mirbase_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1442206.svg
+    :target: https://doi.org/10.5281/zenodo.1442206
+    :alt: miRBase Zenodo DOI
+
 
 .. |mirtarbase_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mirtarbase.svg
     :alt: Current miRTarBase version on PyPI
