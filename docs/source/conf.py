@@ -21,9 +21,14 @@
 import os
 import re
 import sys
+import warnings
+
+from sphinx.deprecation import RemovedInSphinx20Warning
 
 sys.path.insert(0, os.path.abspath('../../src'))
 
+# Not my problem, lol
+warnings.filterwarnings("ignore", category=RemovedInSphinx20Warning)
 
 # -- General configuration ------------------------------------------------
 
