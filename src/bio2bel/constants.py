@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 VERSION = '0.1.6-dev'
 
-BIO2BEL_DIR = os.environ.get('BIO2BEL_DIRECTORY', os.path.join(os.path.expanduser('~'), '.pybel', 'bio2bel'))
+BIO2BEL_DIR = os.environ.get('BIO2BEL_DIRECTORY', os.path.join(os.path.expanduser('~'), '.bio2bel'))
 os.makedirs(BIO2BEL_DIR, exist_ok=True)
 
 DEFAULT_CONFIG_PATH = os.path.join(BIO2BEL_DIR, 'config.ini')

@@ -14,7 +14,7 @@ from sqlalchemy.ext.declarative.api import DeclarativeMeta
 
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
-from ..utils import get_data_dir
+from ..utils import get_data_dir, clear_cache
 
 __all__ = [
     'AbstractManager',
@@ -364,14 +364,7 @@ def add_cli_cache(main: click.Group) -> click.Group:  # noqa: D202
     @click.pass_obj
     def clear(manager):
         """Clear all files from the cache."""
-        data_dir = get_data_dir(manager.module_name)
-
-        for name in os.listdir(data_dir):
-            if name in {'config.ini', 'cache.db'}:
-                continue
-            path = os.path.join(data_dir, name)
-            click.echo('removing {path}'.format(path=path))
-            os.remove(path)
+        clear_cache(manager.module_name)
 
     return main
 

@@ -4,8 +4,11 @@
 
 import logging
 import os
+import shutil
 from configparser import ConfigParser
-from typing import Optional
+from typing import Mapping, Optional
+
+from pkg_resources import VersionConflict, iter_entry_points
 
 from .constants import BIO2BEL_DIR, DEFAULT_CACHE_CONNECTION, DEFAULT_CONFIG_PATH, VERSION
 
@@ -15,6 +18,8 @@ __all__ = [
     'get_data_dir',
     'get_connection',
     'get_version',
+    'get_modules',
+    'clear_cache',
 ]
 
 
@@ -138,3 +143,41 @@ def _get_global_connection() -> Optional[str]:
 def get_version() -> str:
     """Get the software version of Bio2BEL."""
     return VERSION
+
+
+def get_modules() -> Mapping:
+    """Get all Bio2BEL modules."""
+    modules = {}
+
+    for entry_point in iter_entry_points(group='bio2bel', name=None):
+        entry = entry_point.name
+
+        try:
+            modules[entry] = entry_point.load()
+        except VersionConflict:
+            log.exception('Version conflict in %s', entry)
+            continue
+        except ImportError:
+            log.exception('Issue with importing module %s', entry)
+            continue
+
+    return modules
+
+
+def clear_cache(module_name: str, keep_database: bool = True) -> None:
+    """Clear all downloaded files"""
+    data_dir = get_data_dir(module_name)
+    if not os.path.exists(data_dir):
+        return
+    for name in os.listdir(data_dir):
+        if name in {'config.ini', 'cfg.ini'}:
+            continue
+        if name == 'cache.db' and keep_database:
+            continue
+        path = os.path.join(data_dir, name)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+
+        os.rmdir(data_dir)
