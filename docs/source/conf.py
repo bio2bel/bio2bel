@@ -21,9 +21,14 @@
 import os
 import re
 import sys
+import warnings
+
+from sphinx.deprecation import RemovedInSphinx20Warning
 
 sys.path.insert(0, os.path.abspath('../../src'))
 
+# Not my problem, lol
+warnings.filterwarnings("ignore", category=RemovedInSphinx20Warning)
 
 # -- General configuration ------------------------------------------------
 
@@ -188,9 +193,9 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'sqlalchemy': ('https://docs.sqlalchemy.org/en/latest', None),
     'flask': ('http://flask.pocoo.org/docs/', None),
-    'click': ('http://click.pocoo.org/latest', None),
+    'click': ('https://click.palletsprojects.com/en/7.x', None),
     'pybel': ('https://pybel.readthedocs.io/en/latest/', None),
-    'pandas': ('https://pandas-docs.github.io/pandas-docs-travis/', None),
+    'pandas': ('https://pandas.pydata.org', None),
 }
 
 autodoc_member_order = 'bysource'

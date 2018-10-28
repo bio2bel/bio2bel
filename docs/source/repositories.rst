@@ -7,44 +7,100 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 | Source                 | Version             | Documentation       | Travis               | DOI                   |
 |                        |                     |                     |                      |                       |
 +========================+=====================+=====================+======================+=======================+
-| ExPASy                 | |expasy_pypi|       | |expasy_docs|       | |expasy_build|       | |expasy_zenodo|       |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| HGNC                   | |hgnc_pypi|         | |hgnc_docs|         | |hgnc_build|         | |hgnc_zenodo|         |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
 | ChEBI                  | |chebi_pypi|        | |chebi_docs|        | |chebi_build|        | |chebi_zenodo|        |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| KEGG                   | |kegg_pypi|         | |kegg_docs|         | |kegg_build|         | |kegg_zenodo|         |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| Reactome               | |reactome_pypi|     | |reactome_docs|     | |reactome_build|     | |reactome_zenodo|     |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| WikiPathways           | |wikipathways_pypi| | |wikipathways_docs| | |wikipathways_build| | |wikipathways_zenodo| |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| MSigDB                 | |msig_pypi|         | |msig_docs|         | |msig_build|         | |msig_zenodo|         |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| miRTarBase             | |mirtarbase_pypi|   | |mirtarbase_docs|   | |mirtarbase_build|   | |mirtarbase_zenodo|   |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| DrugBank               | |drugbank_pypi|     | |drugbank_docs|     | |drugbank_build|     | |drugbank_zenodo|     |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| InterPro               | |interpro_pypi|     | |interpro_docs|     | |interpro_build|     | |interpro_zenodo|     |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| GO                     | |go_pypi|           | |go_docs|           | |go_build|           |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | CTD                    | |ctd_pypi|          | |ctd_docs|          | |ctd_build|          |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| PhosphoSitePlus        | |phosphosite_pypi|  | |phosphosite_docs|  | |phosphosite_build|  |                       |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| SIDER                  | |sider_pypi|        | |sider_docs|        | |sider_build|        |                       |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| MeSH                   | |mesh_pypi|         | |mesh_docs|         | |mesh_build|         |                       |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| UniProt                | |uniprot_pypi|      | |uniprot_docs|      | |uniprot_build|      |                       |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| PubChem                | |pubchem_pypi|      | |pubchem_docs|      | |pubchem_build|      |                       |
-+------------------------+---------------------+---------------------+----------------------+-----------------------+
-| HMDB                   | |hmdb_pypi|         | |hmdb_docs|         | |hmdb_build|         |                       |
+| DrugBank               | |drugbank_pypi|     | |drugbank_docs|     | |drugbank_build|     | |drugbank_zenodo|     |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | Entrez                 | |entrez_pypi|       | |entrez_docs|       | |entrez_build|       |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
+| ExCAPE-DB              | |excape_pypi|       | |excape_docs|       | |excape_build|       |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| ExPASy                 | |expasy_pypi|       | |expasy_docs|       | |expasy_build|       | |expasy_zenodo|       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| FlyBase                | |flybase_pypi|      |                     | |flybase_build|      |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| GO                     | |go_pypi|           | |go_docs|           | |go_build|           |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| HGNC                   | |hgnc_pypi|         | |hgnc_docs|         | |hgnc_build|         | |hgnc_zenodo|         |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| HIPPIE                 | |hippie_pypi|       | |hippie_docs|       | |hippie_build|       | |hippie_zenodo|       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| HMDB                   | |hmdb_pypi|         | |hmdb_docs|         | |hmdb_build|         |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| InterPro               | |interpro_pypi|     | |interpro_docs|     | |interpro_build|     | |interpro_zenodo|     |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| KEGG                   | |kegg_pypi|         | |kegg_docs|         | |kegg_build|         | |kegg_zenodo|         |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| MeSH                   | |mesh_pypi|         | |mesh_docs|         | |mesh_build|         |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| MGI                    | |mgi_pypi|          |                     | |mgi_build|          |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| miRBase                | |mirbase_pypi|      | |mirbase_docs|      | |mirbase_build|      | |mirbase_zenodo|      |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| miRTarBase             | |mirtarbase_pypi|   | |mirtarbase_docs|   | |mirtarbase_build|   | |mirtarbase_zenodo|   |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| MSigDB                 | |msig_pypi|         | |msig_docs|         | |msig_build|         | |msig_zenodo|         |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| PhosphoSitePlus        | |phosphosite_pypi|  | |phosphosite_docs|  | |phosphosite_build|  |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| PubChem                | |pubchem_pypi|      | |pubchem_docs|      | |pubchem_build|      |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| Reactome               | |reactome_pypi|     | |reactome_docs|     | |reactome_build|     | |reactome_zenodo|     |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| SIDER                  | |sider_pypi|        | |sider_docs|        | |sider_build|        |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| UniProt                | |uniprot_pypi|      | |uniprot_docs|      | |uniprot_build|      |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| WikiPathways           | |wikipathways_pypi| | |wikipathways_docs| | |wikipathways_build| | |wikipathways_zenodo| |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+
+.. |excape_pypi| image:: https://img.shields.io/pypi/v/bio2bel_excape.svg
+    :alt: Current ExCAPE-DB version on PyPI
+.. |excape_docs| image:: https://readthedocs.org/projects/bio2bel-excape-db/badge/?version=latest
+    :target: https://bio2bel.readthedocs.io/projects/excape/en/latest/?badge=latest
+    :alt: ExCAPE-DB Documentation Status
+.. |excape_build| image:: https://travis-ci.com/bio2bel/excape.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/excape
+    :alt: ExCAPE-DB Build Status
+
+.. |flybase_pypi| image:: https://img.shields.io/pypi/v/bio2bel_flybase.svg
+    :alt: Current FlyBase version on PyPI
+.. |flybase_build| image:: https://travis-ci.org/bio2bel/flybase.svg?branch=master
+    :target: https://travis-ci.org/bio2bel/flybase
+    :alt: FlyBase Build Status
+
+.. |hippie_pypi| image:: https://img.shields.io/pypi/v/bio2bel_hippie.svg
+    :alt: Current HIPPIE version on PyPI
+.. |hippie_docs| image:: https://readthedocs.org/projects/hippie/badge/?version=latest
+    :target: http://hippie.readthedocs.io
+    :alt: HIPPIE Documentation Status
+.. |hippie_build| image:: https://travis-ci.com/bio2bel/hippie.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/hippie
+    :alt: HIPPIE Build Status
+.. |hippie_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1435930.svg
+    :target: https://doi.org/10.5281/zenodo.1435930
+    :alt: HIPPIE Zenodo DOI
+
+.. |mgi_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mgi.svg
+    :alt: Current MGI version on PyPI
+.. |mgi_build| image:: https://travis-ci.org/bio2bel/mgi.svg?branch=master
+    :target: https://travis-ci.org/bio2bel/mgi
+    :alt: MGI Build Status
+
+.. |mirbase_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mirbase.svg
+    :alt: Current miRBase version on PyPI
+.. |mirbase_docs| image:: https://readthedocs.org/projects/mirbase/badge/?version=latest
+    :target: http://mirbase.readthedocs.io
+    :alt: miRBase Documentation Status
+.. |mirbase_build| image:: https://travis-ci.com/bio2bel/mirbase.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/mirbase
+    :alt: miRBase Build Status
+.. |mirbase_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1442206.svg
+    :target: https://doi.org/10.5281/zenodo.1442206
+    :alt: miRBase Zenodo DOI
+
 
 .. |mirtarbase_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mirtarbase.svg
     :alt: Current miRTarBase version on PyPI
