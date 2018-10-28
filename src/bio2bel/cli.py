@@ -106,6 +106,7 @@ def cache():
 @cache.command()
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 def clear(skip):
+    """Clear all caches."""
     for name in sorted(MODULES):
         if name in skip:
             continue
@@ -173,12 +174,13 @@ def _write_one(manager, directory, name):
         with open(os.path.join(directory, f'{name}-names.belns'), 'w') as file:
             manager.write_bel_namespace(file, use_names=True)
 
+
 @main.group()
 def bel():
     """Manage BEL."""
 
 
-@bel.command()
+@bel.command()  # noqa: F811
 @connection_option
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 @click.option('-d', '--directory', type=click.Path(file_okay=False, dir_okay=True), default=os.getcwd(),

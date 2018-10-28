@@ -165,7 +165,7 @@ def get_modules() -> Mapping:
 
 
 def clear_cache(module_name: str, keep_database: bool = True) -> None:
-    """Clear all downloaded files"""
+    """Clear all downloaded files."""
     data_dir = get_data_dir(module_name)
     if not os.path.exists(data_dir):
         return

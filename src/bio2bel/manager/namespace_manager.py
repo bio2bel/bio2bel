@@ -4,11 +4,11 @@
 
 import logging
 import sys
+import time
 from abc import ABC, abstractmethod
 from typing import Iterable, List, Optional, TextIO
 
 import click
-import time
 from tqdm import tqdm
 
 from .cli_manager import CliMixin

@@ -14,7 +14,7 @@ from sqlalchemy.ext.declarative.api import DeclarativeMeta
 
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
-from ..utils import get_data_dir, clear_cache
+from ..utils import clear_cache, get_data_dir
 
 __all__ = [
     'AbstractManager',
