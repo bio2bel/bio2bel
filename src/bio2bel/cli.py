@@ -84,7 +84,8 @@ def populate(connection, reset, force, skip):
     for idx, name, manager in manager_list:
         click.echo(
             click.style('[{}/{}] '.format(idx, lm, name), fg='blue', bold=True) +
-            click.style('populating {}'.format(name), fg='cyan', bold=True))
+            click.style('populating {}'.format(name), fg='cyan', bold=True)
+        )
 
         if reset:
             click.echo('deleting the previous instance of the database')

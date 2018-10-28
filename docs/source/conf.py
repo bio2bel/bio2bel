@@ -195,7 +195,7 @@ intersphinx_mapping = {
     'flask': ('http://flask.pocoo.org/docs/', None),
     'click': ('https://click.palletsprojects.com/en/7.x', None),
     'pybel': ('https://pybel.readthedocs.io/en/latest/', None),
-    'pandas': ('https://pandas-docs.github.io/pandas-docs-travis/', None),
+    'pandas': ('https://pandas.pydata.org', None),
 }
 
 autodoc_member_order = 'bysource'

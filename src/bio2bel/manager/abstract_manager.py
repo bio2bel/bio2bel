@@ -7,7 +7,7 @@ import os
 import sys
 from abc import ABCMeta, abstractmethod
 from functools import wraps
-from typing import List, Mapping, Type
+from typing import List, Mapping
 
 import click
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
