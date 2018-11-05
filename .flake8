@@ -21,7 +21,8 @@ format = ${cyan}%(path)s${reset}:${yellow_bold}%(row)d${reset}:${green_bold}%(co
 ignore =
     D105
     E501
-    W504  # ignore binary operator line breaks
+    # ignore binary operator line breaks
+    W504
 
 # flake8-import-order
 application-import-names =
