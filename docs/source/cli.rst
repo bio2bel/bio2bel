@@ -7,3 +7,7 @@ It dynamically loads all Bio2BEL modules installed so commands are aliased.
 
 - ``bio2bel_mirtarbase populate`` can be accessed as ``bio2bel mirtarbase populate``
 - ``bio2bel populate`` runs all possible repositories' populate commands.
+
+.. click:: bio2bel.cli:main
+   :prog: bio2bel
+   :show-nested:
