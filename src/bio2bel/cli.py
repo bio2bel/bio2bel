@@ -34,7 +34,7 @@ main = click.Group(commands={
     name: manager_cls.get_cli()
     for name, manager_cls in MANAGERS.items()
 })
-main.help = "Bio2BEL Command Line Utilities on {}\nBio2BEL v{}".format(sys.executable, get_version())
+main.help = f'Bio2BEL Command Line Utilities on {sys.executable}\nBio2BEL v{get_version()}'
 
 
 def _iterate_managers(connection, skip):
@@ -67,8 +67,8 @@ def populate(connection, reset, force, skip):
     """Populate all."""
     for idx, name, manager in _iterate_managers(connection, skip):
         click.echo(
-            click.style('[{}/{}] '.format(idx, len(MANAGERS), name), fg='blue', bold=True) +
-            click.style('populating {}'.format(name), fg='cyan', bold=True)
+            click.style(f'[{idx}/{len(MANAGERS)}] ', fg='blue', bold=True) +
+            click.style(f'populating {name}', fg='cyan', bold=True)
         )
 
         if reset:
@@ -78,23 +78,24 @@ def populate(connection, reset, force, skip):
             manager.create_all()
 
         elif manager.is_populated() and not force:
-            click.echo('👍 {} is already populated. use --force to overwrite'.format(name), color='red')
+            click.echo(f'👍 {name} is already populated. use --force to overwrite', color='red')
             continue
 
         try:
             manager.populate()
         except Exception:
             logger.exception('%s population failed', name)
-            click.secho('👎 {} population failed'.format(name), fg='red', bold=True)
+            click.secho(f'👎 {name} population failed', fg='red', bold=True)
 
 
 @main.command(help='Drop all')
+@click.confirmation_option('Drop all?')
 @connection_option
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 def drop(connection, skip):
     """Drop all."""
     for idx, name, manager in _iterate_managers(connection, skip):
-        click.secho('dropping {}'.format(name), fg='cyan', bold=True)
+        click.secho(f'dropping {name}', fg='cyan', bold=True)
         manager.drop_all()
 
 
@@ -110,7 +111,7 @@ def clear(skip):
     for name in sorted(MODULES):
         if name in skip:
             continue
-        click.secho('clearing cache for {}'.format(name), fg='cyan', bold=True)
+        click.secho(f'clearing cache for {name}', fg='cyan', bold=True)
         clear_cache(name)
 
 
@@ -123,14 +124,12 @@ def summarize(connection, skip):
         click.secho(name, fg='cyan', bold=True)
         if not manager.is_populated():
             click.echo('👎 unpopulated')
-        elif not hasattr(manager, 'summarize'):
-            click.echo('👎 summarize function not implemented')
-        else:
-            for field_name, count in sorted(manager.summarize().items()):
-                click.echo(
-                    click.style('=> ', fg='white', bold=True) +
-                    '{}: {}'.format(field_name.replace('_', ' ').capitalize(), count)
-                )
+            continue
+        for field_name, count in sorted(manager.summarize().items()):
+            click.echo(
+                click.style('=> ', fg='white', bold=True) +
+                '{}: {}'.format(field_name.replace('_', ' ').capitalize(), count)
+            )
 
 
 @main.group()
@@ -195,7 +194,7 @@ def write(connection, skip, directory, force):
         if not isinstance(manager, BELManagerMixin):
             continue
         click.secho(name, fg='cyan', bold=True)
-        path = os.path.join(directory, '{}.bel.gpickle'.format(name))
+        path = os.path.join(directory, f'{name}.bel.gpickle')
         if os.path.exists(path) and not force:
             click.echo('👍 already exported')
             continue
@@ -224,7 +223,7 @@ def actions(connection):
     """List all actions."""
     session = _make_session(connection=connection)
     for action in Action.ls(session=session):
-        click.echo('{} {} {}'.format(action.created, action.action, action.resource))
+        click.echo(f'{action.created} {action.action} {action.resource}')
 
 
 if __name__ == '__main__':
