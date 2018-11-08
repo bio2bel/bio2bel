@@ -8,7 +8,7 @@ import sys
 
 import click
 
-from .constants import get_global_connection
+from .constants import config
 from .manager import AbstractManager
 from .models import Action, _make_session
 from .utils import clear_cache, get_modules, get_version
@@ -25,7 +25,7 @@ MANAGERS = {
 connection_option = click.option(
     '-c',
     '--connection',
-    default=get_global_connection(),
+    default=config.connection,
     show_default=True,
     help='Database connection string.',
 )

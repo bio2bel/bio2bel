@@ -54,11 +54,11 @@ def get_connection(module_name: str, connection: Optional[str] = None) -> str:
     :param connection: get the SQLAlchemy connection string
     :return: The SQLAlchemy connection string based on the configuration
     """
-    module_name = module_name.lower()
-
     # 1. Use given connection
     if connection is not None:
         return connection
+
+    module_name = module_name.lower()
 
     # 2. Check the environment for the module
     bio2bel_module_env_value = _get_environment_connection(module_name)
