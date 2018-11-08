@@ -327,12 +327,11 @@ def add_cli_drop(main: click.Group) -> click.Group:  # noqa: D202
     """Add a ``drop`` command to main :mod:`click` function."""
 
     @main.command()
-    @click.option('-y', '--yes', is_flag=True)
+    @click.confirmation_option(prompt='Are you sure you want to drop the db?')
     @click.pass_obj
-    def drop(manager, yes):
+    def drop(manager):
         """Drop the database."""
-        if yes or click.confirm('Drop everything?'):
-            manager.drop_all()
+        manager.drop_all()
 
     return main
 
