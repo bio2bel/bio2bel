@@ -3,6 +3,7 @@
 """Testing constants and utilities for Bio2BEL."""
 
 import logging
+from typing import List, Mapping, Optional
 
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
@@ -25,19 +26,18 @@ class Model(TestBase):
 
     id = Column(Integer, primary_key=True)
 
-    model_id = Column(String(15), nullable=False, index=True, unique=True)
+    test_id = Column(String(15), nullable=False, index=True, unique=True)
     name = Column(String(255), nullable=False, index=True)
 
     @staticmethod
-    def from_id(model_id):
+    def from_id(test_id: int):
         """Create a test Model from a given integer identifier.
 
-        :param int model_id:
         :rtype: Model
         """
         return Model(
-            model_id=TEST_MODEL_ID_FORMAT.format(model_id),
-            name=TEST_MODEL_NAME_FORMAT.format(model_id),
+            test_id=TEST_MODEL_ID_FORMAT.format(test_id),
+            name=TEST_MODEL_NAME_FORMAT.format(test_id),
         )
 
 
@@ -57,36 +57,23 @@ class Manager(AbstractManager):
     def _base(self):
         return TestBase
 
-    def get_model_by_model_id(self, model_id):
-        """Get a model if it exists by its identifier.
+    def get_model_by_model_id(self, test_id: str) -> Optional[Model]:
+        """Get a model if it exists by its identifier."""
+        return self.session.query(Model).filter(Model.test_id == test_id).one_or_none()
 
-        :param str model_id: A Model identifier
-        :rtype: Optional[Model]
-        """
-        return self.session.query(Model).filter(Model.model_id == model_id).one_or_none()
-
-    def count_model(self):
-        """Count the test model.
-
-        :rtype: int
-        """
+    def count_model(self) -> int:
+        """Count the test model."""
         return self._count_model(Model)
 
-    def list_model(self):
-        """Get all models.
-
-        :rtype: list[Model]
-        """
+    def list_model(self) -> List[Model]:
+        """Get all models."""
         return self._list_model(Model)
 
-    def is_populated(self):
-        """Check if the database is already populated.
-
-        :rtype: bool
-        """
+    def is_populated(self) -> bool:
+        """Check if the database is already populated."""
         return 0 < self.count_model()
 
-    def populate(self, *args, **kwargs):
+    def populate(self, *args, **kwargs) -> None:
         """Add five models to the store."""
         models = [
             Model.from_id(model_id)
@@ -103,11 +90,8 @@ class Manager(AbstractManager):
             self.last_populate_kwargs = kwargs
             log.critical('kwargs: %s', kwargs)
 
-    def summarize(self):
-        """Summarize the database.
-
-        :rtype: dict[str,int]
-        """
+    def summarize(self) -> Mapping[str, int]:
+        """Summarize the database."""
         return dict(
             models=self.count_model(),
         )

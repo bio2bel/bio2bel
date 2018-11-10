@@ -23,11 +23,12 @@ class NamespaceManager(Manager, BELNamespaceManagerMixin):
 
     # automate by defining identifier column?
 
-    def _create_namespace_entry_from_model(self, model, namespace=None):
-        return NamespaceEntry(name=model.name, identifier=model.model_id, namespace=namespace)
-
-    def _get_identifier(self, model):
-        return model.model_id
+    def _create_namespace_entry_from_model(self, model: Model, namespace=None):
+        return NamespaceEntry(
+            name=model.name,
+            identifier=model.test_id,
+            namespace=namespace,
+        )
 
 
 class TestFailure(TemporaryConnectionMethodMixin):
@@ -39,13 +40,13 @@ class TestFailure(TemporaryConnectionMethodMixin):
         class _TestManager(Manager, BELNamespaceManagerMixin):
             """A manager that has functions implemented, but no class variables."""
 
-            def _create_namespace_entry_from_model(self, model, namespace=None):
+            def _create_namespace_entry_from_model(self, model: Model, namespace=None):
                 """Create a namespace entry."""
-                return NamespaceEntry(name=model.name, identifier=model.model_id, namespace=namespace)
-
-            def _get_identifier(self, model):
-                """Get the identifier from a model."""
-                return model.model_id
+                return NamespaceEntry(
+                    name=model.name,
+                    identifier=model.test_id,
+                    namespace=namespace,
+                )
 
         with self.assertRaises(Bio2BELMissingNamespaceModelError):
             _TestManager(connection=self.connection)
