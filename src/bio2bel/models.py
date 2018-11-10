@@ -25,7 +25,7 @@ from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 
-from bio2bel.constants import config
+from .constants import get_global_connection
 
 log = logging.getLogger(__name__)
 
@@ -143,7 +143,10 @@ def _store_helper(model: Action, session: Optional[Session] = None) -> None:
 
 def _make_session(connection: Optional[str] = None) -> Session:
     """Make a session."""
-    engine = create_engine(connection or config.connection)
+    if connection is None:
+        connection = get_global_connection()
+
+    engine = create_engine(connection)
 
     create_all(engine)
 

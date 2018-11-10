@@ -33,7 +33,7 @@ class TestCli(MockConnectionMixin):
             '--connection',
             self.connection,
             'drop',
-            '-y'
+            '--yes'
         ]
         self.runner.invoke(self.main, args)
 

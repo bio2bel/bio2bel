@@ -12,14 +12,18 @@ log = logging.getLogger(__name__)
 VERSION = '0.2.0-dev'
 
 DEFAULT_CONFIG_DIRECTORY = os.path.abspath(os.path.join(os.path.expanduser('~'), '.config', 'bio2bel'))
-DEFAULT_CONFIG_PATH = os.path.join(DEFAULT_CONFIG_DIRECTORY, 'bio2bel.cfg')
+DEFAULT_CONFIG_PATHS = [
+    'bio2bel.cfg',
+    os.path.join(DEFAULT_CONFIG_DIRECTORY, 'config.ini'),
+    os.path.join(DEFAULT_CONFIG_DIRECTORY, 'bio2bel.cfg'),
+]
 
 
 class Config(EasyConfig):
     """Configuration for Bio2BEL."""
 
     NAME = 'bio2bel'
-    FILES = ['bio2bel.cfg', DEFAULT_CONFIG_PATH]
+    FILES = DEFAULT_CONFIG_PATHS
 
     #: The directory in which Bio2BEL data is stored
     directory: str = os.path.join(os.path.expanduser('~'), '.bio2bel')
@@ -36,3 +40,8 @@ os.makedirs(config.directory, exist_ok=True)
 
 BIO2BEL_DIR = config.directory
 DEFAULT_CACHE_CONNECTION = config.connection
+
+
+def get_global_connection() -> str:
+    """Return the global connection string."""
+    return config.connection
