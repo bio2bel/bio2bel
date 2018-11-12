@@ -34,10 +34,15 @@ class Config(EasyConfig):
     #: The SQLAlchemy connection string to the database
     connection: str = f'sqlite:///{os.path.join(directory, default_cache_name)}'
 
+    @classmethod
+    def load(cls, *args, **kwargs):
+        """Load the Bio2BEL configuration and ensure the directory."""
+        rv = super().load(*args, **kwargs)
+        os.makedirs(rv.directory, exist_ok=True)
+        return rv
+
 
 config = Config.load(_lookup_config_envvar='config')
-os.makedirs(config.directory, exist_ok=True)
-
 BIO2BEL_DIR = config.directory
 DEFAULT_CACHE_CONNECTION = config.connection
 
