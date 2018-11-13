@@ -166,8 +166,8 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
     :target: https://travis-ci.org/bio2bel/ctd
     :alt: CTD Build Status
 
-.. |ctd_docs| image:: https://readthedocs.org/projects/ctd/badge/?version=latest
-    :target: http://ctd.readthedocs.io
+.. |ctd_docs| image:: https://readthedocs.org/projects/bio2bel-ctd/badge/?version=latest
+    :target: https://bio2bel.readthedocs.io/projects/ctd/en/latest/?badge=latest
     :alt: CTD Documentation Status
 
 
