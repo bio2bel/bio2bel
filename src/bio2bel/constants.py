@@ -4,50 +4,49 @@
 
 import logging
 import os
-from configparser import ConfigParser
+
+from easy_config import EasyConfig
 
 log = logging.getLogger(__name__)
 
-VERSION = '0.1.6-dev'
+VERSION = '0.2.0-dev'
 
-BIO2BEL_DIR = os.environ.get('BIO2BEL_DIRECTORY', os.path.join(os.path.expanduser('~'), '.pybel', 'bio2bel'))
-os.makedirs(BIO2BEL_DIR, exist_ok=True)
+DEFAULT_CONFIG_DIRECTORY = os.path.abspath(os.path.join(os.path.expanduser('~'), '.config', 'bio2bel'))
+DEFAULT_CONFIG_PATHS = [
+    'bio2bel.cfg',
+    os.path.join(DEFAULT_CONFIG_DIRECTORY, 'config.ini'),
+    os.path.join(DEFAULT_CONFIG_DIRECTORY, 'bio2bel.cfg'),
+]
 
-DEFAULT_CONFIG_PATH = os.path.join(BIO2BEL_DIR, 'config.ini')
 
-UNCONFIGURED_CACHE_NAME = 'bio2bel.db'
-UNCONFIGURED_CACHE_PATH = os.path.join(BIO2BEL_DIR, UNCONFIGURED_CACHE_NAME)
-UNCONFIGURED_CACHE_CONNECTION = 'sqlite:///' + UNCONFIGURED_CACHE_PATH
+class Config(EasyConfig):
+    """Configuration for Bio2BEL."""
+
+    NAME = 'bio2bel'
+    FILES = DEFAULT_CONFIG_PATHS
+
+    #: The directory in which Bio2BEL data is stored
+    directory: str = os.path.join(os.path.expanduser('~'), '.bio2bel')
+
+    #: The default name of the Bio2BEL database with SQLite
+    default_cache_name: str = 'bio2bel.db'
+
+    #: The SQLAlchemy connection string to the database
+    connection: str = f'sqlite:///{os.path.join(directory, default_cache_name)}'
+
+    @classmethod
+    def load(cls, *args, **kwargs):
+        """Load the Bio2BEL configuration and ensure the directory."""
+        rv = super().load(*args, **kwargs)
+        os.makedirs(rv.directory, exist_ok=True)
+        return rv
+
+
+config = Config.load(_lookup_config_envvar='config')
+BIO2BEL_DIR = config.directory
+DEFAULT_CACHE_CONNECTION = config.connection
 
 
 def get_global_connection() -> str:
     """Return the global connection string."""
-    # 6. Check if there is a global connection
-    global_environ_connection = os.environ.get('BIO2BEL_CONNECTION')
-    if global_environ_connection is not None:
-        log.info('loading global bio2bel connection from environ: %s', global_environ_connection)
-        return global_environ_connection
-
-    # 7. Use the global configuration file's global default cache connection string
-    if not os.path.exists(DEFAULT_CONFIG_PATH):
-        log.info('creating config file: %s', DEFAULT_CONFIG_PATH)
-        config_writer = ConfigParser()
-        with open(DEFAULT_CONFIG_PATH, 'w') as file:
-            config_writer.set(config_writer.default_section, 'connection', UNCONFIGURED_CACHE_CONNECTION)
-            config_writer.write(file)
-
-    log.info('fetching global bio2bel config from %s', DEFAULT_CONFIG_PATH)
-    config = ConfigParser()
-    config.read(DEFAULT_CONFIG_PATH)
-
-    if not config.has_option(config.default_section, 'connection'):
-        log.info('creating default connection string %s', UNCONFIGURED_CACHE_CONNECTION)
-        return UNCONFIGURED_CACHE_CONNECTION
-
-    default_connection = config.get(config.default_section, 'connection')
-    log.info('load default connection string from %s', default_connection)
-
-    return default_connection
-
-
-DEFAULT_CACHE_CONNECTION = get_global_connection()
+    return config.connection

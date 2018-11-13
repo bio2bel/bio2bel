@@ -25,7 +25,7 @@ class FlaskTestManager(FlaskMixin, Manager):
 class TruncatedModelView(ModelView):
     """A truncated Flask Admin view."""
 
-    column_exclude_list = ['model_id']
+    column_exclude_list = ['test_id']
 
 
 class FlaskTestViewManager(Manager, FlaskMixin):
@@ -79,11 +79,13 @@ class TestFlask(TemporaryConnectionMethodMixin):
         client = app.test_client()
 
         home_rv = client.get('/')
-        self.assertIn(Model.__name__.encode('utf-8'), home_rv.data)
+        home_data = home_rv.data.decode('utf-8')
+        self.assertIn(Model.__name__, home_data)
 
         rv = client.get('/{}'.format(Model.__name__.lower()), follow_redirects=True)
-        self.assertNotIn(b'MODEL:1', rv.data)
-        self.assertIn(b'1111', rv.data)
+        rv_data = rv.data.decode('utf-8')
+        self.assertNotIn('MODEL:1', rv_data)
+        self.assertIn('1111', rv_data)
 
     def test_app_view_failure(self):
         """Test the ability to define tuple views."""

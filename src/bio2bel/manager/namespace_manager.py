@@ -6,9 +6,12 @@ import logging
 import sys
 import time
 from abc import ABC, abstractmethod
-from typing import TextIO
+from typing import Iterable, List, Optional, Set, TextIO
 
 import click
+from pybel import BELGraph
+from pybel.manager.models import Base, Namespace, NamespaceEntry
+from pybel.resources import write_namespace
 from tqdm import tqdm
 
 from .cli_manager import CliMixin
@@ -142,6 +145,9 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
     namespace_model = ...
 
+    #: Can be set to False for namespaces that don't have labels
+    has_names: bool = True
+
     identifiers_recommended = None
     identifiers_pattern = None
     identifiers_miriam = None
@@ -154,71 +160,69 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         super().__init__(*args, **kwargs)
 
-        from pybel.manager.models import Base
-
         # Ensure that the PyBEL database is ready to go
         Base.metadata.create_all(self.engine, checkfirst=True)
 
     @abstractmethod
-    def _create_namespace_entry_from_model(self, model, namespace):
+    def _create_namespace_entry_from_model(self, model, namespace: Namespace) -> NamespaceEntry:
         """Create a PyBEL NamespaceEntry model from a Bio2BEL model.
 
         :param model: The model to convert
-        :type namespace: pybel.manager.models.Namespace
-        :rtype: Optional[pybel.manager.models.NamespaceEntry]
+        :param namespace: The PyBEL namespace to add to
         """
 
-    @staticmethod
-    @abstractmethod
-    def _get_identifier(model):
-        """Extract the identifier from an instance of namespace_model..
+    @classmethod
+    def _get_identifier(cls, model) -> str:
+        """Extract the identifier from an instance of namespace_model.
 
         :param model: The model to convert
-        :rtype: str
         """
+        return getattr(model, f'{cls.module_name}_id')
 
-    def _iterate_namespace_models(self):
+    @staticmethod
+    def _get_encoding(model) -> str:
+        """Extract the BEL encoding from an instance of a namespace_model.
+
+        :param model: The model to convert
+        """
+        return model.bel_encoding
+
+    @staticmethod
+    def _get_name(model) -> str:
+        """Extract the name from an instance of namespace_model.
+
+        :param model: The model to convert
+        """
+        return model.name
+
+    def _iterate_namespace_models(self, desc: Optional[str] = None) -> Iterable:
         """Return an iterator over the models to be converted to the namespace."""
         return tqdm(
             self._get_query(self.namespace_model),
             total=self._count_model(self.namespace_model),
-            desc='Mapping {} to BEL namespace'.format(self._get_namespace_name())
+            desc=desc,
         )
 
     @classmethod
-    def _get_namespace_name(cls):
-        """Get the nicely formatted name of this namespace.
-
-        :rtype: str
-        """
+    def _get_namespace_name(cls) -> str:
+        """Get the nicely formatted name of this namespace."""
         return cls.identifiers_recommended or cls.module_name
 
     @classmethod
-    def _get_namespace_keyword(cls):
-        """Get the keyword to use as the reference BEL namespace.
-
-        :rtype: str
-        """
+    def _get_namespace_keyword(cls) -> str:
+        """Get the keyword to use as the reference BEL namespace."""
         return cls.identifiers_namespace or cls.module_name.upper()
 
     @classmethod
-    def _get_namespace_url(cls):
-        """Get the URL to use as the reference BEL namespace.
-
-        :rtype: str
-        """
+    def _get_namespace_url(cls) -> str:
+        """Get the URL to use as the reference BEL namespace."""
         return cls.identifiers_url or '_{}'.format(cls.module_name.upper())
 
-    def _get_default_namespace(self):
-        """Get the reference BEL namespace if it exists.
-
-        :rtype: Optional[pybel.manager.models.Namespace]
-        """
-        from pybel.manager.models import Namespace
-
+    def _get_default_namespace(self) -> Optional[Namespace]:
+        """Get the reference BEL namespace if it exists."""
         return self._get_query(Namespace).filter(Namespace.url == self._get_namespace_url()).one_or_none()
 
-    def _get_namespace_entries(self, namespace):
+    def _get_namespace_entries(self, namespace) -> List:
         return [
             namespace_entry
             for namespace_entry in (
@@ -228,13 +232,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             if namespace_entry is not None
         ]
 
-    def _make_namespace(self):
-        """Make a namespace.
-
-        :rtype: pybel.manager.models.Namespace
-        """
-        from pybel.manager.models import Namespace
-
+    def _make_namespace(self) -> Namespace:
+        """Make a namespace."""
         namespace = Namespace(
             name=self._get_namespace_name(),
             keyword=self._get_namespace_keyword(),
@@ -254,24 +253,19 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         return namespace
 
     @staticmethod
-    def _get_old_entry_identifiers(namespace):
+    def _get_old_entry_identifiers(namespace: Namespace) -> Set[NamespaceEntry]:
         """Convert a PyBEL generalized namespace entries to a set.
 
         Default to using the identifier, but can be overridden to use the name instead.
-
-        :param pybel.manager.models.Namespace namespace:
-        :rtype: set[pybel.manager.model.NamespaceEntry]
 
         >>> {term.identifier for term in namespace.entries}
         """
         return {term.identifier for term in namespace.entries}
 
-    def _update_namespace(self, namespace):
+    def _update_namespace(self, namespace: Namespace) -> None:
         """Update an already-created namespace.
 
         Note: Only call this if namespace won't be none!
-
-        :type namespace: pybel.manager.models.Namespace
         """
         old_entry_identifiers = self._get_old_entry_identifiers(namespace)
         new_count = 0
@@ -294,12 +288,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         self.session.commit()
         log.info('committed models in %.2f seconds', time.time() - t)
 
-    def add_namespace_to_graph(self, graph):
-        """Add this manager's namespace to the graph.
-
-        :type graph: pybel.BELGraph
-        :rtype: pybel.manager.models.Namespace
-        """
+    def add_namespace_to_graph(self, graph: BELGraph) -> Namespace:
+        """Add this manager's namespace to the graph."""
         namespace = self.upload_bel_namespace()
         graph.namespace_url[namespace.keyword] = namespace.url
 
@@ -308,21 +298,17 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         return namespace
 
-    def _add_annotation_to_graph(self, graph):
-        """Add this manager as an annotation to the graph.
-
-        :type graph: pybel.BELGraph
-        """
+    def _add_annotation_to_graph(self, graph: BELGraph) -> None:
+        """Add this manager as an annotation to the graph."""
         if 'bio2bel' not in graph.annotation_list:
             graph.annotation_list['bio2bel'] = set()
 
         graph.annotation_list['bio2bel'].add(self.module_name)
 
-    def upload_bel_namespace(self, update=False):
+    def upload_bel_namespace(self, update: bool = False) -> Namespace:
         """Upload the namespace to the PyBEL database.
 
-        :param bool update: Should the namespace be updated first?
-        :rtype: pybel.manager.models.Namespace
+        :param update: Should the namespace be updated first?
         """
         if not self.is_populated():
             self.populate()
@@ -338,11 +324,8 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
         return namespace
 
-    def drop_bel_namespace(self):
-        """Remove the default namespace if it exists.
-
-        :rtype: Optional[pybel.manager.models.Namespace]
-        """
+    def drop_bel_namespace(self) -> Optional[Namespace]:
+        """Remove the default namespace if it exists."""
         namespace = self._get_default_namespace()
 
         if namespace is not None:
@@ -356,14 +339,19 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
     def write_bel_namespace(self, file: TextIO, use_names: bool = False) -> None:
         """Write as a BEL namespace file."""
-        from pybel.resources import write_namespace
-
-        namespace = self.upload_bel_namespace()
+        if not self.is_populated():
+            self.populate()
 
         if use_names:
-            values = {term.name: term.encoding for term in namespace.entries}
+            values = {
+                self._get_name(model): self._get_encoding(model)
+                for model in self._iterate_namespace_models(desc='writing names')
+            }
         else:
-            values = {term.identifier: term.encoding for term in namespace.entries}
+            values = {
+                self._get_identifier(model): self._get_encoding(model)
+                for model in self._iterate_namespace_models(desc='writing identifiers')
+            }
 
         write_namespace(
             namespace_name=self._get_namespace_name(),

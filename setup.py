@@ -19,15 +19,17 @@ CLASSIFIERS = [
     'License :: OSI Approved :: Apache Software License',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3 :: Only',
     'Programming Language :: Python :: 3.6',
-    'Topic :: Scientific/Engineering :: Bio-Informatics'
+    'Programming Language :: Python :: 3.7',
+    'Topic :: Scientific/Engineering :: Bio-Informatics',
 ]
 INSTALL_REQUIRES = [
     'sqlalchemy',
     'click',
     'pandas',
     'tqdm',
+    'easy_config',
 ]
 EXTRAS_REQUIRE = {
     'web': [
@@ -43,13 +45,12 @@ EXTRAS_REQUIRE = {
         'flask-admin',
         'sphinx',
         'sphinx-rtd-theme',
+        'sphinx-click',
         'sphinx-autodoc-typehints',
     ]
 }
 TESTS_REQUIRE = [
-    'pybel',
-    'flask',
-    'flask-admin',
+    'tox',
 ]
 ENTRY_POINTS = {
     'console_scripts': [

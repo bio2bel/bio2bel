@@ -97,8 +97,8 @@ class AbstractTemporaryCacheMethodMixin(TemporaryConnectionMethodMixin):
     is a subclass of :class:`bio2bel.AbstractManager`.
     """
 
-    Manager = ...
-    manager = None
+    Manager: Type[AbstractManager] = ...
+    manager: Manager
 
     def setUp(self):
         """Set up the class with the given manager and allows an optional populate hook to be overridden."""
@@ -133,8 +133,8 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
     is a subclass of :class:`bio2bel.AbstractManager`.
     """
 
-    Manager = ...
-    manager = None
+    Manager: Type[AbstractManager] = ...
+    manager: Manager
 
     @classmethod
     def setUpClass(cls):

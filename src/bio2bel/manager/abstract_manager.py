@@ -14,7 +14,7 @@ from sqlalchemy.ext.declarative.api import DeclarativeMeta
 
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
-from ..utils import get_data_dir
+from ..utils import clear_cache, get_data_dir
 
 __all__ = [
     'AbstractManager',
@@ -327,12 +327,11 @@ def add_cli_drop(main: click.Group) -> click.Group:  # noqa: D202
     """Add a ``drop`` command to main :mod:`click` function."""
 
     @main.command()
-    @click.option('-y', '--yes', is_flag=True)
+    @click.confirmation_option(prompt='Are you sure you want to drop the db?')
     @click.pass_obj
-    def drop(manager, yes):
+    def drop(manager):
         """Drop the database."""
-        if yes or click.confirm('Drop everything?'):
-            manager.drop_all()
+        manager.drop_all()
 
     return main
 
@@ -364,14 +363,7 @@ def add_cli_cache(main: click.Group) -> click.Group:  # noqa: D202
     @click.pass_obj
     def clear(manager):
         """Clear all files from the cache."""
-        data_dir = get_data_dir(manager.module_name)
-
-        for name in os.listdir(data_dir):
-            if name in {'config.ini', 'cache.db'}:
-                continue
-            path = os.path.join(data_dir, name)
-            click.echo('removing {path}'.format(path=path))
-            os.remove(path)
+        clear_cache(manager.module_name)
 
     return main
 
