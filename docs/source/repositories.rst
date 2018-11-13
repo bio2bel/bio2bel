@@ -19,7 +19,9 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | ExPASy                 | |expasy_pypi|       | |expasy_docs|       | |expasy_build|       | |expasy_zenodo|       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| FlyBase                | |flybase_pypi|      |                     | |flybase_build|      |                       |
+| FamPlex                | |famplex_pypi|      | |famplex_docs|      |                      |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| FlyBase                | |flybase_pypi|      | |flybase_docs|      | |flybase_build|      |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | GO                     | |go_pypi|           | |go_docs|           | |go_build|           |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
@@ -70,6 +72,9 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 .. |flybase_build| image:: https://travis-ci.org/bio2bel/flybase.svg?branch=master
     :target: https://travis-ci.org/bio2bel/flybase
     :alt: FlyBase Build Status
+.. |flybase_docs| image:: https://readthedocs.org/projects/bio2bel-flybase/badge/?version=latest
+    :target: https://bio2bel.readthedocs.io/projects/flybase/en/latest/?badge=latest
+    :alt: Flybase Documentation Status
 
 .. |hippie_pypi| image:: https://img.shields.io/pypi/v/bio2bel_hippie.svg
     :alt: Current HIPPIE version on PyPI
@@ -365,11 +370,9 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 .. |entrez_build| image:: https://travis-ci.org/bio2bel/entrez.svg?branch=master
     :target: https://travis-ci.org/bio2bel/entrez
     :alt: Build Status
-
 .. |entrez_docs| image:: http://readthedocs.org/projects/bio2bel-entrez/badge/?version=latest
     :target: http://bio2bel.readthedocs.io/projects/entrez/en/latest/?badge=latest
     :alt: Documentation Status
-
 .. |entrez_pypi| image:: https://img.shields.io/pypi/v/bio2bel_entrez.svg
     :alt: Current version on PyPI
 
@@ -377,10 +380,14 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 .. |go_build| image:: https://travis-ci.org/bio2bel/go.svg?branch=master
     :target: https://travis-ci.org/bio2bel/go
     :alt: Build Status
-
 .. |go_docs| image:: http://readthedocs.org/projects/bio2bel-go/badge/?version=latest
     :target: http://bio2bel.readthedocs.io/projects/go/en/latest/?badge=latest
     :alt: Documentation Status
-
 .. |go_pypi| image:: https://img.shields.io/pypi/v/bio2bel_go.svg
     :alt: Current version on PyPI
+
+.. |famplex_pypi| image:: https://img.shields.io/pypi/v/bio2bel_famplex.svg
+    :alt: Current version on PyPI
+.. |famplex_docs| image:: https://readthedocs.org/projects/bio2bel-famplex/badge/?version=latest
+    :target: https://bio2bel-famplex.readthedocs.io/en/latest/?badge=latest
+    :alt: FamPlex Documentation Status
