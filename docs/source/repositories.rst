@@ -35,7 +35,7 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | MeSH                   | |mesh_pypi|         | |mesh_docs|         | |mesh_build|         |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| MGI                    | |mgi_pypi|          |                     | |mgi_build|          |                       |
+| MGI                    | |mgi_pypi|          | |mgi_docs|          | |mgi_build|          |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | miRBase                | |mirbase_pypi|      | |mirbase_docs|      | |mirbase_build|      | |mirbase_zenodo|      |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
@@ -73,8 +73,8 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 
 .. |hippie_pypi| image:: https://img.shields.io/pypi/v/bio2bel_hippie.svg
     :alt: Current HIPPIE version on PyPI
-.. |hippie_docs| image:: https://readthedocs.org/projects/hippie/badge/?version=latest
-    :target: http://hippie.readthedocs.io
+.. |hippie_docs| image:: https://readthedocs.org/projects/bio2bel-hippie/badge/?version=latest
+    :target: https://bio2bel.readthedocs.io/projects/hippie/en/latest/?badge=latest
     :alt: HIPPIE Documentation Status
 .. |hippie_build| image:: https://travis-ci.com/bio2bel/hippie.svg?branch=master
     :target: https://travis-ci.com/bio2bel/hippie
@@ -88,11 +88,14 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 .. |mgi_build| image:: https://travis-ci.org/bio2bel/mgi.svg?branch=master
     :target: https://travis-ci.org/bio2bel/mgi
     :alt: MGI Build Status
+.. |mgi_docs| image:: https://readthedocs.org/projects/bio2bel-mgi/badge/?version=latest
+    :target: https://bio2bel.readthedocs.io/projects/mgi/en/latest/?badge=latest
+    :alt: MGI Documentation Status
 
 .. |mirbase_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mirbase.svg
     :alt: Current miRBase version on PyPI
-.. |mirbase_docs| image:: https://readthedocs.org/projects/mirbase/badge/?version=latest
-    :target: http://mirbase.readthedocs.io
+.. |mirbase_docs| image:: https://readthedocs.org/projects/bio2bel-mirbase/badge/?version=latest
+    :target: https://bio2bel.readthedocs.io/projects/mirbase/en/latest/?badge=latest
     :alt: miRBase Documentation Status
 .. |mirbase_build| image:: https://travis-ci.com/bio2bel/mirbase.svg?branch=master
     :target: https://travis-ci.com/bio2bel/mirbase
@@ -171,8 +174,8 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
     :target: https://travis-ci.org/bio2bel/phosphosite
     :alt: PhosphoSitePlus Build Status
 
-.. |phosphosite_docs| image:: https://readthedocs.org/projects/phosphosite/badge/?version=latest
-    :target: http://phosphosite.readthedocs.io
+.. |phosphosite_docs| image:: https://readthedocs.org/projects/bio2bel-phosphositeplus/badge/?version=latest
+    :target: https://bio2bel.readthedocs.io/projects/phosphosite/en/latest/?badge=latest
     :alt: PhosphoSitePlus Documentation Status
 
 
@@ -180,8 +183,8 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 .. |sider_pypi| image:: https://img.shields.io/pypi/v/bio2bel_sider.svg
     :alt: Current SIDER version on PyPI
 
-.. |sider_build| image:: https://travis-ci.org/bio2bel/sider.svg?branch=master
-    :target: https://travis-ci.org/bio2bel/sider
+.. |sider_build| image:: https://travis-ci.com/bio2bel/sider.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/sider
     :alt: SIDER Build Status
 
 .. |sider_docs| image:: http://readthedocs.org/projects/bio2bel-sider/badge/?version=latest
@@ -257,8 +260,8 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
     :alt: MSigDB Zenodo DOI
 
 
-.. |mesh_build| image:: https://travis-ci.org/bio2bel/mesh.svg?branch=master
-    :target: https://travis-ci.org/bio2bel/mesh
+.. |mesh_build| image:: https://travis-ci.com/bio2bel/mesh.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/mesh
     :alt: Build Status
 
 .. |mesh_docs| image:: https://readthedocs.org/projects/mesh/badge/?version=latest
@@ -287,8 +290,8 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 
 
 
-.. |uniprot_build| image:: https://travis-ci.org/bio2bel/uniprot.svg?branch=master
-    :target: https://travis-ci.org/bio2bel/uniprot
+.. |uniprot_build| image:: https://travis-ci.com/bio2bel/uniprot.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/uniprot
     :alt: Build Status
 
 .. |uniprot_docs| image:: http://readthedocs.org/projects/bio2bel-uniprot/badge/?version=latest
