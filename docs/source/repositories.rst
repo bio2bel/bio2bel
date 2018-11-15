@@ -13,7 +13,7 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | DrugBank               | |drugbank_pypi|     | |drugbank_docs|     | |drugbank_build|     | |drugbank_zenodo|     |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| Entrez                 | |entrez_pypi|       | |entrez_docs|       | |entrez_build|       |                       |
+| Entrez                 | |entrez_pypi|       | |entrez_docs|       | |entrez_build|       | |entrez_zenodo|       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | ExCAPE-DB              | |excape_pypi|       | |excape_docs|       | |excape_build|       |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
@@ -35,7 +35,7 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | KEGG                   | |kegg_pypi|         | |kegg_docs|         | |kegg_build|         | |kegg_zenodo|         |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| MeSH                   | |mesh_pypi|         | |mesh_docs|         | |mesh_build|         |                       |
+| MeSH                   | |mesh_pypi|         | |mesh_docs|         | |mesh_build|         | |mesh_zenodo|         |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | MGI                    | |mgi_pypi|          | |mgi_docs|          | |mgi_build|          |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
@@ -51,9 +51,11 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | Reactome               | |reactome_pypi|     | |reactome_docs|     | |reactome_build|     | |reactome_zenodo|     |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
+| RGD                    | |rgd_pypi|          | |rgd_docs|          | |rgd_build|          |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
 | SIDER                  | |sider_pypi|        | |sider_docs|        | |sider_build|        |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| UniProt                | |uniprot_pypi|      | |uniprot_docs|      | |uniprot_build|      |                       |
+| UniProt                | |uniprot_pypi|      | |uniprot_docs|      | |uniprot_build|      | |uniprot_zenodo|      |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | WikiPathways           | |wikipathways_pypi| | |wikipathways_docs| | |wikipathways_build| | |wikipathways_zenodo| |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
@@ -86,7 +88,7 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
     :alt: HIPPIE Build Status
 .. |hippie_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1435930.svg
     :target: https://doi.org/10.5281/zenodo.1435930
-    :alt: HIPPIE Zenodo DOI
+    :alt: Bio2BEL HIPPIE Zenodo DOI
 
 .. |mgi_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mgi.svg
     :alt: Current MGI version on PyPI
@@ -96,6 +98,15 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 .. |mgi_docs| image:: https://readthedocs.org/projects/bio2bel-mgi/badge/?version=latest
     :target: https://bio2bel.readthedocs.io/projects/mgi/en/latest/?badge=latest
     :alt: MGI Documentation Status
+
+.. |rgd_pypi| image:: https://img.shields.io/pypi/v/bio2bel_rgd.svg
+    :alt: Current RGD version on PyPI
+.. |rgd_build| image:: https://travis-ci.com/bio2bel/rgd.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/rgd
+    :alt: RGD Build Status
+.. |rgd_docs| image:: https://readthedocs.org/projects/bio2bel-rgd/badge/?version=latest
+    :target: https://bio2bel.readthedocs.io/projects/rgd/en/latest/?badge=latest
+    :alt: RGD Documentation Status
 
 .. |mirbase_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mirbase.svg
     :alt: Current miRBase version on PyPI
@@ -107,7 +118,7 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
     :alt: miRBase Build Status
 .. |mirbase_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1442206.svg
     :target: https://doi.org/10.5281/zenodo.1442206
-    :alt: miRBase Zenodo DOI
+    :alt: Bio2BEL miRBase Zenodo DOI
 
 
 .. |mirtarbase_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mirtarbase.svg
@@ -123,7 +134,7 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 
 .. |mirtarbase_zenodo| image:: https://zenodo.org/badge/95350968.svg
     :target: https://zenodo.org/badge/latestdoi/95350968
-    :alt: Zenodo DOI
+    :alt: Bio2BEL miRTarBase Zenodo DOI
 
 
 .. |expasy_pypi| image:: https://img.shields.io/pypi/v/bio2bel_expasy.svg
@@ -139,7 +150,7 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 
 .. |expasy_zenodo| image:: https://zenodo.org/badge/100023822.svg
     :target: https://zenodo.org/badge/latestdoi/100023822
-    :alt: ExPASy Zenodo DOI
+    :alt: Bio2BEL ExPASy Zenodo DOI
 
 
 
@@ -156,7 +167,7 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 
 .. |interpro_zenodo| image:: https://zenodo.org/badge/98345182.svg
     :target: https://zenodo.org/badge/latestdoi/98345182
-    :alt: Zenodo DOI
+    :alt: Bio2BEL InterPro Zenodo DOI
 
 
 .. |ctd_pypi| image:: https://img.shields.io/pypi/v/bio2bel_ctd.svg
@@ -262,7 +273,7 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 
 .. |msig_zenodo| image:: https://zenodo.org/badge/123948554.svg
     :target: https://zenodo.org/badge/latestdoi/123948554
-    :alt: MSigDB Zenodo DOI
+    :alt: Bio2BEL MSigDB Zenodo DOI
 
 
 .. |mesh_build| image:: https://travis-ci.com/bio2bel/mesh.svg?branch=master
@@ -275,6 +286,10 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 
 .. |mesh_pypi| image:: https://img.shields.io/pypi/v/bio2bel_mesh.svg
     :alt: Current version on PyPI
+
+.. |mesh_zenodo| image:: https://zenodo.org/badge/107369801.svg
+    :target: https://zenodo.org/badge/latestdoi/107369801
+    :alt: Bio2BEL MeSH Zenodo DOI
 
 
 
@@ -291,7 +306,7 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 
 .. |chebi_zenodo| image:: https://zenodo.org/badge/97003706.svg
     :target: https://zenodo.org/badge/latestdoi/97003706
-    :alt: Zenodo DOI
+    :alt: Bio2BEL ChEBI Zenodo DOI
 
 
 
@@ -306,7 +321,9 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 .. |uniprot_pypi| image:: https://img.shields.io/pypi/v/bio2bel_uniprot.svg
     :alt: Current version on PyPI
 
-
+.. |uniprot_zenodo| image:: https://zenodo.org/badge/99588558.svg
+   :target: https://zenodo.org/badge/latestdoi/99588558
+   :alt: Bio2BEL UniProt Zenodo DOI
 
 .. |drugbank_build| image:: https://travis-ci.org/bio2bel/drugbank.svg?branch=master
     :target: https://travis-ci.org/bio2bel/drugbank
@@ -364,25 +381,34 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 
 .. |hgnc_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1162644.svg
     :target: https://doi.org/10.5281/zenodo.1162644
-
+    :alt: Bio2BEL HGNC Zenodo DOI
 
 
 .. |entrez_build| image:: https://travis-ci.org/bio2bel/entrez.svg?branch=master
     :target: https://travis-ci.org/bio2bel/entrez
     :alt: Build Status
+
 .. |entrez_docs| image:: http://readthedocs.org/projects/bio2bel-entrez/badge/?version=latest
     :target: http://bio2bel.readthedocs.io/projects/entrez/en/latest/?badge=latest
     :alt: Documentation Status
+
 .. |entrez_pypi| image:: https://img.shields.io/pypi/v/bio2bel_entrez.svg
     :alt: Current version on PyPI
+
+.. |entrez_zenodo| image:: https://zenodo.org/badge/100375120.svg
+   :target: https://zenodo.org/badge/latestdoi/100375120
+   :alt: Bio2BEL Entrez Zenodo DOI
+
 
 
 .. |go_build| image:: https://travis-ci.org/bio2bel/go.svg?branch=master
     :target: https://travis-ci.org/bio2bel/go
     :alt: Build Status
+
 .. |go_docs| image:: http://readthedocs.org/projects/bio2bel-go/badge/?version=latest
     :target: http://bio2bel.readthedocs.io/projects/go/en/latest/?badge=latest
     :alt: Documentation Status
+
 .. |go_pypi| image:: https://img.shields.io/pypi/v/bio2bel_go.svg
     :alt: Current version on PyPI
 
