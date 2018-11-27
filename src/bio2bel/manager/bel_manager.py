@@ -8,13 +8,15 @@ from abc import ABC, abstractmethod
 
 import click
 
+import pybel
+from pybel import to_bel
 from .cli_manager import CliMixin
-
-log = logging.getLogger(__name__)
 
 __all__ = [
     'BELManagerMixin',
 ]
+
+log = logging.getLogger(__name__)
 
 
 class BELManagerMixin(ABC, CliMixin):
@@ -41,10 +43,8 @@ class BELManagerMixin(ABC, CliMixin):
     """
 
     @abstractmethod
-    def to_bel(self, *args, **kwargs):
+    def to_bel(self, *args, **kwargs) -> pybel.BELGraph:
         """Convert the database to BEL.
-
-        :rtype: pybel.BELGraph
 
         Example implementation outline:
 
@@ -108,11 +108,11 @@ def add_cli_to_bel(main: click.Group) -> click.Group:  # noqa: D202
     @main.command()
     @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
     @click.pass_obj
-    def write(manager, output):
+    def write(manager: BELManagerMixin, output):
         """Write as BEL Script."""
-        from pybel import to_bel
         graph = manager.to_bel()
         to_bel(graph, output)
+        click.echo(graph.summary_str())
 
     return main
 
@@ -123,9 +123,9 @@ def add_cli_upload_bel(main: click.Group) -> click.Group:  # noqa: D202
     @main.command()
     @click.option('-c', '--connection')
     @click.pass_obj
-    def upload(manager, connection):
+    def upload(manager: BELManagerMixin, connection):
         """Upload BEL to network store."""
-        import pybel
+
         graph = manager.to_bel()
         pybel_manager = pybel.Manager(connection=connection)
         pybel.to_database(graph, manager=pybel_manager)
