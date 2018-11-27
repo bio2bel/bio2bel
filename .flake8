@@ -27,6 +27,7 @@ ignore =
 # flake8-import-order
 application-import-names =
 	bio2bel
+    pybel
 	tests
 import-order-style = pycharm
 

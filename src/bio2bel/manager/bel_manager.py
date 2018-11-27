@@ -125,7 +125,6 @@ def add_cli_upload_bel(main: click.Group) -> click.Group:  # noqa: D202
     @click.pass_obj
     def upload(manager: BELManagerMixin, connection):
         """Upload BEL to network store."""
-
         graph = manager.to_bel()
         pybel_manager = pybel.Manager(connection=connection)
         pybel.to_database(graph, manager=pybel_manager)

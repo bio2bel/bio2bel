@@ -4,13 +4,13 @@
 
 import logging
 
-import pybel
 from click.testing import CliRunner
-from pybel import BELGraph
-from pybel.manager.models import Namespace, NamespaceEntry
 
+import pybel
 from bio2bel.manager.namespace_manager import BELNamespaceManagerMixin, Bio2BELMissingNamespaceModelError
 from bio2bel.testing import AbstractTemporaryCacheMethodMixin, MockConnectionMixin, TemporaryConnectionMethodMixin
+from pybel import BELGraph
+from pybel.manager.models import Namespace, NamespaceEntry
 from tests.constants import Manager, Model, NUMBER_TEST_MODELS, TEST_MODEL_ID_FORMAT, TEST_MODEL_NAME_FORMAT
 
 log = logging.getLogger(__name__)

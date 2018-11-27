@@ -9,11 +9,11 @@ from abc import ABC, abstractmethod
 from typing import Iterable, List, Optional, Set, TextIO
 
 import click
+from tqdm import tqdm
+
 from pybel import BELGraph
 from pybel.manager.models import Base, Namespace, NamespaceEntry
 from pybel.resources import write_namespace
-from tqdm import tqdm
-
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
 
