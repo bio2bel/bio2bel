@@ -7,6 +7,8 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 | Source                 | Version             | Documentation       | Travis               | DOI                   |
 |                        |                     |                     |                      |                       |
 +========================+=====================+=====================+======================+=======================+
+| ADEPTUS                | |adeptus_pypi|      | |adeptus_docs|      | |adeptus_build|      | |adeptus_zenodo|      |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
 | ChEBI                  | |chebi_pypi|        | |chebi_docs|        | |chebi_build|        | |chebi_zenodo|        |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | CTD                    | |ctd_pypi|          | |ctd_docs|          | |ctd_build|          |                       |
@@ -19,17 +21,19 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | ExPASy                 | |expasy_pypi|       | |expasy_docs|       | |expasy_build|       | |expasy_zenodo|       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| FamPlex                | |famplex_pypi|      | |famplex_docs|      |                      |                       |
+| FamPlex                | |famplex_pypi|      | |famplex_docs|      | |famplex_build|      | |famplex_zenodo|      |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | FlyBase                | |flybase_pypi|      | |flybase_docs|      | |flybase_build|      |                       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
-| GO                     | |go_pypi|           | |go_docs|           | |go_build|           |                       |
+| GO                     | |go_pypi|           | |go_docs|           | |go_build|           | |go_zenodo|           |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | HGNC                   | |hgnc_pypi|         | |hgnc_docs|         | |hgnc_build|         | |hgnc_zenodo|         |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | HIPPIE                 | |hippie_pypi|       | |hippie_docs|       | |hippie_build|       | |hippie_zenodo|       |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | HMDB                   | |hmdb_pypi|         | |hmdb_docs|         | |hmdb_build|         |                       |
++------------------------+---------------------+---------------------+----------------------+-----------------------+
+| HSDN                   | |hsdn_pypi|         | |hsdn_docs|         | |hsdn_build|         | |hsdn_zenodo|         |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
 | InterPro               | |interpro_pypi|     | |interpro_docs|     | |interpro_build|     | |interpro_zenodo|     |
 +------------------------+---------------------+---------------------+----------------------+-----------------------+
@@ -404,16 +408,47 @@ be searched directly through the Bio2BEL `GitHub Organization <https://github.co
 .. |go_build| image:: https://travis-ci.org/bio2bel/go.svg?branch=master
     :target: https://travis-ci.org/bio2bel/go
     :alt: Build Status
-
 .. |go_docs| image:: http://readthedocs.org/projects/bio2bel-go/badge/?version=latest
     :target: http://bio2bel.readthedocs.io/projects/go/en/latest/?badge=latest
     :alt: Documentation Status
-
 .. |go_pypi| image:: https://img.shields.io/pypi/v/bio2bel_go.svg
     :alt: Current version on PyPI
+.. |go_zenodo| image:: https://zenodo.org/badge/99944678.svg
+   :target: https://zenodo.org/badge/latestdoi/99944678
+   :alt: Bio2BEL GO Zenodo DOI
 
 .. |famplex_pypi| image:: https://img.shields.io/pypi/v/bio2bel_famplex.svg
     :alt: Current version on PyPI
 .. |famplex_docs| image:: https://readthedocs.org/projects/bio2bel-famplex/badge/?version=latest
     :target: https://bio2bel-famplex.readthedocs.io/en/latest/?badge=latest
     :alt: FamPlex Documentation Status
+.. |famplex_build| image:: https://travis-ci.com/bio2bel/famplex.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/famplex
+    :alt: Bio2BEL FamPlex Build Status
+.. |famplex_zenodo| image:: https://zenodo.org/badge/135121081.svg
+    :target: https://zenodo.org/badge/latestdoi/135121081
+    :alt: Bio2BEL FamPlex Zenodo DOI
+
+.. |hsdn_build| image:: https://travis-ci.com/bio2bel/hsdn.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/hsdn
+    :alt: Build Status
+.. |hsdn_docs| image:: http://readthedocs.org/projects/bio2bel-hsdn/badge/?version=latest
+    :target: http://bio2bel.readthedocs.io/projects/hsdn/en/latest/?badge=latest
+    :alt: Documentation Status
+.. |hsdn_pypi| image:: https://img.shields.io/pypi/v/bio2bel_hsdn.svg
+    :alt: Current version on PyPI
+.. |hsdn_zenodo| image:: https://zenodo.org/badge/158366852.svg
+    :target: https://zenodo.org/badge/latestdoi/158366852
+    :alt: HSDN FamPlex Zenodo DOI
+
+.. |adeptus_build| image:: https://travis-ci.com/bio2bel/adeptus.svg?branch=master
+    :target: https://travis-ci.com/bio2bel/adeptus
+    :alt: Build Status
+.. |adeptus_docs| image:: http://readthedocs.org/projects/bio2bel-adeptus/badge/?version=latest
+    :target: http://bio2bel.readthedocs.io/projects/adeptus/en/latest/?badge=latest
+    :alt: Documentation Status
+.. |adeptus_pypi| image:: https://img.shields.io/pypi/v/bio2bel_adeptus.svg
+    :alt: Current version on PyPI
+.. |adeptus_zenodo| image:: https://zenodo.org/badge/158358036.svg
+    :target: https://zenodo.org/badge/latestdoi/158358036
+    :alt: ADEPTUS FamPlex Zenodo DOI
