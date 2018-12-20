@@ -5,11 +5,12 @@
 import logging
 import sys
 from abc import ABC, abstractmethod
+from typing import List
 
 import click
 
 import pybel
-from pybel import to_bel
+from pybel import to_bel, to_indra_statements
 from .cli_manager import CliMixin
 
 __all__ = [
@@ -76,6 +77,11 @@ class BELManagerMixin(ABC, CliMixin):
 
                     return rv
         """
+
+    def to_indra_statements(self, *args, **kwargs) -> List['indra.Statement']:
+        """Dump as a list of INDRA statements."""
+        graph = self.to_bel(*args, **kwargs)
+        return to_indra_statements(graph)
 
     @staticmethod
     def _cli_add_to_bel(main: click.Group) -> click.Group:
