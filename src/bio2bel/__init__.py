@@ -47,7 +47,7 @@ from .manager import abstract_manager  # noqa: F401
 from .manager.abstract_manager import AbstractManager  # noqa: F401
 from .utils import get_data_dir, get_version  # noqa: F401
 
-__version__ = '0.2.1-dev'
+__version__ = '0.2.1'
 
 __title__ = 'bio2bel'
 __description__ = "A package for converting biological stuff to BEL"
