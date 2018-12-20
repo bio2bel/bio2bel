@@ -9,7 +9,7 @@ from easy_config import EasyConfig
 
 log = logging.getLogger(__name__)
 
-VERSION = '0.2.1'
+VERSION = '0.2.2-dev'
 
 DEFAULT_CONFIG_DIRECTORY = os.path.abspath(os.path.join(os.path.expanduser('~'), '.config', 'bio2bel'))
 DEFAULT_CONFIG_PATHS = [
