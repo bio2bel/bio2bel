@@ -2,11 +2,12 @@
 
 """Provide abstractions over BEL namespace generation procedures."""
 
+import hashlib
 import logging
 import sys
 import time
 from abc import ABC, abstractmethod
-from typing import Iterable, List, Optional, Set, TextIO
+from typing import Iterable, List, Mapping, Optional, Set, TextIO
 
 import click
 from tqdm import tqdm
@@ -195,12 +196,12 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         """
         return model.name
 
-    def _iterate_namespace_models(self, desc: Optional[str] = None) -> Iterable:
+    def _iterate_namespace_models(self, **kwargs) -> Iterable:
         """Return an iterator over the models to be converted to the namespace."""
         return tqdm(
             self._get_query(self.namespace_model),
             total=self._count_model(self.namespace_model),
-            desc=desc,
+            **kwargs
         )
 
     @classmethod
@@ -216,7 +217,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
     @classmethod
     def _get_namespace_url(cls) -> str:
         """Get the URL to use as the reference BEL namespace."""
-        return cls.identifiers_url or '_{}'.format(cls.module_name.upper())
+        return cls.identifiers_url or f'_{cls.module_name.upper()}'
 
     def _get_default_namespace(self) -> Optional[Namespace]:
         """Get the reference BEL namespace if it exists."""
@@ -329,7 +330,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         namespace = self._get_default_namespace()
 
         if namespace is not None:
-            for entry in tqdm(namespace.entries, desc='deleting entries in {}'.format(self._get_namespace_name())):
+            for entry in tqdm(namespace.entries, desc=f'deleting entries in {self._get_namespace_name()}'):
                 self.session.delete(entry)
             self.session.delete(namespace)
 
@@ -342,16 +343,14 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         if not self.is_populated():
             self.populate()
 
-        if use_names:
-            values = {
-                self._get_name(model): self._get_encoding(model)
-                for model in self._iterate_namespace_models(desc='writing names')
-            }
-        else:
-            values = {
-                self._get_identifier(model): self._get_encoding(model)
-                for model in self._iterate_namespace_models(desc='writing identifiers')
-            }
+        if use_names and not self.has_names:
+            raise ValueError
+
+        values = (
+            self._get_namespace_name_to_encoding(desc='writing names')
+            if use_names else
+            self._get_namespace_identifier_to_encoding(desc='writing identifiers')
+        )
 
         write_namespace(
             namespace_name=self._get_namespace_name(),
@@ -360,6 +359,28 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             values=values,
             file=file,
         )
+
+    def _get_namespace_name_to_encoding(self, **kwargs) -> Mapping[str, str]:
+        return {
+            self._get_name(model): self._get_encoding(model)
+            for model in self._iterate_namespace_models(**kwargs)
+        }
+
+    def _get_namespace_identifier_to_encoding(self, **kwargs) -> Mapping[str, str]:
+        return {
+            self._get_identifier(model): self._get_encoding(model)
+            for model in self._iterate_namespace_models(**kwargs)
+        }
+
+    def get_namespace_hash(self, hash_fn=hashlib.md5) -> str:
+        """Get the namespace hash.
+
+        Defaults to MD5.
+        """
+        m = hash_fn()
+        for name, encoding in self._get_namespace_name_to_encoding().items():
+            m.update(f'{name}:{encoding}'.encode('utf8'))
+        return m.hexdigest()
 
     @staticmethod
     def _cli_add_to_bel_namespace(main: click.Group) -> click.Group:
@@ -398,10 +419,10 @@ def add_cli_to_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
     @main.command()
     @click.option('-u', '--update', is_flag=True)
     @click.pass_obj
-    def upload(manager, update):
+    def upload(manager: BELNamespaceManagerMixin, update):
         """Upload names/identifiers to terminology store."""
         namespace = manager.upload_bel_namespace(update=update)
-        click.echo('uploaded [{}] {}'.format(namespace.id, namespace.keyword))
+        click.echo(f'uploaded [{namespace.id}] {namespace.keyword}')
 
     return main
 
@@ -411,12 +432,12 @@ def add_cli_clear_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
 
     @main.command()
     @click.pass_obj
-    def drop(manager):
+    def drop(manager: BELNamespaceManagerMixin):
         """Clear names/identifiers to terminology store."""
         namespace = manager.drop_bel_namespace()
 
         if namespace:
-            click.echo('namespace {} was cleared'.format(namespace))
+            click.echo(f'namespace {namespace} was cleared')
 
     return main
 
@@ -428,7 +449,7 @@ def add_cli_write_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
     @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
     @click.option('-n', '--use-names', is_flag=True)
     @click.pass_obj
-    def write(manager, file, use_names):
+    def write(manager: BELNamespaceManagerMixin, file, use_names):
         """Write a BEL namespace names/identifiers to terminology store."""
         manager.write_bel_namespace(file, use_names=use_names)
 

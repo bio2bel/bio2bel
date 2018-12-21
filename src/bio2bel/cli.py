@@ -160,18 +160,38 @@ def write(connection, skip, directory, force):
             manager.populate()
 
         try:
-            _write_one(manager, directory, name)
+            r = _write_one(manager, directory, name)
         except TypeError as e:
             click.secho(f'error with {name}: {e}'.rstrip(), fg='red')
+        else:
+            if not r:
+                click.echo('no update')
 
 
-def _write_one(manager, directory, name):
+def _write_one(manager, directory: str, name: str) -> bool:
+    current_hash = manager.get_namespace_hash()
+    hash_path = os.path.join(directory, f'{name}.belns.md5')
+
+    if not os.path.exists(hash_path):
+        old_hash = None
+    else:
+        with open(hash_path) as file:
+            old_hash = file.read().strip()
+
+    if old_hash == current_hash:
+        return False
+
     with open(os.path.join(directory, f'{name}.belns'), 'w') as file:
         manager.write_bel_namespace(file, use_names=False)
+
+    with open(hash_path, 'w') as file:
+        print(current_hash, file=file)
 
     if manager.has_names:
         with open(os.path.join(directory, f'{name}-names.belns'), 'w') as file:
             manager.write_bel_namespace(file, use_names=True)
+
+    return True
 
 
 @main.group()
