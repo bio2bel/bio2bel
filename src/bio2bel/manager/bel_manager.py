@@ -5,7 +5,6 @@
 import logging
 import sys
 from abc import ABC, abstractmethod
-from typing import List
 
 import click
 
@@ -78,8 +77,11 @@ class BELManagerMixin(ABC, CliMixin):
                     return rv
         """
 
-    def to_indra_statements(self, *args, **kwargs) -> List['indra.Statement']:
-        """Dump as a list of INDRA statements."""
+    def to_indra_statements(self, *args, **kwargs):
+        """Dump as a list of INDRA statements.
+
+        :rtype: List[indra.Statement]
+        """
         graph = self.to_bel(*args, **kwargs)
         return to_indra_statements(graph)
 
