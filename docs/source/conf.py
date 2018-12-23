@@ -197,6 +197,7 @@ intersphinx_mapping = {
     'click': ('https://click.palletsprojects.com/en/7.x', None),
     'pybel': ('https://pybel.readthedocs.io/en/latest/', None),
     'pandas': ('https://pandas.pydata.org', None),
+    'indra': ('https://indra.readthedocs.io/en/latest/', None),
 }
 
 autodoc_member_order = 'bysource'
