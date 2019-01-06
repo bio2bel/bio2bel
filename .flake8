@@ -31,5 +31,7 @@ application-import-names =
 	tests
 import-order-style = pycharm
 
+max-line-length = 120
+
 # mccabe
 max-complexity = 10
