@@ -262,7 +262,6 @@ class AbstractManager(ConnectionManager, CliMixin, metaclass=AbstractManagerMeta
         """Get all instances of the given model in the database.
 
         :param model: A SQLAlchemy model class
-        :rtype: list
         """
         return self._get_query(model).all()
 
