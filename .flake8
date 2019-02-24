@@ -28,6 +28,7 @@ ignore =
 application-import-names =
 	bio2bel
     pybel
+    bel_resources
 	tests
 import-order-style = pycharm
 

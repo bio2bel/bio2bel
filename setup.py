@@ -38,6 +38,7 @@ EXTRAS_REQUIRE = {
     ],
     'namespaces': [
         'pybel',
+        'bel_resources',
     ],
     'docs': [
         'pybel',

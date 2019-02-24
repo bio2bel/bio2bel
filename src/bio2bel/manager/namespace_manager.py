@@ -12,9 +12,9 @@ from typing import Iterable, List, Mapping, Optional, Set, TextIO
 import click
 from tqdm import tqdm
 
+from bel_resources import write_namespace
 from pybel import BELGraph
 from pybel.manager.models import Base, Namespace, NamespaceEntry
-from pybel.resources import write_namespace
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
 
