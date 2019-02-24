@@ -8,7 +8,7 @@ import shutil
 from typing import Mapping, Optional, Type
 
 from easy_config import EasyConfig
-from pkg_resources import VersionConflict, iter_entry_points
+from pkg_resources import UnknownExtra, VersionConflict, iter_entry_points
 
 from .constants import BIO2BEL_DIR, DEFAULT_CONFIG_DIRECTORY, DEFAULT_CONFIG_PATHS, VERSION, config
 
@@ -95,11 +95,14 @@ def get_modules() -> Mapping:
 
         try:
             modules[entry] = entry_point.load()
-        except VersionConflict:
-            log.exception('Version conflict in %s', entry)
+        except VersionConflict as exc:
+            log.warning('Version conflict in %s: %s', entry, exc)
             continue
-        except ImportError:
-            log.exception('Issue with importing module %s', entry)
+        except UnknownExtra as exc:
+            log.warning('Unknown extra in %s: %s', entry, exc)
+            continue
+        except ImportError as exc:
+            log.exception('Issue with importing module %s: %s', entry, exc)
             continue
 
     return modules
