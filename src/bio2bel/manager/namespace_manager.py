@@ -3,8 +3,9 @@
 """Provide abstractions over BEL namespace generation procedures."""
 
 import hashlib
+import json
 import logging
-import sys
+import os
 import time
 from abc import ABC, abstractmethod
 from typing import Iterable, List, Mapping, Optional, Set, TextIO
@@ -360,6 +361,39 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             file=file,
         )
 
+    def write_bel_namespace_mappings(self, file: TextIO, **kwargs) -> None:
+        """Write a BEL namespace mapping file."""
+        json.dump(self._get_namespace_identifier_to_name(**kwargs), file, indent=2, sort_keys=True)
+
+    def write_directory(self, directory: str) -> bool:
+        """Write a BEL namespace for identifiers, names, name hash, and mappings to the given directory."""
+        current_md5_hash = self.get_namespace_hash()
+        md5_hash_path = os.path.join(directory, f'{self.module_name}.belns.md5')
+
+        if not os.path.exists(md5_hash_path):
+            old_md5_hash = None
+        else:
+            with open(md5_hash_path) as file:
+                old_md5_hash = file.read().strip()
+
+        if old_md5_hash == current_md5_hash:
+            return False
+
+        with open(os.path.join(directory, f'{self.module_name}.belns'), 'w') as file:
+            self.write_bel_namespace(file, use_names=False)
+
+        with open(md5_hash_path, 'w') as file:
+            print(current_md5_hash, file=file)
+
+        if self.has_names:
+            with open(os.path.join(directory, f'{self.module_name}-names.belns'), 'w') as file:
+                self.write_bel_namespace(file, use_names=True)
+
+            with open(os.path.join(directory, f'{self.module_name}.belns.mapping'), 'w') as file:
+                self.write_bel_namespace_mappings(file, desc='writing mapping')
+
+        return True
+
     def _get_namespace_name_to_encoding(self, **kwargs) -> Mapping[str, str]:
         return {
             self._get_name(model): self._get_encoding(model)
@@ -372,13 +406,25 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             for model in self._iterate_namespace_models(**kwargs)
         }
 
+    def _get_namespace_identifier_to_name(self, **kwargs) -> Mapping[str, str]:
+        return {
+            self._get_identifier(model): self._get_name(model)
+            for model in self._iterate_namespace_models(**kwargs)
+        }
+
     def get_namespace_hash(self, hash_fn=hashlib.md5) -> str:
         """Get the namespace hash.
 
         Defaults to MD5.
         """
         m = hash_fn()
-        for name, encoding in self._get_namespace_name_to_encoding().items():
+
+        if self.has_names:
+            items = self._get_namespace_name_to_encoding(desc='getting hash').items()
+        else:
+            items = self._get_namespace_identifier_to_encoding(desc='getting hash').items()
+
+        for name, encoding in items:
             m.update(f'{name}:{encoding}'.encode('utf8'))
         return m.hexdigest()
 
@@ -446,11 +492,11 @@ def add_cli_write_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
     """Add a ``write_bel_namespace`` command to main :mod:`click` function."""
 
     @main.command()
-    @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
-    @click.option('-n', '--use-names', is_flag=True)
+    @click.option('-d', '--directory', type=click.Path(file_okay=False, dir_okay=True), default=os.getcwd(),
+                  help='output directory')
     @click.pass_obj
-    def write(manager: BELNamespaceManagerMixin, file, use_names):
+    def write(manager: BELNamespaceManagerMixin, directory: str):
         """Write a BEL namespace names/identifiers to terminology store."""
-        manager.write_bel_namespace(file, use_names=use_names)
+        manager.write_directory(directory)
 
     return main

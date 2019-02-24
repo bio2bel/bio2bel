@@ -127,8 +127,7 @@ def summarize(connection, skip):
             continue
         for field_name, count in sorted(manager.summarize().items()):
             click.echo(
-                click.style('=> ', fg='white', bold=True) +
-                '{}: {}'.format(field_name.replace('_', ' ').capitalize(), count)
+                click.style('=> ', fg='white', bold=True) + f"{field_name.replace('_', ' ').capitalize()}: {count}"
             )
 
 
@@ -152,46 +151,24 @@ def write(connection, skip, directory, force):
             continue
         click.secho(name, fg='cyan', bold=True)
         if force:
-            click.echo(f'dropping')
-            manager.drop_all()
-            click.echo('clearing cache')
-            clear_cache(name)
-            click.echo('populating')
-            manager.populate()
+            try:
+                click.echo(f'dropping')
+                manager.drop_all()
+                click.echo('clearing cache')
+                clear_cache(name)
+                click.echo('populating')
+                manager.populate()
+            except Exception:
+                click.secho(f'{name} failed', fg='red')
+                continue
 
         try:
-            r = _write_one(manager, directory, name)
+            r = manager.write_directory(directory)
         except TypeError as e:
             click.secho(f'error with {name}: {e}'.rstrip(), fg='red')
         else:
             if not r:
                 click.echo('no update')
-
-
-def _write_one(manager, directory: str, name: str) -> bool:
-    current_hash = manager.get_namespace_hash()
-    hash_path = os.path.join(directory, f'{name}.belns.md5')
-
-    if not os.path.exists(hash_path):
-        old_hash = None
-    else:
-        with open(hash_path) as file:
-            old_hash = file.read().strip()
-
-    if old_hash == current_hash:
-        return False
-
-    with open(os.path.join(directory, f'{name}.belns'), 'w') as file:
-        manager.write_bel_namespace(file, use_names=False)
-
-    with open(hash_path, 'w') as file:
-        print(current_hash, file=file)
-
-    if manager.has_names:
-        with open(os.path.join(directory, f'{name}-names.belns'), 'w') as file:
-            manager.write_bel_namespace(file, use_names=True)
-
-    return True
 
 
 @main.group()
@@ -209,12 +186,12 @@ def write(connection, skip, directory, force):
     """Write all as BEL."""
     os.makedirs(directory, exist_ok=True)
     from .manager.bel_manager import BELManagerMixin
-    from pybel import to_pickle
+    import pybel
     for idx, name, manager in _iterate_managers(connection, skip):
         if not isinstance(manager, BELManagerMixin):
             continue
         click.secho(name, fg='cyan', bold=True)
-        path = os.path.join(directory, f'{name}.bel.gpickle')
+        path = os.path.join(directory, f'{name}.bel.pickle')
         if os.path.exists(path) and not force:
             click.echo('👍 already exported')
             continue
@@ -223,7 +200,8 @@ def write(connection, skip, directory, force):
             click.echo('👎 unpopulated')
         else:
             graph = manager.to_bel()
-            to_pickle(graph, path)
+            pybel.to_pickle(graph, path)
+            pybel.to_json_path(graph, os.path.join(directory, f'{name}.bel.json'))
 
 
 @main.command()
