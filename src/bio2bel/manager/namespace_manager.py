@@ -157,7 +157,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
     def __init__(self, *args, **kwargs):  # noqa: D107
         if self.namespace_model is ...:
-            raise Bio2BELMissingNamespaceModelError
+            raise Bio2BELMissingNamespaceModelError('Class variable `namespace_model` was not defined.')
 
         super().__init__(*args, **kwargs)
 
