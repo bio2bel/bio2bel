@@ -13,7 +13,7 @@ from typing import Iterable, List, Mapping, Optional, Set, TextIO
 import click
 from tqdm import tqdm
 
-from bel_resources import write_namespace
+from bel_resources import write_annotation, write_namespace
 from pybel import BELGraph
 from pybel.manager.models import Base, Namespace, NamespaceEntry
 from .cli_manager import CliMixin
@@ -149,6 +149,9 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
 
     #: Can be set to False for namespaces that don't have labels
     has_names: bool = True
+
+    is_namespace: bool = True
+    is_annotation: bool = False
 
     identifiers_recommended = None
     identifiers_pattern = None
@@ -361,6 +364,21 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             file=file,
         )
 
+    def write_bel_annotation(self, file: TextIO) -> None:
+        """Write as a BEL annotation file."""
+        if not self.is_populated():
+            self.populate()
+
+        values = self._get_namespace_name_to_encoding(desc='writing names')
+
+        write_annotation(
+            keyword=self._get_namespace_keyword(),
+            citation_name=self._get_namespace_name(),
+            description='',
+            values=values,
+            file=file,
+        )
+
     def write_bel_namespace_mappings(self, file: TextIO, **kwargs) -> None:
         """Write a BEL namespace mapping file."""
         json.dump(self._get_namespace_identifier_to_name(**kwargs), file, indent=2, sort_keys=True)
@@ -443,18 +461,31 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         """Add the write BEL namespace command."""
         return add_cli_write_bel_namespace(main)
 
+    @staticmethod
+    def _cli_add_write_bel_annotation(main: click.Group) -> click.Group:
+        """Add the write BEL namespace command."""
+        return add_cli_write_bel_annotation(main)
+
     @classmethod
     def get_cli(cls) -> click.Group:
         """Get a :mod:`click` main function with added BEL namespace commands."""
         main = super().get_cli()
 
-        @main.group()
-        def belns():
-            """Manage BEL namespace."""
+        if cls.is_namespace:
+            @main.group()
+            def belns():
+                """Manage BEL namespace."""
 
-        cls._cli_add_to_bel_namespace(belns)
-        cls._cli_add_clear_bel_namespace(belns)
-        cls._cli_add_write_bel_namespace(belns)
+            cls._cli_add_to_bel_namespace(belns)
+            cls._cli_add_clear_bel_namespace(belns)
+            cls._cli_add_write_bel_namespace(belns)
+
+        if cls.is_annotation:
+            @main.group()
+            def belanno():
+                """Manage BEL annotation."""
+
+            cls._cli_add_write_bel_annotation(belanno)
 
         return main
 
@@ -498,5 +529,20 @@ def add_cli_write_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
     def write(manager: BELNamespaceManagerMixin, directory: str):
         """Write a BEL namespace names/identifiers to terminology store."""
         manager.write_directory(directory)
+
+    return main
+
+
+def add_cli_write_bel_annotation(main: click.Group) -> click.Group:  # noqa: D202
+    """Add a ``write_bel_annotation`` command to main :mod:`click` function."""
+
+    @main.command()
+    @click.option('-d', '--directory', type=click.Path(file_okay=False, dir_okay=True), default=os.getcwd(),
+                  help='output directory')
+    @click.pass_obj
+    def write(manager: BELNamespaceManagerMixin, directory: str):
+        """Write a BEL annotation."""
+        with open(os.path.join(directory, manager.identifiers_namespace), 'w') as file:
+            manager.write_bel_annotation(file)
 
     return main
