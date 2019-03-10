@@ -3,12 +3,15 @@
 """Downloading utilities for OBO."""
 
 import os
-from typing import Callable, Optional
+from typing import Callable, Optional, TextIO
 
+import click
 import obonet
 from networkx import MultiDiGraph, read_gpickle, write_gpickle
 
-from bio2bel.downloading import make_downloader
+from bel_resources.obo import convert_obo_graph_to_belanno, convert_obo_graph_to_belns
+from .downloading import make_downloader
+from .utils import get_data_dir
 
 __all__ = [
     'make_obo_getter',
@@ -49,3 +52,52 @@ def make_obo_getter(data_url: str,
         return result
 
     return get_obo
+
+
+@click.group()
+def main():
+    """OBO Utilities."""
+
+
+@main.command()
+@click.argument('keyword')
+@click.option('-f', '--file', type=click.File('w'))
+@click.option('-e', '--encoding')
+@click.option('-n', '--use-names', is_flag=True)
+def belns(keyword: str, file: TextIO, encoding: Optional[str], use_names: bool):
+    """Write as a BEL namespace."""
+    directory = get_data_dir(keyword)
+    obo_url = f'http://purl.obolibrary.org/obo/{keyword}.obo'
+    obo_path = os.path.join(directory, f'{keyword}.obo')
+    obo_cache_path = os.path.join(directory, f'{keyword}.obo.pickle')
+
+    obo_getter = make_obo_getter(obo_url, obo_path, preparsed_path=obo_cache_path)
+    graph = obo_getter()
+    convert_obo_graph_to_belns(
+        graph,
+        file=file,
+        encoding=encoding,
+        use_names=use_names,
+    )
+
+
+@main.command()
+@click.argument('keyword')
+@click.option('-f', '--file', type=click.File('w'))
+def belanno(keyword: str, file: TextIO):
+    """Write as a BEL annotation."""
+    directory = get_data_dir(keyword)
+    obo_url = f'http://purl.obolibrary.org/obo/{keyword}.obo'
+    obo_path = os.path.join(directory, f'{keyword}.obo')
+    obo_cache_path = os.path.join(directory, f'{keyword}.obo.pickle')
+
+    obo_getter = make_obo_getter(obo_url, obo_path, preparsed_path=obo_cache_path)
+    graph = obo_getter()
+    convert_obo_graph_to_belanno(
+        graph,
+        file=file,
+    )
+
+
+if __name__ == '__main__':
+    main()
