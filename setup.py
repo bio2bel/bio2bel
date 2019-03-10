@@ -40,6 +40,10 @@ EXTRAS_REQUIRE = {
         'pybel',
         'bel_resources',
     ],
+    'obo': [
+        'networkx',
+        'obonet',
+    ],
     'docs': [
         'pybel',
         'flask',
