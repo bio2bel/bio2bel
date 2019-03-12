@@ -30,10 +30,12 @@ connection_option = click.option(
     help='Database connection string.',
 )
 
-main = click.Group(commands={
-    name: manager_cls.get_cli()
-    for name, manager_cls in MANAGERS.items()
-})
+commands = {}
+for name, manager_cls in MANAGERS.items():
+    commands[name] = manager_cls.get_cli()
+    commands[name].help = f'*Manage {name}'
+
+main = click.Group(commands=commands)
 main.help = f'Bio2BEL Command Line Utilities on {sys.executable}\nBio2BEL v{get_version()}'
 
 
