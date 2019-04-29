@@ -102,3 +102,4 @@ ENV/
 
 .idea
 .pytest_cache
+.DS_Store
