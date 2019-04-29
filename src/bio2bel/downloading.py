@@ -6,6 +6,7 @@ import logging
 import os
 from typing import Callable, Optional
 from urllib.request import urlretrieve
+from zipfile import ZipFile
 
 import pandas as pd
 
@@ -14,6 +15,7 @@ log = logging.getLogger(__name__)
 __all__ = [
     'make_downloader',
     'make_df_getter',
+    'make_zipped_df_getter',
 ]
 
 
@@ -64,5 +66,36 @@ def make_df_getter(data_url: str, data_path: str, **kwargs) -> Callable[[Optiona
             url or data_url,
             **kwargs
         )
+
+    return get_df
+
+
+def make_zipped_df_getter(data_url: str, data_path: str, zip_path: str, **kwargs):
+    """
+
+    :param data_url:
+    :param data_path:
+    :param zip_path:
+    :return:
+    """
+    download_function = make_downloader(data_url, data_path)
+
+    def get_df(url: Optional[str] = None, cache: bool = True, force_download: bool = False) -> pd.DataFrame:
+        """
+
+        :param url:
+        :param cache:
+        :param force_download:
+        :return:
+        """
+        if url is not None:
+            return pd.read_csv(url, **kwargs)
+
+        if url is None and cache:
+            url = download_function(force_download=force_download)
+
+        with ZipFile(url) as zip_file:
+            with zip_file.open(zip_path) as file:
+                return pd.read_csv(file, **kwargs)
 
     return get_df
