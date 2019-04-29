@@ -20,12 +20,11 @@ class CliMixin:
     """
 
     @classmethod
-    def get_cli(cls):
+    def get_cli(cls) -> click.Group:
         """Build a :mod:`click` CLI main function.
 
         :param Type[AbstractManager] cls: A Manager class
         :return: The main function for click
-        :rtype: click.core.Group
         """
         group_help = 'Default connection at {}\n\nusing Bio2BEL v{}'.format(cls._get_connection(), get_version())
 
