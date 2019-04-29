@@ -305,7 +305,7 @@ def add_cli_populate(main: click.Group) -> click.Group:  # noqa: D202
     @click.option('--reset', is_flag=True, help='Nuke database first')
     @click.option('--force', is_flag=True, help='Force overwrite if already populated')
     @click.pass_obj
-    def populate(manager, reset, force):
+    def populate(manager: AbstractManager, reset, force):
         """Populate the database."""
         if reset:
             click.echo('Deleting the previous instance of the database')
@@ -372,9 +372,13 @@ def add_cli_summarize(main: click.Group) -> click.Group:  # noqa: D202
 
     @main.command()
     @click.pass_obj
-    def summarize(manager):
+    def summarize(manager: AbstractManager):
         """Summarize the contents of the database."""
+        if not manager.is_populated():
+            click.secho(f'{manager.module_name} has not been populated', fg='red')
+            sys.exit(1)
+
         for name, count in sorted(manager.summarize().items()):
-            click.echo('{}: {}'.format(name.capitalize(), count))
+            click.echo(f'{name.capitalize()}: {count}')
 
     return main

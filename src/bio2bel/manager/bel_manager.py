@@ -2,21 +2,25 @@
 
 """Provide abstractions over BEL generation procedures."""
 
-import logging
 import sys
 from abc import ABC, abstractmethod
+from typing import TextIO
 
 import click
 
 import pybel
-from pybel import to_bel, to_indra_statements
+from pybel import to_indra_statements
+from pybel.cli import host_option
 from .cli_manager import CliMixin
 
 __all__ = [
     'BELManagerMixin',
+    'Bio2BELMissingEdgeModelError',
 ]
 
-log = logging.getLogger(__name__)
+
+class Bio2BELMissingEdgeModelError(TypeError):
+    """Raised when the edge_model class variable is not defined."""
 
 
 class BELManagerMixin(ABC, CliMixin):
@@ -28,8 +32,8 @@ class BELManagerMixin(ABC, CliMixin):
 
         $ pip install pybel
 
-    To use this mixin, you need to properly implement the AbstractManager, and additionally define a function
-    named ``to_bel`` that returns a BEL graph.
+    To use this mixin, you need to properly implement the :class:`bio2bel.AbstractManager`, and additionally define a
+    function named ``to_bel`` that returns a BEL graph.
 
     .. code-block:: python
 
@@ -41,6 +45,17 @@ class BELManagerMixin(ABC, CliMixin):
         ...     def to_bel(self) -> BELGraph:
         ...         pass
     """
+
+    edge_model = ...
+
+    def count_relations(self) -> int:
+        """Count the number of BEL relations generated."""
+        if self.edge_model is ...:
+            raise Bio2BELMissingEdgeModelError('edge_edge model is undefined/count_bel_relations is not overridden')
+        elif isinstance(self.edge_model, list):
+            return sum(self._count_model(m) for m in self.edge_model)
+        else:
+            return self._count_model(self.edge_model)
 
     @abstractmethod
     def to_bel(self, *args, **kwargs) -> pybel.BELGraph:
@@ -115,11 +130,12 @@ def add_cli_to_bel(main: click.Group) -> click.Group:  # noqa: D202
 
     @main.command()
     @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
+    @click.option('-f', '--fmt', default='bel', show_default=True, help='BEL export format')
     @click.pass_obj
-    def write(manager: BELManagerMixin, output):
+    def write(manager: BELManagerMixin, output: TextIO, fmt: str):
         """Write as BEL Script."""
         graph = manager.to_bel()
-        to_bel(graph, output)
+        graph.serialize(file=output, fmt=fmt)
         click.echo(graph.summary_str())
 
     return main
@@ -129,12 +145,11 @@ def add_cli_upload_bel(main: click.Group) -> click.Group:  # noqa: D202
     """Add several command to main :mod:`click` function related to export to BEL."""
 
     @main.command()
-    @click.option('-c', '--connection')
+    @host_option
     @click.pass_obj
-    def upload(manager: BELManagerMixin, connection):
-        """Upload BEL to network store."""
+    def upload(manager: BELManagerMixin, host: str):
+        """Upload BEL to BEL Commons."""
         graph = manager.to_bel()
-        pybel_manager = pybel.Manager(connection=connection)
-        pybel.to_database(graph, manager=pybel_manager)
+        pybel.to_web(graph, host=host, public=True)
 
     return main

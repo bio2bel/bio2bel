@@ -5,11 +5,14 @@
 import logging
 import os
 import sys
+from typing import TextIO
 
 import click
 
 from .constants import config
 from .manager import AbstractManager
+from .manager.bel_manager import BELManagerMixin
+from .manager.namespace_manager import BELNamespaceManagerMixin
 from .models import Action, _make_session
 from .utils import clear_cache, get_modules, get_version
 
@@ -47,8 +50,8 @@ def _iterate_managers(connection, skip):
 
         try:
             manager = manager_cls(connection=connection)
-        except TypeError:
-            click.secho(f'Could not instantiate {name}', fg='cyan')
+        except TypeError as e:
+            click.secho(f'Could not instantiate {name}: {e}', fg='red')
         else:
             yield idx, name, manager
 
@@ -127,10 +130,56 @@ def summarize(connection, skip):
         if not manager.is_populated():
             click.echo('👎 unpopulated')
             continue
+
+        if isinstance(manager, BELNamespaceManagerMixin):
+            click.secho(f'Terms: {manager._count_model(manager.namespace_model)}', fg='green')
+
+        if isinstance(manager, BELManagerMixin):
+            try:
+                click.secho(f'Relations: {manager.count_relations()}', fg='green')
+            except TypeError as e:
+                click.secho(str(e), fg='red')
         for field_name, count in sorted(manager.summarize().items()):
             click.echo(
                 click.style('=> ', fg='white', bold=True) + f"{field_name.replace('_', ' ').capitalize()}: {count}"
             )
+
+
+@main.command()
+@connection_option
+@click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
+@click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
+def sheet(connection, skip, file: TextIO):
+    """Generate a summary sheet."""
+    from tabulate import tabulate
+    header = ['', 'Name', 'Description', 'Terms', 'Relations']
+    rows = []
+
+    for i, (idx, name, manager) in enumerate(_iterate_managers(connection, skip), start=1):
+        try:
+            if not manager.is_populated():
+                continue
+        except AttributeError:
+            click.secho(f'{name} does not implement is_populated', fg='red')
+            continue
+
+        terms, relations = None, None
+        if isinstance(manager, BELNamespaceManagerMixin):
+            terms = manager._count_model(manager.namespace_model)
+
+        if isinstance(manager, BELManagerMixin):
+            try:
+                relations = manager.count_relations()
+            except TypeError as e:
+                relations = str(e)
+
+        rows.append((i, name, manager.__doc__.split('\n')[0].strip().strip('.'), terms, relations))
+
+    print(tabulate(
+        rows,
+        headers=header,
+        # tablefmt="fancy_grid",
+    ))
 
 
 @main.group()
