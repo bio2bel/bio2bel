@@ -8,6 +8,7 @@ import sys
 from typing import TextIO
 
 import click
+from tqdm import tqdm
 
 from .constants import config
 from .manager import AbstractManager
@@ -208,6 +209,27 @@ def sheet(connection, skip, file: TextIO):
         headers=header,
         # tablefmt="fancy_grid",
     ))
+
+
+@main.command()
+@click.option('-d', '--directory', type=click.Path(dir_okay=True, file_okay=False), default=os.getcwd())
+def er(directory):
+    """Generate entity-relation diagrams for each package."""
+    try:
+        import eralchemy
+    except ImportError:
+        click.echo('Can not import eralchemy. Try `pip install eralchemy`.')
+        return sys.exit(1)
+
+    os.makedirs(directory, exist_ok=True)
+    it = tqdm(sorted(MANAGERS.items()), leave=False)
+    for name, manager_cls in it:
+        base = getattr(manager_cls, '_base', None)
+        if base is None:
+            it.write(f'{name} does not have a SQLAlchemy base')
+            continue
+        it.write(f'generating for {name}')
+        eralchemy.render_er(base, os.path.join(directory, f'{name}_erd.png'))
 
 
 @main.group()
