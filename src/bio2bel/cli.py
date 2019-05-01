@@ -77,17 +77,29 @@ def populate(connection, reset, force, skip):
         )
 
         if reset:
-            click.echo('deleting the previous instance of the database')
-            manager.drop_all()
-            click.echo('creating new models')
-            manager.create_all()
+            try:
+                click.echo(f'deleting the previous instance of {name}')
+                manager.drop_all()
+                click.echo(f'creating new models for {name}')
+                manager.create_all()
+            except AttributeError:
+                click.echo(f'no models available for {name}')
+                continue
 
-        elif manager.is_populated() and not force:
-            click.echo(f'👍 {name} is already populated. use --force to overwrite', color='red')
-            continue
+        else:
+            try:
+                if manager.is_populated() and not force:
+                    click.echo(f'👍 {name} is already populated. use --force to overwrite', color='red')
+                    continue
+            except AttributeError:
+                click.echo(f'no population function available for {name}')
+                continue
 
         try:
             manager.populate()
+        except (AttributeError, NotImplementedError):
+            click.echo(f'no population function available for {name}')
+            continue
         except Exception:
             logger.exception('%s population failed', name)
             click.secho(f'👎 {name} population failed', fg='red', bold=True)
