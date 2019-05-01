@@ -139,8 +139,12 @@ def summarize(connection, skip):
     """Summarize all."""
     for idx, name, manager in _iterate_managers(connection, skip):
         click.secho(name, fg='cyan', bold=True)
-        if not manager.is_populated():
-            click.echo('👎 unpopulated')
+        try:
+            if not manager.is_populated():
+                click.echo('👎 unpopulated')
+                continue
+        except (AttributeError, NotImplementedError):
+            click.echo('👎 population not implemented')
             continue
 
         if isinstance(manager, BELNamespaceManagerMixin):
@@ -151,7 +155,14 @@ def summarize(connection, skip):
                 click.secho(f'Relations: {manager.count_relations()}', fg='green')
             except TypeError as e:
                 click.secho(str(e), fg='red')
-        for field_name, count in sorted(manager.summarize().items()):
+
+        try:
+            summary = manager.summarize()
+        except (AttributeError, NotImplementedError):
+            click.echo('👎 summarize() not implemented')
+            continue
+
+        for field_name, count in sorted(summary.items()):
             click.echo(
                 click.style('=> ', fg='white', bold=True) + f"{field_name.replace('_', ' ').capitalize()}: {count}"
             )
@@ -163,7 +174,12 @@ def summarize(connection, skip):
 @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
 def sheet(connection, skip, file: TextIO):
     """Generate a summary sheet."""
-    from tabulate import tabulate
+    try:
+        from tabulate import tabulate
+    except ImportError:
+        click.echo('Could not import tabulate. Try `pip install tabulate`.')
+        return sys.exit(1)
+
     header = ['', 'Name', 'Description', 'Terms', 'Relations']
     rows = []
 
