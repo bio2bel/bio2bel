@@ -173,15 +173,24 @@ def summarize(connection, skip):
 @connection_option
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 @click.option('-f', '--file', type=click.File('w'), default=sys.stdout)
-def sheet(connection, skip, file: TextIO):
+@click.option('--tablefmt', default="simple", show_default=True)
+@click.option('--index', is_flag=True)
+def sheet(connection, skip, file: TextIO, tablefmt: str, index: bool):
     """Generate a summary sheet."""
     try:
-        from tabulate import tabulate
+        from tabulate import tabulate, tabulate_formats
     except ImportError:
         click.echo('Could not import tabulate. Try `pip install tabulate`.')
         return sys.exit(1)
 
-    header = ['', 'Name', 'Description', 'Terms', 'Relations']
+    if tablefmt not in tabulate_formats:
+        click.echo(tabulate_formats)
+
+    if index:
+        header = ['', 'Name', 'Description', 'Terms', 'Relations']
+    else:
+        header = ['Name', 'Description', 'Terms', 'Relations']
+
     rows = []
 
     for i, (idx, name, manager) in enumerate(_iterate_managers(connection, skip), start=1):
@@ -201,14 +210,26 @@ def sheet(connection, skip, file: TextIO):
                 relations = manager.count_relations()
             except TypeError as e:
                 relations = str(e)
+            else:
+                if 0 == relations:
+                    relations = None
 
-        rows.append((i, name, manager.__doc__.split('\n')[0].strip().strip('.'), terms, relations))
+        if not terms and not relations:
+            continue
 
-    print(tabulate(
-        rows,
-        headers=header,
-        # tablefmt="fancy_grid",
-    ))
+        if index:
+            rows.append((i, name, manager.__doc__.split('\n')[0].strip().strip('.'), terms, relations))
+        else:
+            rows.append((name, manager.__doc__.split('\n')[0].strip().strip('.'), terms, relations))
+
+    click.echo(
+        tabulate(
+            rows,
+            headers=header,
+            tablefmt=tablefmt,
+        ),
+        file=file,
+    )
 
 
 @main.command()
