@@ -512,19 +512,26 @@ def add_cli_clear_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
     def drop(manager: BELNamespaceManagerMixin):
         """Clear names/identifiers to terminology store."""
         namespace = manager.drop_bel_namespace()
-
         if namespace:
             click.echo(f'namespace {namespace} was cleared')
 
     return main
 
 
+_directory_option = click.option(
+    '-d', '--directory',
+    type=click.Path(file_okay=False, dir_okay=True),
+    default=os.getcwd(),
+    help='output directory, defaults to current.',
+    show_default=True,
+)
+
+
 def add_cli_write_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
     """Add a ``write_bel_namespace`` command to main :mod:`click` function."""
 
     @main.command()
-    @click.option('-d', '--directory', type=click.Path(file_okay=False, dir_okay=True), default=os.getcwd(),
-                  help='output directory')
+    @_directory_option
     @click.pass_obj
     def write(manager: BELNamespaceManagerMixin, directory: str):
         """Write a BEL namespace names/identifiers to terminology store."""
@@ -537,8 +544,7 @@ def add_cli_write_bel_annotation(main: click.Group) -> click.Group:  # noqa: D20
     """Add a ``write_bel_annotation`` command to main :mod:`click` function."""
 
     @main.command()
-    @click.option('-d', '--directory', type=click.Path(file_okay=False, dir_okay=True), default=os.getcwd(),
-                  help='output directory')
+    @_directory_option
     @click.pass_obj
     def write(manager: BELNamespaceManagerMixin, directory: str):
         """Write a BEL annotation."""
