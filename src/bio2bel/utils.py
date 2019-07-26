@@ -2,6 +2,7 @@
 
 """Utilities for Bio2BEL."""
 
+import hashlib
 import logging
 import os
 import shutil
@@ -125,3 +126,16 @@ def clear_cache(module_name: str, keep_database: bool = True) -> None:
             os.remove(path)
 
         os.rmdir(data_dir)
+
+
+def get_namespace_hash(items, hash_function=None) -> str:
+    """Get the namespace hash.
+
+    Defaults to MD5.
+    """
+    if hash_function is None:
+        hash_function = hashlib.md5
+    m = hash_function()
+    for name, encoding in items:
+        m.update(f'{name}:{encoding}'.encode('utf8'))
+    return m.hexdigest()

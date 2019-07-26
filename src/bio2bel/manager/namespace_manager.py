@@ -2,7 +2,6 @@
 
 """Provide abstractions over BEL namespace generation procedures."""
 
-import hashlib
 import json
 import logging
 import os
@@ -18,6 +17,7 @@ from pybel import BELGraph
 from pybel.manager.models import Base, Namespace, NamespaceEntry
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
+from ..utils import get_namespace_hash
 
 log = logging.getLogger(__name__)
 
@@ -397,11 +397,11 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         if old_md5_hash == current_md5_hash:
             return False
 
-        with open(os.path.join(directory, f'{self.module_name}.belns'), 'w') as file:
-            self.write_bel_namespace(file, use_names=False)
-
         with open(md5_hash_path, 'w') as file:
             print(current_md5_hash, file=file)
+
+        with open(os.path.join(directory, f'{self.module_name}.belns'), 'w') as file:
+            self.write_bel_namespace(file, use_names=False)
 
         if self.has_names:
             with open(os.path.join(directory, f'{self.module_name}-names.belns'), 'w') as file:
@@ -430,21 +430,17 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             for model in self._iterate_namespace_models(**kwargs)
         }
 
-    def get_namespace_hash(self, hash_fn=hashlib.md5) -> str:
+    def get_namespace_hash(self, hash_fn=None) -> str:
         """Get the namespace hash.
 
         Defaults to MD5.
         """
-        m = hash_fn()
-
         if self.has_names:
             items = self._get_namespace_name_to_encoding(desc='getting hash').items()
         else:
             items = self._get_namespace_identifier_to_encoding(desc='getting hash').items()
 
-        for name, encoding in items:
-            m.update(f'{name}:{encoding}'.encode('utf8'))
-        return m.hexdigest()
+        return get_namespace_hash(items, hash_function=hash_fn)
 
     @staticmethod
     def _cli_add_to_bel_namespace(main: click.Group) -> click.Group:

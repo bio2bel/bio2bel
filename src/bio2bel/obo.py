@@ -3,6 +3,7 @@
 """Downloading utilities for OBO."""
 
 import logging
+import json
 import os
 from typing import Callable, Optional, TextIO
 
@@ -11,8 +12,9 @@ import obonet
 from networkx import MultiDiGraph, read_gpickle, write_gpickle
 
 from bel_resources.obo import convert_obo_graph_to_belanno, convert_obo_graph_to_belns
+from pybel.constants import BELNS_ENCODING_STR
 from .downloading import make_downloader
-from .utils import get_data_dir
+from .utils import get_data_dir, get_namespace_hash
 
 __all__ = [
     'make_obo_getter',
@@ -78,7 +80,7 @@ directory_option = click.option(
 @click.option('--foundry', is_flag=True)
 @click.option('--url')
 @directory_option
-@click.option('-e', '--encoding')
+@click.option('-e', '--encoding', default=BELNS_ENCODING_STR, show_default=True)
 def belns(keyword: str, foundry: bool, url: str, directory: str, encoding: Optional[str]):
     """Write as a BEL namespace."""
     if (not foundry and not url) or (foundry and url):
@@ -93,6 +95,20 @@ def belns(keyword: str, foundry: bool, url: str, directory: str, encoding: Optio
 
     obo_getter = make_obo_getter(url, obo_path, preparsed_path=obo_cache_path)
     graph = obo_getter()
+    graph.graph['ontology'] = keyword
+
+    items = {}
+    mapping = {}
+    for node, data in graph.nodes(data=True):
+        items[data['name']] = encoding
+        mapping[node] = data['name']
+
+    namespace_hash = get_namespace_hash(items.items())
+    with open(os.path.join(directory, f'{keyword}.belns.md5'), 'w') as file:
+        print(namespace_hash, file=file)
+
+    with open(os.path.join(directory, f'{keyword}.belns.mapping'), 'w') as file:
+        json.dump(mapping, file, indent=2)
 
     outputs = [
         (os.path.join(directory, f'{keyword}.belns'), False),
