@@ -2,6 +2,7 @@
 
 """Downloading utilities for OBO."""
 
+import logging
 import os
 from typing import Callable, Optional, TextIO
 
@@ -17,12 +18,15 @@ __all__ = [
     'make_obo_getter',
 ]
 
+logger = logging.getLogger(__name__)
 
-def make_obo_getter(data_url: str,
-                    data_path: str,
-                    *,
-                    preparsed_path: Optional[str] = None,
-                    ) -> Callable[[Optional[str], bool, bool], MultiDiGraph]:
+
+def make_obo_getter(
+        data_url: str,
+        data_path: str,
+        *,
+        preparsed_path: Optional[str] = None,
+) -> Callable[[Optional[str], bool, bool], MultiDiGraph]:
     """Build a function that handles downloading OBO data and parsing it into a NetworkX object.
 
     :param data_url: The URL of the data
@@ -44,6 +48,7 @@ def make_obo_getter(data_url: str,
         if url is None and cache:
             url = download_function(force_download=force_download)
 
+        logger.info(f'Reading OBO from {url}')
         result = obonet.read_obo(url)
 
         if preparsed_path is not None:
@@ -59,30 +64,52 @@ def main():
     """OBO Utilities."""
 
 
+keyword_option = click.argument('keyword')
+directory_option = click.option(
+    '-d', '--directory',
+    default=os.getcwd(),
+    type=click.Path(file_okay=False, dir_okay=True, exists=True),
+    help='Defaults to current working directory',
+)
+
+
 @main.command()
 @click.argument('keyword')
-@click.option('-f', '--file', type=click.File('w'))
+@click.option('--foundry', is_flag=True)
+@click.option('--url')
+@directory_option
 @click.option('-e', '--encoding')
-@click.option('-n', '--use-names', is_flag=True)
-def belns(keyword: str, file: TextIO, encoding: Optional[str], use_names: bool):
+def belns(keyword: str, foundry: bool, url: str, directory: str, encoding: Optional[str]):
     """Write as a BEL namespace."""
-    directory = get_data_dir(keyword)
-    obo_url = f'http://purl.obolibrary.org/obo/{keyword}.obo'
-    obo_path = os.path.join(directory, f'{keyword}.obo')
-    obo_cache_path = os.path.join(directory, f'{keyword}.obo.pickle')
+    if (not foundry and not url) or (foundry and url):
+        click.secho('Exactly one of --foundry or --url must be set')
 
-    obo_getter = make_obo_getter(obo_url, obo_path, preparsed_path=obo_cache_path)
+    if foundry:
+        url = f'http://purl.obolibrary.org/obo/{keyword}.obo'
+
+    _data_dir = get_data_dir(keyword)
+    obo_path = os.path.join(_data_dir, f'{keyword}.obo')
+    obo_cache_path = os.path.join(_data_dir, f'{keyword}.obo.pickle')
+
+    obo_getter = make_obo_getter(url, obo_path, preparsed_path=obo_cache_path)
     graph = obo_getter()
-    convert_obo_graph_to_belns(
-        graph,
-        file=file,
-        encoding=encoding,
-        use_names=use_names,
-    )
+
+    outputs = [
+        (os.path.join(directory, f'{keyword}.belns'), False),
+        (os.path.join(directory, f'{keyword}-names.belns'), True),
+    ]
+    for path, use_names in outputs:
+        with open(path, 'w') as file:
+            convert_obo_graph_to_belns(
+                graph,
+                file=file,
+                encoding=encoding,
+                use_names=use_names,
+            )
 
 
 @main.command()
-@click.argument('keyword')
+@keyword_option
 @click.option('-f', '--file', type=click.File('w'))
 def belanno(keyword: str, file: TextIO):
     """Write as a BEL annotation."""
