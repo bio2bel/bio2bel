@@ -2,6 +2,7 @@
 
 """Provide abstractions over BEL generation procedures."""
 
+import os
 import sys
 from abc import ABC, abstractmethod
 from typing import TextIO
@@ -12,6 +13,7 @@ import pybel
 from pybel import to_indra_statements
 from pybel.cli import host_option
 from .cli_manager import CliMixin
+from ..constants import directory_option
 
 __all__ = [
     'BELManagerMixin',
@@ -137,6 +139,27 @@ def add_cli_to_bel(main: click.Group) -> click.Group:  # noqa: D202
         graph = manager.to_bel()
         graph.serialize(file=output, fmt=fmt)
         click.echo(graph.summary_str())
+
+    @main.command()
+    @directory_option
+    @click.pass_obj
+    def write_edgelist(manager: BELManagerMixin, directory: str):
+        """Write as an edge list and node list file."""
+        graph = manager.to_bel()
+        edgelist_path = os.path.join(directory, f'{manager.module_name}.edgelist')
+        nodelist_path = os.path.join(directory, 'node_list.txt')
+
+        node_to_id = {}
+
+        with open(nodelist_path, 'w') as file:
+            print('index', 'node', 'type', file=file)
+            for i, node in enumerate(sorted(graph)):
+                print(i, node, node.function, file=file)
+                node_to_id[node] = i
+
+        with open(edgelist_path, 'w') as file:
+            for u, v in graph.edges():
+                print(node_to_id[u], node_to_id[v], file=file)
 
     return main
 

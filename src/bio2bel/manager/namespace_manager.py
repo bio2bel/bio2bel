@@ -17,6 +17,7 @@ from pybel import BELGraph
 from pybel.manager.models import Base, Namespace, NamespaceEntry
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
+from ..constants import directory_option
 from ..utils import get_namespace_hash
 
 log = logging.getLogger(__name__)
@@ -514,20 +515,11 @@ def add_cli_clear_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
     return main
 
 
-_directory_option = click.option(
-    '-d', '--directory',
-    type=click.Path(file_okay=False, dir_okay=True),
-    default=os.getcwd(),
-    help='output directory, defaults to current.',
-    show_default=True,
-)
-
-
 def add_cli_write_bel_namespace(main: click.Group) -> click.Group:  # noqa: D202
     """Add a ``write_bel_namespace`` command to main :mod:`click` function."""
 
     @main.command()
-    @_directory_option
+    @directory_option
     @click.pass_obj
     def write(manager: BELNamespaceManagerMixin, directory: str):
         """Write a BEL namespace names/identifiers to terminology store."""
@@ -540,7 +532,7 @@ def add_cli_write_bel_annotation(main: click.Group) -> click.Group:  # noqa: D20
     """Add a ``write_bel_annotation`` command to main :mod:`click` function."""
 
     @main.command()
-    @_directory_option
+    @directory_option
     @click.pass_obj
     def write(manager: BELNamespaceManagerMixin, directory: str):
         """Write a BEL annotation."""

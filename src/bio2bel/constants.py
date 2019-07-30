@@ -5,6 +5,7 @@
 import logging
 import os
 
+import click
 from easy_config import EasyConfig
 
 log = logging.getLogger(__name__)
@@ -46,3 +47,12 @@ DEFAULT_CACHE_CONNECTION = config.connection
 def get_global_connection() -> str:
     """Return the global connection string."""
     return config.connection
+
+
+directory_option = click.option(
+    '-d', '--directory',
+    type=click.Path(file_okay=False, dir_okay=True),
+    default=os.getcwd(),
+    help='output directory, defaults to current.',
+    show_default=True,
+)
