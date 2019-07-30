@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from typing import TextIO
 
 import click
+from pkg_resources import iter_entry_points
 
 import pybel
 from pybel import to_indra_statements
@@ -127,12 +128,16 @@ class BELManagerMixin(ABC, CliMixin):
         return main
 
 
-def add_cli_to_bel(main: click.Group) -> click.Group:  # noqa: D202
+def add_cli_to_bel(main: click.Group) -> click.Group:
     """Add several command to main :mod:`click` function related to export to BEL."""
+    fmts = [
+        entry_point.name
+        for entry_point in iter_entry_points(group='pybel.file_exporter')
+    ]
 
     @main.command()
     @click.option('-o', '--output', type=click.File('w'), default=sys.stdout)
-    @click.option('-f', '--fmt', default='bel', show_default=True, help='BEL export format')
+    @click.option('-f', '--fmt', type=click.Choice(fmts), default='bel', show_default=True, help='BEL export format')
     @click.pass_obj
     def write(manager: BELManagerMixin, output: TextIO, fmt: str):
         """Write as BEL Script."""
