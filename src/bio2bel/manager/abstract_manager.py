@@ -302,8 +302,8 @@ def add_cli_populate(main: click.Group) -> click.Group:  # noqa: D202
     """Add a ``populate`` command to main :mod:`click` function."""
 
     @main.command()
-    @click.option('--reset', is_flag=True, help='Nuke database first')
-    @click.option('--force', is_flag=True, help='Force overwrite if already populated')
+    @click.option('-r', '--reset', is_flag=True, help='Nuke database first')
+    @click.option('-f', '--force', is_flag=True, help='Force overwrite if already populated')
     @click.pass_obj
     def populate(manager: AbstractManager, reset, force):
         """Populate the database."""
