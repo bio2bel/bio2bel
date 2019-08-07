@@ -125,7 +125,7 @@ def clear_cache(module_name: str, keep_database: bool = True) -> None:
         else:
             os.remove(path)
 
-        os.rmdir(data_dir)
+    os.rmdir(data_dir)
 
 
 def get_namespace_hash(items, hash_function=None) -> str:
