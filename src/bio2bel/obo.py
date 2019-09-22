@@ -2,8 +2,8 @@
 
 """Downloading utilities for OBO."""
 
-import logging
 import json
+import logging
 import os
 from typing import Callable, Optional, TextIO
 
@@ -24,10 +24,10 @@ logger = logging.getLogger(__name__)
 
 
 def make_obo_getter(
-        data_url: str,
-        data_path: str,
-        *,
-        preparsed_path: Optional[str] = None,
+    data_url: str,
+    data_path: str,
+    *,
+    preparsed_path: Optional[str] = None,
 ) -> Callable[[Optional[str], bool, bool], MultiDiGraph]:
     """Build a function that handles downloading OBO data and parsing it into a NetworkX object.
 

@@ -72,9 +72,9 @@ class Action(Base):
         :param resource: The normalized name of the resource to store
 
         Example:
-
         >>> from bio2bel.models import Action
         >>> Action.store_populate('hgnc')
+
         """
         action = cls.make_populate(resource)
         _store_helper(action, session=session)
@@ -87,9 +87,9 @@ class Action(Base):
         :param resource: The normalized name of the resource to store
 
         Example:
-
         >>> from bio2bel.models import Action
         >>> Action.store_populate_failed('hgnc')
+
         """
         action = cls.make_populate_failed(resource)
         _store_helper(action, session=session)
@@ -102,9 +102,9 @@ class Action(Base):
         :param resource: The normalized name of the resource to store
 
         Example:
-
         >>> from bio2bel.models import Action
         >>> Action.store_drop('hgnc')
+
         """
         action = cls.make_drop(resource)
         _store_helper(action, session=session)

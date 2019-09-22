@@ -35,4 +35,4 @@ import-order-style = pycharm
 max-line-length = 120
 
 # mccabe
-max-complexity = 10
+max-complexity = 20
