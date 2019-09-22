@@ -12,11 +12,13 @@ log = logging.getLogger(__name__)
 
 VERSION = '0.2.2-dev'
 
-DEFAULT_CONFIG_DIRECTORY = os.path.abspath(os.path.join(os.path.expanduser('~'), '.config', 'bio2bel'))
+_USER_CONFIG_DIRECTORY = os.path.abspath(os.path.join(os.path.expanduser('~'), '.config'))
+DEFAULT_CONFIG_DIRECTORY = os.path.join(_USER_CONFIG_DIRECTORY, 'bio2bel')
 DEFAULT_CONFIG_PATHS = [
     'bio2bel.cfg',
     os.path.join(DEFAULT_CONFIG_DIRECTORY, 'config.ini'),
     os.path.join(DEFAULT_CONFIG_DIRECTORY, 'bio2bel.cfg'),
+    os.path.join(_USER_CONFIG_DIRECTORY, 'pybel', 'config.ini'),
 ]
 
 
@@ -33,10 +35,12 @@ class Config(EasyConfig):
     default_cache_name: str = 'bio2bel.db'
 
     #: The SQLAlchemy connection string to the database
-    connection: str = f'sqlite:///{os.path.join(directory, default_cache_name)}'
+    connection: str = None
 
     def __post_init__(self):
         os.makedirs(self.directory, exist_ok=True)
+        if self.connection is None:
+            self.connection = f'sqlite:///{os.path.join(self.directory, self.default_cache_name)}'
 
 
 config = Config.load(_lookup_config_envvar='config')
