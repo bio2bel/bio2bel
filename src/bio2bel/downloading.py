@@ -2,6 +2,7 @@
 
 """This module has tools for making packages that can reproducibly download and parse data."""
 
+import json
 import logging
 import os
 from typing import Callable, Optional
@@ -14,6 +15,7 @@ log = logging.getLogger(__name__)
 
 __all__ = [
     'make_downloader',
+    'make_json_getter',
     'make_df_getter',
     'make_zipped_df_getter',
 ]
@@ -41,6 +43,26 @@ def make_downloader(url: str, path: str) -> Callable[[bool], str]:  # noqa: D202
         return path
 
     return download_data
+
+
+def make_json_getter(data_url: str, data_path: str):
+    """Build a function that handles downloading JSON data and parsing it.
+
+    :param data_url: The URL of the data
+    :param data_path: The path where the data should get stored
+    """
+    download_function = make_downloader(data_url, data_path)
+
+    def get_json(force_download: bool = False):
+        """Get the data as a JSON object.
+
+        :param force_download: If true, overwrites a previously cached file
+        """
+        path = download_function(force_download=force_download)
+        with open(path) as file:
+            return json.load(file)
+
+    return get_json
 
 
 def make_df_getter(data_url: str, data_path: str, **kwargs) -> Callable[[Optional[str], bool, bool], pd.DataFrame]:
@@ -71,22 +93,21 @@ def make_df_getter(data_url: str, data_path: str, **kwargs) -> Callable[[Optiona
 
 
 def make_zipped_df_getter(data_url: str, data_path: str, zip_path: str, **kwargs):
-    """
+    """Build a function that handles downloading data inside a zip folder and parsing it into a pandas DataFrame.
 
-    :param data_url:
-    :param data_path:
-    :param zip_path:
-    :return:
+    :param data_url: The URL of the data
+    :param data_path: The path where the data should get stored
+    :param zip_path: The path to the data inside the zip folder
+    :param kwargs: Any other arguments to pass to :func:`pandas.read_csv`
     """
     download_function = make_downloader(data_url, data_path)
 
     def get_df(url: Optional[str] = None, cache: bool = True, force_download: bool = False) -> pd.DataFrame:
-        """
+        """Get the data as a pandas DataFrame.
 
-        :param url:
-        :param cache:
-        :param force_download:
-        :return:
+        :param url: The URL (or file path) to download.
+        :param cache: If true, the data is downloaded to the file system, else it is loaded from the internet
+        :param force_download: If true, overwrites a previously cached file
         """
         if url is not None:
             return pd.read_csv(url, **kwargs)
