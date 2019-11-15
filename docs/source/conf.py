@@ -21,14 +21,8 @@
 import os
 import re
 import sys
-import warnings
-
-from sphinx.deprecation import RemovedInSphinx20Warning
 
 sys.path.insert(0, os.path.abspath('../../src'))
-
-# Not my problem, lol
-warnings.filterwarnings("ignore", category=RemovedInSphinx20Warning)
 
 # -- General configuration ------------------------------------------------
 
@@ -101,7 +95,6 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -118,7 +111,7 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -132,12 +125,10 @@ html_sidebars = {
     ]
 }
 
-
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Bio2BELdoc'
-
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -167,7 +158,6 @@ latex_documents = [
      'Charles Tapley Hoyt', 'manual'),
 ]
 
-
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
@@ -176,7 +166,6 @@ man_pages = [
     (master_doc, 'bio2bel', 'Bio2BEL Documentation',
      [author], 1)
 ]
-
 
 # -- Options for Texinfo output -------------------------------------------
 
