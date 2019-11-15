@@ -46,15 +46,3 @@ from .downloading import make_df_getter, make_downloader  # noqa: F401
 from .manager import abstract_manager  # noqa: F401
 from .manager.abstract_manager import AbstractManager  # noqa: F401
 from .utils import get_data_dir, get_version  # noqa: F401
-
-__version__ = '0.2.2-dev'
-
-__title__ = 'bio2bel'
-__description__ = "A package for converting biological stuff to BEL"
-__url__ = 'https://github.com/bio2bel/bio2bel'
-
-__author__ = 'Charles Tapley Hoyt'
-__email__ = 'charles.hoyt@scai.fraunhofer.de'
-
-__license__ = 'Apache 2.0 License'
-__copyright__ = 'Copyright (c) 2017-2018 Charles Tapley Hoyt'
