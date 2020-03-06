@@ -1,7 +1,7 @@
 Bio2BEL |build| |coverage| |docs| |zenodo|
 ==========================================
 Bio2BEL is a project aimed at bringing biological databases and other structured knowledge sources in a wide variety
-of schemata into the unified framework of `Biological Expression Language <http://http://openbel.org/>`_.
+of schemata into the unified framework of `Biological Expression Language <http://http://openbel.org/>`_ [1]_.
 
 Two important places to look:
 
@@ -25,6 +25,13 @@ or get the latest from GitHub with:
    $ python3 -m pip install -e .
 
 or check the `installation instructions <http://bio2bel.readthedocs.io/en/latest/#installation>`_.
+
+Citation
+--------
+If you find Bio2BEL useful for your work, please consider citing:
+
+.. [1] Hoyt, C. T., *et al.* (2019). `Integration of Structured Biological Data Sources using Biological Expression Language
+       <https://doi.org/10.1101/631812>`_. *bioRxiv*, 631812.
 
 .. |build| image:: https://travis-ci.org/bio2bel/bio2bel.svg?branch=master
     :target: https://travis-ci.org/bio2bel/bio2bel
