@@ -11,16 +11,18 @@ def main():
     r = g.get_organization('bio2bel')
 
     repo_urls = sorted(
-        repo.git_url
+        (repo.name, repo.git_url)
         for repo in r.get_repos()
-        if (
-            not repo.name.startswith('bio2bel')
-            and not os.path.exists(os.path.join(BIO2BEL_DIRECTORY, repo.name))
-        )
+        if not repo.name.startswith('bio2bel')
     )
 
-    for url in repo_urls:
-        command = f'cd {BIO2BEL_DIRECTORY}; git clone {url}'
+    for name, url in repo_urls:
+        repo_directory = os.path.join(BIO2BEL_DIRECTORY, name)
+        if os.path.exists(repo_directory):
+            command = f'cd {repo_directory}; git pull'
+        else:
+            command = f'cd {BIO2BEL_DIRECTORY}; git clone {url}'
+
         print(command)
         os.system(command)
 
