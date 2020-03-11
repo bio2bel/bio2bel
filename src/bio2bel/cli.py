@@ -323,7 +323,8 @@ def write(connection, skip, directory, force):
         else:
             graph = manager.to_bel()
             pybel.to_pickle(graph, path)
-            pybel.to_json_path(graph, os.path.join(directory, f'{name}.bel.json'))
+            pybel.to_nodelink_gz(graph, os.path.join(directory, f'{name}.bel.nodelink.json.gz'))
+            pybel.to_bel_script_gz(graph, os.path.join(directory, f'{name}.bel.gz'))
 
 
 @main.command()
