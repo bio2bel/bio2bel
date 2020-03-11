@@ -17,6 +17,8 @@ The most recent population action from a given module can be retrieved with the 
 
 """
 
+from __future__ import annotations
+
 import datetime
 import logging
 from typing import List, Optional
@@ -51,22 +53,22 @@ class Action(Base):
         return '{} {} at {}'.format(self.resource, self.action, self.created)
 
     @staticmethod
-    def make_populate(resource: str) -> 'Action':
+    def make_populate(resource: str) -> Action:
         """Make a ``populate`` instance of :class:`Action`."""
         return Action(resource=resource.lower(), action='populate')
 
     @staticmethod
-    def make_populate_failed(resource: str) -> 'Action':
+    def make_populate_failed(resource: str) -> Action:
         """Make a ``populate_failed`` instance of :class:`Action`."""
         return Action(resource=resource.lower(), action='populate_failed')
 
     @staticmethod
-    def make_drop(resource: str) -> 'Action':
+    def make_drop(resource: str) -> Action:
         """Make a ``drop`` instance of :class:`Action`."""
         return Action(resource=resource.lower(), action='drop')
 
     @classmethod
-    def store_populate(cls, resource: str, session: Optional[Session] = None) -> 'Action':
+    def store_populate(cls, resource: str, session: Optional[Session] = None) -> Action:
         """Store a "populate" event.
 
         :param resource: The normalized name of the resource to store
@@ -81,7 +83,7 @@ class Action(Base):
         return action
 
     @classmethod
-    def store_populate_failed(cls, resource: str, session: Optional[Session] = None) -> 'Action':
+    def store_populate_failed(cls, resource: str, session: Optional[Session] = None) -> Action:
         """Store a "populate failed" event.
 
         :param resource: The normalized name of the resource to store
@@ -96,7 +98,7 @@ class Action(Base):
         return action
 
     @classmethod
-    def store_drop(cls, resource: str, session: Optional[Session] = None) -> 'Action':
+    def store_drop(cls, resource: str, session: Optional[Session] = None) -> Action:
         """Store a "drop" event.
 
         :param resource: The normalized name of the resource to store
@@ -111,7 +113,7 @@ class Action(Base):
         return action
 
     @classmethod
-    def ls(cls, session: Optional[Session] = None) -> List['Action']:
+    def ls(cls, session: Optional[Session] = None) -> List[Action]:
         """Get all actions."""
         if session is None:
             session = _make_session()
