@@ -52,7 +52,7 @@ If you find Bio2BEL useful for your work, please consider citing:
     :alt: Current version on PyPI
 
 .. |pypi_license| image:: https://img.shields.io/pypi/l/bio2bel.svg
-    :alt: Apache 2.0 License
+    :alt: MIT License
 
 .. |zenodo| image:: https://zenodo.org/badge/99800349.svg
     :target: https://zenodo.org/badge/latestdoi/99800349
