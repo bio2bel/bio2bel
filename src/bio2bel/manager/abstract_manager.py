@@ -38,6 +38,7 @@ class AbstractManagerMeta(ABCMeta):
                 cls._populate_original(self, *populate_args, **populate_kwargs)
             except Exception:
                 self._store_populate_failed()
+                raise
             else:
                 # Hack in the action storage
                 self._store_populate()
