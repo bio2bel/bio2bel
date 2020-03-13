@@ -16,6 +16,8 @@ def main():
         if not repo.name.startswith('bio2bel')
     )
 
+    os.system(f'cd {BIO2BEL_DIRECTORY}; git clone git@github.com:compath/compath-utils.git')
+
     for name, url in repo_urls:
         repo_directory = os.path.join(BIO2BEL_DIRECTORY, name)
         if os.path.exists(repo_directory):
