@@ -11,7 +11,7 @@ from zipfile import ZipFile
 
 import pandas as pd
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 __all__ = [
     'make_downloader',
@@ -35,9 +35,9 @@ def make_downloader(url: str, path: str) -> Callable[[bool], str]:  # noqa: D202
         :param force_download: If true, overwrites a previously cached file
         """
         if os.path.exists(path) and not force_download:
-            log.info('using cached data at %s', path)
+            logger.info('using cached data at %s', path)
         else:
-            log.info('downloading %s to %s', url, path)
+            logger.info('downloading %s to %s', url, path)
             urlretrieve(url, path)
 
         return path

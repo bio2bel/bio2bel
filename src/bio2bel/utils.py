@@ -7,21 +7,25 @@ import logging
 import os
 import shutil
 from typing import Mapping, Optional, Type
+from urllib.parse import urlparse
+from urllib.request import urlretrieve
 
 from easy_config import EasyConfig
 from pkg_resources import UnknownExtra, VersionConflict, iter_entry_points
 
 from .constants import BIO2BEL_DIR, DEFAULT_CONFIG_DIRECTORY, DEFAULT_CONFIG_PATHS, VERSION, config
 
-log = logging.getLogger(__name__)
-
 __all__ = [
     'get_data_dir',
+    'prefix_directory_join',
+    'ensure_path',
     'get_connection',
     'get_version',
     'get_modules',
     'clear_cache',
 ]
+
+logger = logging.getLogger(__name__)
 
 
 def get_data_dir(module_name: str) -> str:
@@ -34,6 +38,26 @@ def get_data_dir(module_name: str) -> str:
     data_dir = os.path.join(BIO2BEL_DIR, module_name)
     os.makedirs(data_dir, exist_ok=True)
     return data_dir
+
+
+def prefix_directory_join(prefix: str, *parts: str) -> str:
+    """Join the parts onto the prefix directory."""
+    return os.path.join(get_data_dir(prefix), *parts)
+
+
+def ensure_path(prefix: str, url: str, path: Optional[str] = None) -> str:
+    """Download a file if it doesn't exist."""
+    if path is None:
+        parse_result = urlparse(url)
+        path = os.path.basename(parse_result.path)
+
+    path = prefix_directory_join(prefix, path)
+
+    if not os.path.exists(path):
+        logger.info('downloading %s to %s', url, path)
+        urlretrieve(url, path)
+
+    return path
 
 
 class _AbstractModuleConfig(EasyConfig):
@@ -97,13 +121,13 @@ def get_modules() -> Mapping:
         try:
             modules[entry] = entry_point.load()
         except VersionConflict as exc:
-            log.warning('Version conflict in %s: %s', entry, exc)
+            logger.warning('Version conflict in %s: %s', entry, exc)
             continue
         except UnknownExtra as exc:
-            log.warning('Unknown extra in %s: %s', entry, exc)
+            logger.warning('Unknown extra in %s: %s', entry, exc)
             continue
         except ImportError as exc:
-            log.exception('Issue with importing module %s: %s', entry, exc)
+            logger.exception('Issue with importing module %s: %s', entry, exc)
             continue
 
     return modules
