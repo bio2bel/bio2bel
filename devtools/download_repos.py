@@ -17,6 +17,8 @@ def main():
     )
 
     os.system(f'cd {BIO2BEL_DIRECTORY}; git clone git@github.com:compath/compath-utils.git')
+    os.system(f'cd {BIO2BEL_DIRECTORY}; git clone git@github.com:compath/compath.git')
+    os.system(f'cd {BIO2BEL_DIRECTORY}; git clone git@github.com:compath/compath-hgnc.git')
 
     for name, url in repo_urls:
         repo_directory = os.path.join(BIO2BEL_DIRECTORY, name)
