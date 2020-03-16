@@ -347,6 +347,18 @@ def actions(connection):
         click.echo(f'{action.created} {action.action} {action.resource}')
 
 
+@main.command()
+@click.argument('name')
+def install(name):
+    """Install the Bio2BEL package."""
+    from .automate import ensure_bio2bel_installation
+    installed, m = ensure_bio2bel_installation(name)
+    if installed:
+        click.secho(f'{m.__name__} is already installed', fg='green')
+    else:
+        click.secho(f'{m.__name__} was successfully installed', fg='green')
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     main()
