@@ -10,7 +10,7 @@ from easy_config import EasyConfig
 
 log = logging.getLogger(__name__)
 
-VERSION = '0.3.4-dev'
+VERSION = '0.3.4'
 
 _USER_CONFIG_DIRECTORY = os.path.abspath(os.path.join(os.path.expanduser('~'), '.config'))
 DEFAULT_CONFIG_DIRECTORY = os.path.join(_USER_CONFIG_DIRECTORY, 'bio2bel')
