@@ -18,6 +18,7 @@ from .constants import BIO2BEL_DIR, DEFAULT_CONFIG_DIRECTORY, DEFAULT_CONFIG_PAT
 __all__ = [
     'get_data_dir',
     'prefix_directory_join',
+    'get_url_filename',
     'ensure_path',
     'get_connection',
     'get_version',
@@ -45,11 +46,16 @@ def prefix_directory_join(prefix: str, *parts: str) -> str:
     return os.path.join(get_data_dir(prefix), *parts)
 
 
+def get_url_filename(url: str) -> str:
+    """Get the URL's file name"""
+    parse_result = urlparse(url)
+    return os.path.basename(parse_result.path)
+
+
 def ensure_path(prefix: str, url: str, path: Optional[str] = None) -> str:
     """Download a file if it doesn't exist."""
     if path is None:
-        parse_result = urlparse(url)
-        path = os.path.basename(parse_result.path)
+        path = get_url_filename(url)
 
     path = prefix_directory_join(prefix, path)
 
