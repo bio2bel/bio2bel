@@ -47,7 +47,7 @@ def prefix_directory_join(prefix: str, *parts: str) -> str:
 
 
 def get_url_filename(url: str) -> str:
-    """Get the URL's file name"""
+    """Get the URL's file name."""
     parse_result = urlparse(url)
     return os.path.basename(parse_result.path)
 
