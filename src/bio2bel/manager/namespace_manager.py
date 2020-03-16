@@ -10,6 +10,7 @@ from abc import ABC, abstractmethod
 from typing import Iterable, List, Mapping, Optional, Set, TextIO
 
 import click
+from sqlalchemy.ext.declarative import DeclarativeMeta
 from tqdm import tqdm
 
 from bel_resources import write_annotation, write_namespace
@@ -146,7 +147,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         ...         )
     """
 
-    namespace_model = ...
+    namespace_model: DeclarativeMeta
 
     #: Can be set to False for namespaces that don't have labels
     has_names: bool = True
@@ -161,7 +162,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
     identifiers_url = None
 
     def __init__(self, *args, **kwargs):  # noqa: D107
-        if self.namespace_model is ...:
+        if not hasattr(self, 'namespace_model'):
             raise Bio2BELMissingNamespaceModelError('Class variable `namespace_model` was not defined.')
 
         super().__init__(*args, **kwargs)

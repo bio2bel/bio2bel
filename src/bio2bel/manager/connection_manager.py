@@ -19,7 +19,7 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-class ConnectionManager(object):
+class ConnectionManager:
     """Represents the connection-building aspect of the abstract manager.
 
     Minimally requires the definition of the class-level variable, ``module_name``.
@@ -35,7 +35,7 @@ class ConnectionManager(object):
     """
 
     #: This represents the module name. Needs to be lower case
-    module_name = ...
+    module_name: str
 
     def __init__(self, connection: Optional[str] = None, engine=None, session=None, **kwargs):
         """Build an abstract manager from either a connection or an engine/session.
@@ -69,13 +69,11 @@ class ConnectionManager(object):
 
     @classmethod
     def _assert_module_name(cls):
-        if cls.module_name is ...:
+        if not hasattr(cls, 'module_name'):
             raise Bio2BELMissingNameError('module_name class variable not set on {}'.format(cls.__name__))
-
-        if not isinstance(cls.module_name, str):
+        elif not isinstance(cls.module_name, str):
             raise TypeError('module_name class variable not set as str: {}'.format(cls.__name__))
-
-        if cls.module_name != cls.module_name.lower():
+        elif cls.module_name != cls.module_name.lower():
             raise Bio2BELModuleCaseError('module_name class variable should be lowercase')
 
     @classmethod
@@ -102,15 +100,21 @@ class ConnectionManager(object):
         )
 
 
-def build_engine_session(connection, echo=False, autoflush=None, autocommit=None, expire_on_commit=None,
-                         scopefunc=None):
+def build_engine_session(
+    connection: str,
+    echo: bool = False,
+    autoflush: Optional[bool] = None,
+    autocommit: Optional[bool] = None,
+    expire_on_commit: Optional[bool] = None,
+    scopefunc=None,
+):
     """Build an engine and a session.
 
-    :param str connection: An RFC-1738 database connection string
-    :param bool echo: Turn on echoing SQL
-    :param Optional[bool] autoflush: Defaults to True if not specified in kwargs or configuration.
-    :param Optional[bool] autocommit: Defaults to False if not specified in kwargs or configuration.
-    :param Optional[bool] expire_on_commit: Defaults to False if not specified in kwargs or configuration.
+    :param connection: An RFC-1738 database connection string
+    :param echo: Turn on echoing SQL
+    :param autoflush: Defaults to True if not specified in kwargs or configuration.
+    :param autocommit: Defaults to False if not specified in kwargs or configuration.
+    :param expire_on_commit: Defaults to False if not specified in kwargs or configuration.
     :param scopefunc: Scoped function to pass to :func:`sqlalchemy.orm.scoped_session`
     :rtype: tuple[Engine,Session]
 
@@ -122,9 +126,6 @@ def build_engine_session(connection, echo=False, autoflush=None, autocommit=None
     created and removed with the request/response cycle, and should be fine
     in most cases.
     """
-    if connection is None:
-        raise ValueError('can not build engine when connection is None')
-
     engine = create_engine(connection, echo=echo)
 
     autoflush = autoflush if autoflush is not None else False
@@ -144,7 +145,7 @@ def build_engine_session(connection, echo=False, autoflush=None, autocommit=None
     #: A SQLAlchemy session object
     session = scoped_session(
         session_maker,
-        scopefunc=scopefunc
+        scopefunc=scopefunc,
     )
 
     return engine, session

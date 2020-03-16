@@ -45,7 +45,7 @@ class TestFlask(TemporaryConnectionMethodMixin):
 
     def test_missing_models(self):
         """Test exceptions are thrown properly for an improperly implemented AbstractManager."""
-        self.assertIs(WrongFlaskTestManager.flask_admin_models, ...)
+        self.assertFalse(hasattr(WrongFlaskTestManager, 'flask_admin_models'))
 
         with self.assertRaises(Bio2BELMissingModelsError):
             WrongFlaskTestManager(connection=self.connection)

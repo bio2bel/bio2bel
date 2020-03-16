@@ -4,9 +4,10 @@
 
 import os
 import sys
-from typing import Optional
+from typing import List, Optional, Union
 
 import click
+from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
@@ -63,12 +64,11 @@ class FlaskMixin(ConnectionManager, CliMixin):
     """
 
     #: Represents a list of SQLAlchemy classes to make a Flask-Admin interface.
-    flask_admin_models = ...
+    flask_admin_models: Union[DeclarativeMeta, List[DeclarativeMeta]]
 
     def __init__(self, *args, **kwargs):  # noqa: D107
-        if self.flask_admin_models is ...:
-            raise Bio2BELMissingModelsError(
-                'FlaskMixin necessitates definition of class variable "flask_admin_models".')
+        if not hasattr(self, 'flask_admin_models') or not self.flask_admin_models:
+            raise Bio2BELMissingModelsError('FlaskMixin requires the class variable "flask_admin_models".')
 
         super().__init__(*args, **kwargs)
 
