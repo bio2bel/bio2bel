@@ -45,4 +45,4 @@ Bio2BEL is tested with Python3 on Linux using `Travis CI <https://travis-ci.org/
 from .downloading import make_df_getter, make_downloader  # noqa: F401
 from .manager import abstract_manager  # noqa: F401
 from .manager.abstract_manager import AbstractManager  # noqa: F401
-from .utils import get_data_dir, get_version  # noqa: F401
+from .utils import ensure_path, get_data_dir, get_url_filename, get_version  # noqa: F401
