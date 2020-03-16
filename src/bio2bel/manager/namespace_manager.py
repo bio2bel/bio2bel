@@ -20,12 +20,12 @@ from .connection_manager import ConnectionManager
 from ..constants import directory_option
 from ..utils import get_namespace_hash
 
-log = logging.getLogger(__name__)
-
 __all__ = [
     'Bio2BELMissingNamespaceModelError',
     'BELNamespaceManagerMixin',
 ]
+
+logger = logging.getLogger(__name__)
 
 
 class Bio2BELMissingNamespaceModelError(TypeError):
@@ -252,9 +252,9 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         self.session.add_all(entries)
 
         t = time.time()
-        log.info('committing models')
+        logger.info('committing models')
         self.session.commit()
-        log.info('committed models in %.2f seconds', time.time() - t)
+        logger.info('committed models in %.2f seconds', time.time() - t)
 
         return namespace
 
@@ -290,9 +290,9 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             self.session.add(entry)
 
         t = time.time()
-        log.info('got %d new entries. skipped %d entries missing names. committing models', new_count, skip_count)
+        logger.info('got %d new entries. skipped %d entries missing names. committing models', new_count, skip_count)
         self.session.commit()
-        log.info('committed models in %.2f seconds', time.time() - t)
+        logger.info('committed models in %.2f seconds', time.time() - t)
 
     def add_namespace_to_graph(self, graph: BELGraph) -> Namespace:
         """Add this manager's namespace to the graph."""
@@ -322,7 +322,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         namespace = self._get_default_namespace()
 
         if namespace is None:
-            log.info('making namespace for %s', self._get_namespace_name())
+            logger.info('making namespace for %s', self._get_namespace_name())
             return self._make_namespace()
 
         if update:
@@ -339,7 +339,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
                 self.session.delete(entry)
             self.session.delete(namespace)
 
-            log.info('committing deletions')
+            logger.info('committing deletions')
             self.session.commit()
             return namespace
 

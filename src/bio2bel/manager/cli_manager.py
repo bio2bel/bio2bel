@@ -26,11 +26,10 @@ class CliMixin:
         :param Type[AbstractManager] cls: A Manager class
         :return: The main function for click
         """
-        group_help = 'Default connection at {}\n\nusing Bio2BEL v{}'.format(cls._get_connection(), get_version())
+        group_help = f'Default connection at {cls._get_connection()}\n\nusing Bio2BEL v{get_version()}'
 
         @click.group(help=group_help)
-        @click.option('-c', '--connection', default=cls._get_connection(),
-                      help='Defaults to {}'.format(cls._get_connection()))
+        @click.option('-c', '--connection', default=cls._get_connection(), show_default=True)
         @click.pass_context
         def main(ctx, connection):
             """Bio2BEL CLI."""

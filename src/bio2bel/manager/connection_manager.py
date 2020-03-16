@@ -12,11 +12,11 @@ from ..exc import Bio2BELMissingNameError, Bio2BELModuleCaseError
 from ..models import Action, create_all
 from ..utils import get_connection
 
-log = logging.getLogger(__name__)
-
 __all__ = [
     'ConnectionManager',
 ]
+
+logger = logging.getLogger(__name__)
 
 
 class ConnectionManager(object):
@@ -131,7 +131,7 @@ def build_engine_session(connection, echo=False, autoflush=None, autocommit=None
     autocommit = autocommit if autocommit is not None else False
     expire_on_commit = expire_on_commit if expire_on_commit is not None else True
 
-    log.debug('auto flush: %s, auto commit: %s, expire on commmit: %s', autoflush, autocommit, expire_on_commit)
+    logger.debug('auto flush: %s, auto commit: %s, expire on commmit: %s', autoflush, autocommit, expire_on_commit)
 
     #: A SQLAlchemy session maker
     session_maker = sessionmaker(

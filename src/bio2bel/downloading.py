@@ -35,7 +35,7 @@ def make_downloader(url: str, path: str) -> Callable[[bool], str]:  # noqa: D202
         :param force_download: If true, overwrites a previously cached file
         """
         if os.path.exists(path) and not force_download:
-            logger.info('using cached data at %s', path)
+            logger.debug('using cached data at %s', path)
         else:
             logger.info('downloading %s to %s', url, path)
             urlretrieve(url, path)
