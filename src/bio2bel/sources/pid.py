@@ -3,17 +3,18 @@
 """PID Importer."""
 
 import logging
+from itertools import product
 from typing import Iterable, Tuple
 
 import ndex2
-from itertools import product
+from protmapper.uniprot_client import get_gene_name
+from pyobo import get_id_name_mapping, get_name_id_mapping
 from tqdm import tqdm
 
 import pybel
 import pybel.dsl
-from bio2bel import get_data_dir
 from pybel import BELGraph
-from pyobo import get_id_name_mapping, get_name_id_mapping
+from ..utils import get_data_dir
 
 logger = logging.getLogger(__name__)
 
@@ -39,12 +40,19 @@ namespace_to_dsl = {
     'hgnc': pybel.dsl.Protein,
 }
 
+UNMAPPED = set()
+
+MAPPING = {
+    'RAS Family': pybel.dsl.Protein('fplx', 'RAS'),
+    'Cyclin D': pybel.dsl.Protein('fplx', 'Cyclin_D'),
+    'Gi family': pybel.dsl.Protein('fplx', 'G_i'),
+}
+
 
 def iterate_graphs() -> Iterable[Tuple[str, BELGraph]]:
     """List network uuids."""
     res = client.get_network_set(NETWORKSET_UUID)
     network_uuids = res['networks']
-    rv = {}
     for network_uuid in tqdm(network_uuids, desc='networks'):
         # from pprint import pprint
         # r = client.get_network_as_cx_stream(network_uuid)
@@ -96,6 +104,10 @@ def get_graph_from_uuid(network_uuid: str) -> BELGraph:  # noqa: C901
     # nodes = tqdm(nodes, desc='nodes', leave=False)
     for node in nodes:
         node_id = node['@id']
+        reference = node['r']
+        if reference in MAPPING:
+            id_to_dsl[node_id] = [MAPPING[reference]]
+            continue
         if node_id in id_to_members:
             node_type = id_to_type[node_id]
             members = id_to_members[node_id]
@@ -114,12 +126,12 @@ def get_graph_from_uuid(network_uuid: str) -> BELGraph:  # noqa: C901
                     continue
                 _rv.append(pybel.dsl.Protein(namespace='hgnc', identifier=member_identifier, name=member_name))
             id_to_dsl[node_id] = _rv
-
-        reference = node['r']
+            continue
         if ':' not in reference:
             logger.warning(f'no curie: {node_id} {reference}')
+            UNMAPPED.add(reference)
             continue
-        prefix, member_identifier = reference.split(':')
+        prefix, identifier = reference.split(':')
         if prefix == 'hprd':
             # nodes.write(f'unhandled hprd:{identifier}')
             continue
@@ -127,21 +139,22 @@ def get_graph_from_uuid(network_uuid: str) -> BELGraph:  # noqa: C901
             # nodes.write(f'unhandled cas:{identifier}')
             continue  # not sure what to do with this
         elif prefix == 'CHEBI':
-            prefix = 'chebi'
-            member_name = chebi_id_to_name[member_identifier]
+            name = chebi_id_to_name[identifier]
+            id_to_dsl[node_id] = [pybel.dsl.Abundance(namespace='chebi', identifier=identifier, name=name)]
         elif prefix == 'uniprot':
-            member_name = node['n']
-            member_identifier = hgnc_name_to_id.get(member_name)
-            if member_identifier is None:
-                logger.warning(f'could not map HGNC symbol {member_name}')
+            name = node['n']
+            if name not in hgnc_name_to_id:
+                name = get_gene_name(identifier)
+                if name is None:
+                    logger.warning('could not map uniprot to name')
+            identifier = hgnc_name_to_id.get(name)
+            if identifier is None:
+                logger.warning(f'could not map HGNC symbol {name}')
                 continue
-            prefix = 'hgnc'
+            id_to_dsl[node_id] = [pybel.dsl.Protein(namespace='hgnc', identifier=identifier, name=name)]
         else:
             logger.warning(f'unexpected prefix: {prefix}')
             continue
-
-        dsl = namespace_to_dsl[prefix]
-        id_to_dsl[node_id] = [dsl(namespace=prefix, identifier=member_identifier, name=member_name)]
 
     res = client.get_network_aspect_as_cx_stream(network_uuid, 'edges')
     edges = res.json()
@@ -200,6 +213,9 @@ def main():
     os.makedirs(directory, exist_ok=True)
     for network_uuid, graph in iterate_graphs():
         pybel.to_nodelink_file(graph, os.path.join(directory, f'{network_uuid}.bel.nodelink.json'), indent=2)
+    with open(os.path.join(directory, 'UNMAPPED.txt'), 'w') as file:
+        for unmapped in sorted(UNMAPPED):
+            print(unmapped, file=file)
 
 
 if __name__ == '__main__':
