@@ -358,10 +358,11 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
             if pathway.proteins
         }
 
-    def get_pathway_size_distribution(self) -> Mapping[str, Tuple[str, int]]:
+    def get_pathway_size_distribution(self, use_tqdm: bool = False) -> Mapping[str, Tuple[str, int]]:
         """Return pathway sizes."""
         pathways = self.get_all_pathways()
-
+        if use_tqdm:
+            pathways = tqdm(pathways)
         return {
             pathway.identifier: (pathway.name, len(pathway.proteins))
             for pathway in pathways
