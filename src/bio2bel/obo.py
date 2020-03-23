@@ -10,6 +10,7 @@ from typing import Callable, Optional, TextIO
 import click
 import obonet
 from networkx import MultiDiGraph, read_gpickle, write_gpickle
+from pyobo import get_obo_graph
 
 from bel_resources.obo import convert_obo_graph_to_belanno, convert_obo_graph_to_belns
 from pybel.constants import BELNS_ENCODING_STR
@@ -77,25 +78,11 @@ directory_option = click.option(
 
 @main.command()
 @click.argument('keyword')
-@click.option('--foundry', is_flag=True)
-@click.option('--url')
 @directory_option
 @click.option('-e', '--encoding', default=BELNS_ENCODING_STR, show_default=True)
-def belns(keyword: str, foundry: bool, url: str, directory: str, encoding: Optional[str]):
+def belns(keyword: str, directory: str, encoding: Optional[str]):
     """Write as a BEL namespace."""
-    if (not foundry and not url) or (foundry and url):
-        click.secho('Exactly one of --foundry or --url must be set')
-
-    if foundry:
-        url = f'http://purl.obolibrary.org/obo/{keyword}.obo'
-
-    _data_dir = get_data_dir(keyword)
-    obo_path = os.path.join(_data_dir, f'{keyword}.obo')
-    obo_cache_path = os.path.join(_data_dir, f'{keyword}.obo.pickle')
-
-    obo_getter = make_obo_getter(url, obo_path, preparsed_path=obo_cache_path)
-    graph = obo_getter()
-    graph.graph['ontology'] = keyword
+    graph = get_obo_graph(keyword)
 
     items = {}
     mapping = {}
