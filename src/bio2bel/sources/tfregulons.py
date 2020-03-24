@@ -28,7 +28,7 @@ def get_df() -> pd.DataFrame:
     df.rename(
         columns={
             'pubmedID_from_curated_resources': 'pmids',
-            'tf': 'tf_hgnc_symbol',
+            'TF': 'tf_hgnc_symbol',
             'target': 'target_hgnc_symbol',
         },
         inplace=True,
@@ -36,8 +36,8 @@ def get_df() -> pd.DataFrame:
     df = df[df['score'].isin(set('ABC'))]  # there are also D and E
 
     hgnc_name_to_id = get_name_id_mapping('hgnc')
-    df['tf_hgnc_id'] = df['TF'].map(hgnc_name_to_id.get)
-    df['target_hgnc_id'] = df['target'].map(hgnc_name_to_id.get)
+    df['tf_hgnc_id'] = df['tf_hgnc_symbol'].map(hgnc_name_to_id.get)
+    df['target_hgnc_id'] = df['target_hgnc_symbol'].map(hgnc_name_to_id.get)
 
     return df
 
