@@ -2,6 +2,7 @@
 
 """Exporter for TFregulons."""
 
+import logging
 from typing import Set
 
 import pandas as pd
@@ -10,6 +11,8 @@ from pyobo import get_name_id_mapping
 import pybel.dsl
 from pybel import BELGraph
 from .. import ensure_path
+
+logger = logging.getLogger(__name__)
 
 MODULE = 'tfregulons'
 VERSION = '20180915'
@@ -38,6 +41,16 @@ def get_df() -> pd.DataFrame:
     hgnc_name_to_id = get_name_id_mapping('hgnc')
     df['tf_hgnc_id'] = df['tf_hgnc_symbol'].map(hgnc_name_to_id.get)
     df['target_hgnc_id'] = df['target_hgnc_symbol'].map(hgnc_name_to_id.get)
+
+    tf_missing_id = df['tf_hgnc_id'].isna()
+    if tf_missing_id.any():
+        logger.warning(f'missing HGNC id for {tf_missing_id.sum()} transcription factors')
+        df = df[~tf_missing_id]
+
+    target_missing_id = df['target_hgnc_id'].isna()
+    if target_missing_id.any():
+        logger.warning(f'missing HGNC id for {target_missing_id.sum()} targets')
+        df = df[~target_missing_id]
 
     return df
 
