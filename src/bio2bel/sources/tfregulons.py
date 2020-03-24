@@ -94,6 +94,10 @@ def _get_df() -> pd.DataFrame:
 
 def _add_rows(df: pd.DataFrame, graph: BELGraph) -> None:
     for _, row in df.iterrows():
+        effect = row['effect']
+        if effect == 0:
+            continue  # no binding. Could add negative BEL later
+
         tf_protein = pybel.dsl.Protein(
             namespace='hgnc',
             identifier=row['tf_hgnc_id'],
@@ -120,19 +124,21 @@ def _add_rows(df: pd.DataFrame, graph: BELGraph) -> None:
                 citation=citation,
                 evidence=evidence,
             )
-            graph.add_directly_increases(
+
+            if effect == 1:
+                binds_dna_adder, affects_expression_adder = graph.add_directly_increases, graph.add_increases
+            else:
+                binds_dna_adder, affects_expression_adder = graph.add_directly_decreases, graph.add_decreases
+            binds_dna_adder(
                 pybel.dsl.ComplexAbundance([tf_protein, target_gene]),
                 target_rna,
                 citation=citation,
                 evidence=evidence,
             )
-            graph.add_increases(
+            affects_expression_adder(
                 tf_protein,
                 target_rna,
                 citation=citation,
                 evidence=evidence,
             )
-
-
-if __name__ == '__main__':
-    get_df().to_csv('/Users/cthoyt/Desktop/dorothea.tsv', sep='\t', index=False)
+            graph.add_transcription(target_gene, target_rna)
