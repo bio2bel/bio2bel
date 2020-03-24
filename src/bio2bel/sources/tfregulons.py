@@ -44,12 +44,14 @@ def get_df() -> pd.DataFrame:
 
     tf_missing_id = df['tf_hgnc_id'].isna()
     if tf_missing_id.any():
-        logger.warning(f'missing HGNC id for {tf_missing_id.sum()} transcription factors')
+        missing_tf_symbols = df.loc[tf_missing_id, 'tf_hgnc_symbol'].unique()
+        logger.warning(f'missing HGNC id for {len(missing_tf_symbols)} transcription factors')
         df = df[~tf_missing_id]
 
     target_missing_id = df['target_hgnc_id'].isna()
     if target_missing_id.any():
-        logger.warning(f'missing HGNC id for {target_missing_id.sum()} targets')
+        missing_target_symbols = df.loc[target_missing_id, 'target_hgnc_symbol'].unique()
+        logger.warning(f'missing HGNC id for {len(missing_target_symbols)} targets')
         df = df[~target_missing_id]
 
     return df
