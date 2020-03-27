@@ -15,16 +15,11 @@ from .manager import AbstractManager
 from .manager.bel_manager import BELManagerMixin
 from .manager.namespace_manager import BELNamespaceManagerMixin
 from .models import Action, _make_session
-from .utils import clear_cache, get_modules, get_version
+from .utils import clear_cache, get_bio2bel_manager_classes, get_version
 
 logger = logging.getLogger(__name__)
 
-MODULES = get_modules()
-MANAGERS = {
-    name: module.Manager
-    for name, module in MODULES.items()
-    if hasattr(module, 'Manager')
-}
+MANAGERS = get_bio2bel_manager_classes()
 
 connection_option = click.option(
     '-c',
@@ -126,7 +121,7 @@ def cache():
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 def clear(skip):
     """Clear all caches."""
-    for name in sorted(MODULES):
+    for name in sorted(MANAGERS):
         if name in skip:
             continue
         click.secho(f'clearing cache for {name}', fg='cyan', bold=True)
