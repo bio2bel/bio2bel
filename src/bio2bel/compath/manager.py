@@ -1,156 +1,38 @@
 # -*- coding: utf-8 -*-
 
-"""ComPath is a project for using gene-centric (and later other types of entities) to compare pathway knowledge.
-
-This package provides guidelines, tutorials, and tools for making standardized ``compath`` packages as well as a
-unifying framework for integrating them.
-
-Installation
-------------
-Easiest
-~~~~~~~
-Download the latest stable code from `PyPI <https://pypi.org/compath_utils>`_ with:
-
-.. code-block:: sh
-
-   $ python3 -m pip install compath-utils
-
-Get the Latest
-~~~~~~~~~~~~~~~
-Download the most recent code from `GitHub <https://github.com/compath/compath_utils>`_ with:
-
-.. code-block:: sh
-
-   $ python3 -m pip install git+https://github.com/compath/compath_utils.git
-
-For Developers
-~~~~~~~~~~~~~~
-Clone the repository from `GitHub <https://github.com/compath/compath_utils>`_ and install in editable mode with:
-
-.. code-block:: sh
-
-   $ git clone https://github.com/compath/compath_utils.git
-   $ cd compath_utils
-   $ python3 -m pip install -e .
-
-Testing
--------
-ComPath Utils is tested with Python3 on Linux using `Travis CI <https://travis-ci.org/compath/compath_utils>`_.
-"""
+"""Manager for ComPath."""
 
 from __future__ import annotations
 
 import itertools as itt
 import logging
 import os
-from abc import abstractmethod
+import types
 from collections import Counter
-from typing import ClassVar, Collection, Iterable, List, Mapping, Optional, Set, Tuple, Type
+from typing import Iterable, List, Mapping, Optional, Set, Tuple, Type
 
 import click
-import pandas as pd
-from sqlalchemy import Column
+from sqlalchemy import func
 from tqdm import tqdm
 
-import pybel.dsl
 from pybel import BELGraph
 from pybel.manager.models import Namespace, NamespaceEntry
-from .abstract_manager import AbstractManager
-from .bel_manager import BELManagerMixin
-from .flask_manager import FlaskMixin
-from .models import SpeciesMixin
-from .namespace_manager import BELNamespaceManagerMixin
+from pyobo.io_utils import multidict
+from .exc import CompathManagerPathwayModelError, CompathManagerProteinModelError
+from .mixins import CompathPathwayMixin, CompathProteinMixin
+from .utils import write_dict
+from ..manager.abstract_manager import AbstractManager
+from ..manager.bel_manager import BELManagerMixin
+from ..manager.flask_manager import FlaskMixin
+from ..manager.namespace_manager import BELNamespaceManagerMixin
+from ..utils import _get_managers, _get_modules
 
 __all__ = [
     'CompathManager',
-    'CompathPathwayMixin',
-    'CompathProteinMixin',
+    'get_compath_manager_classes',
 ]
 
 logger = logging.getLogger(__name__)
-
-
-class CompathManagerTypeError(TypeError):
-    """Raised when trying to instantiate an improperly implemented ComPath manager."""
-
-
-class CompathManagerPathwayModelError(CompathManagerTypeError):
-    """Raised when missing an appropriate pathway_model class variable."""
-
-
-class CompathManagerPathwayIdentifierError(CompathManagerTypeError):
-    """Raised when missing an appropriate pathway_model_standard_identifer class variable."""
-
-
-class CompathManagerProteinModelError(CompathManagerTypeError):
-    """Raised when missing an appropriate protein_model class variable."""
-
-
-class CompathPathwayMixin:
-    """This is the abstract class that the Pathway model in a ComPath repository should extend."""
-
-    #: The database (Identifiers.org) prefix for this pathway
-    prefix: str
-    #: The local unique identifier for this pathway
-    identifier: ClassVar[Column]
-    #: The preferred label for this pathway
-    name: ClassVar[Column]
-    #: The proteins that this pathway is connected to
-    proteins: List[CompathProteinMixin]
-    #: The species for which the pathway is relevant
-    species: SpeciesMixin
-
-    def get_gene_set(self) -> Set[str]:
-        """Return the set of HGNC gene symbols of human genes associated with the pathway (gene set)."""
-        return {
-            protein.hgnc_symbol
-            for protein in self.proteins
-            if protein.hgnc_symbol
-        }
-
-    @property
-    def url(self) -> str:
-        """Return the URL to the resource, usually based in the identifier for this pathway."""
-        return f'https://identifiers.org/{self.prefix}:{self.identifier}'
-
-    def to_pybel(self) -> pybel.dsl.BiologicalProcess:
-        """Serialize this pathway to a PyBEL node."""
-        return pybel.dsl.BiologicalProcess(
-            namespace=self.prefix,
-            name=self.name,
-            identifier=self.identifier,
-        )
-
-    def add_to_bel_graph(self, graph: pybel.BELGraph) -> Set[str]:
-        """Add the pathway to a BEL graph."""
-        pathway_node = self.to_pybel()
-        return {
-            graph.add_part_of(protein.to_pybel(), pathway_node)
-            for protein in self.proteins
-        }
-
-    def __repr__(self) -> str:
-        return f'{self.prefix}:{self.identifier} ! {self.name}'
-
-
-class CompathProteinMixin:
-    """This is an abstract class that the Protein model in a ComPath repository should extend."""
-
-    hgnc_id: ClassVar[Column]
-    hgnc_symbol: ClassVar[Column]
-    pathways: List[CompathPathwayMixin]
-
-    def get_pathways_ids(self) -> Set[str]:
-        """Get the identifiers of the pathways associated with this protein."""
-        return {
-            pathway.identifier
-            for pathway in self.pathways
-        }
-
-    @abstractmethod
-    def to_pybel(self) -> pybel.dsl.Protein:
-        """Serialize this protein to a PyBEL node."""
-        raise NotImplementedError
 
 
 class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin, FlaskMixin):
@@ -358,16 +240,43 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
             if pathway.proteins
         }
 
-    def get_pathway_size_distribution(self, use_tqdm: bool = False) -> Mapping[str, Tuple[str, int]]:
+    def get_pathway_id_to_symbols(self) -> Mapping[str, Set[str]]:
+        """Return the set of genes in each pathway"""
+        return self._help_get_pathway_to_protein(self.pathway_model.identifier, self.protein_model.hgnc_symbol)
+
+    def get_pathway_id_to_hgnc_ids(self) -> Mapping[str, Set[str]]:
+        """Return the set of genes in each pathway"""
+        return self._help_get_pathway_to_protein(self.pathway_model.identifier, self.protein_model.hgnc_id)
+
+    def get_pathway_name_to_symbols(self) -> Mapping[str, Set[str]]:
+        """Return the set of genes in each pathway"""
+        return self._help_get_pathway_to_protein(self.pathway_model.name, self.protein_model.hgnc_symbol)
+
+    def get_pathway_name_to_hgnc_ids(self) -> Mapping[str, Set[str]]:
+        """Return the set of genes in each pathway"""
+        return self._help_get_pathway_to_protein(self.pathway_model.name, self.protein_model.hgnc_id)
+
+    def _help_get_pathway_to_protein(self, pathway_column, protein_column) -> Mapping[str, Set[str]]:
+        """Return the set of genes in each pathway"""
+        rv = multidict(
+            self.session
+                .query(pathway_column, protein_column)
+                .join(self.pathway_model.proteins)
+                .filter(protein_column.isnot(None))
+                .all()
+        )
+        return {k: set(v) for k, v in rv.items()}
+
+    def get_pathway_size_distribution(self) -> Mapping[str, int]:
         """Return pathway sizes."""
-        pathways = self.get_all_pathways()
-        if use_tqdm:
-            pathways = tqdm(pathways)
-        return {
-            pathway.identifier: (pathway.name, len(pathway.proteins))
-            for pathway in pathways
-            if pathway.proteins
-        }
+        return dict(
+            self.session
+                .query(self.pathway_model.identifier, func.count(self.protein_model.hgnc_id))
+                .join(self.pathway_model.proteins)
+                .group_by(self.pathway_model.identifier)
+                .having(func.count(self.protein_model.hgnc_id) > 0)
+                .all()
+        )
 
     def query_pathway_by_name(self, query: str, limit: Optional[int] = None) -> List[CompathPathwayMixin]:
         """Return all pathways having the query in their names.
@@ -382,31 +291,12 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
 
         return q.all()
 
-    def export_gene_sets(self, use_tqdm: bool = True) -> Mapping[str, Set[str]]:
-        """Return the pathway - genesets mapping."""
-        it = self._query_pathway().all()
-        if use_tqdm:
-            it = tqdm(it, total=self._query_pathway().count())
-        return {
-            pathway.name: {
-                protein.hgnc_symbol
-                for protein in pathway.proteins
-                if protein.hgnc_symbol
-            }
-            for pathway in it
-        }
-
     def get_gene_distribution(self) -> Counter:
-        """Return the proteins in the database within the gene set query.
-
-        :return: pathway sizes
-        """
+        """Return the proteins in the database within the gene set query."""
         return Counter(
-            protein.hgnc_symbol
-            for pathway in self.get_all_pathways()
-            if pathway.proteins
-            for protein in pathway.proteins
-            if protein.hgnc_symbol
+            hgnc_symbol
+            for pathway_id, hgnc_symbols in self.get_pathway_name_to_symbols()
+            for hgnc_symbol in hgnc_symbols
         )
 
     def _create_namespace_entry_from_model(self, model: CompathPathwayMixin, namespace: Namespace) -> NamespaceEntry:
@@ -425,7 +315,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         def export_gene_sets(manager: CompathManager, directory: str, fmt: str):
             """Export all pathway - gene info to a excel file."""
             # https://stackoverflow.com/questions/19736080/creating-dataframe-from-a-dictionary-where-entries-have-different-lengths
-            gene_sets_dict = manager.export_gene_sets()
+            gene_sets_dict = manager.get_pathway_name_to_symbols()
 
             path = os.path.join(directory, f'{manager.module_name}_gene_sets.{fmt}')
             if fmt == 'xlsx' or format is None:
@@ -471,17 +361,11 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         return graph
 
 
-def write_dict(data: Mapping[str, Collection[str]], path: str) -> None:
-    """Write a dictionary to a file as an Excel document."""
-    gene_sets_df = dict_to_df(data)
-    logger.info("Exporting gene sets to %s", path)
-    gene_sets_df.to_excel(path, index=False)
-    logger.info("Exported gene sets to %s", path)
+def get_compath_modules() -> Mapping[str, types.ModuleType]:
+    """Get all ComPath modules."""
+    return dict(_get_modules('compath'))
 
 
-def dict_to_df(data: Mapping[str, Collection[str]]) -> pd.DataFrame:
-    """Convert a dictionary to a DataFrame."""
-    return pd.DataFrame({
-        key: pd.Series(list(values))
-        for key, values in data.items()
-    })
+def get_compath_manager_classes() -> Mapping[str, Type[CompathManager]]:
+    """Get all ComPath manager classes."""
+    return dict(_get_managers('compath'))

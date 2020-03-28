@@ -6,7 +6,8 @@ import hashlib
 import logging
 import os
 import shutil
-from typing import Mapping, Optional, Type
+import types
+from typing import Iterable, Mapping, Optional, Tuple, Type
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
 
@@ -22,7 +23,8 @@ __all__ = [
     'ensure_path',
     'get_connection',
     'get_version',
-    'get_modules',
+    'get_bio2bel_modules',
+    'get_bio2bel_manager_classes',
     'clear_cache',
 ]
 
@@ -117,15 +119,29 @@ def get_version() -> str:
     return VERSION
 
 
-def get_modules() -> Mapping:
-    """Get all Bio2BEL modules."""
-    modules = {}
+def get_bio2bel_manager_classes() -> Mapping[str, Type['bio2bel.manager.AbstractManager']]:
+    """Get all Bio2BEL manager classes."""
+    return dict(_get_managers('bio2bel'))
 
-    for entry_point in iter_entry_points(group='bio2bel', name=None):
+
+def get_bio2bel_modules() -> Mapping[str, types.ModuleType]:
+    """Get all Bio2BEL modules."""
+    return dict(_get_modules('bio2bel'))
+
+
+def _get_managers(group):
+    for name, module in _get_modules(group):
+        if hasattr(module, 'Manager'):
+            yield name, module.Manager
+
+
+def _get_modules(group) -> Iterable[Tuple[str, types.ModuleType]]:
+    """Get all modules."""
+    for entry_point in iter_entry_points(group=group, name=None):
         entry = entry_point.name
 
         try:
-            modules[entry] = entry_point.load()
+            yield entry, entry_point.load()
         except VersionConflict as exc:
             logger.warning('Version conflict in %s: %s', entry, exc)
             continue
@@ -135,8 +151,6 @@ def get_modules() -> Mapping:
         except ImportError as exc:
             logger.exception('Issue with importing module %s: %s', entry, exc)
             continue
-
-    return modules
 
 
 def clear_cache(module_name: str, keep_database: bool = True) -> None:
