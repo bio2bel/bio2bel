@@ -17,6 +17,7 @@ from tqdm import tqdm
 
 from pybel import BELGraph
 from pybel.manager.models import Namespace, NamespaceEntry
+from pyobo.io_utils import multidict
 from .exc import CompathManagerPathwayModelError, CompathManagerProteinModelError
 from .mixins import CompathPathwayMixin, CompathProteinMixin
 from .utils import write_dict
@@ -239,6 +240,33 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
             if pathway.proteins
         }
 
+    def get_pathway_id_to_symbols(self) -> Mapping[str, Set[str]]:
+        """Return the set of genes in each pathway"""
+        return self._help_get_pathway_to_protein(self.pathway_model.identifier, self.protein_model.hgnc_symbol)
+
+    def get_pathway_id_to_hgnc_ids(self) -> Mapping[str, Set[str]]:
+        """Return the set of genes in each pathway"""
+        return self._help_get_pathway_to_protein(self.pathway_model.identifier, self.protein_model.hgnc_id)
+
+    def get_pathway_name_to_symbols(self) -> Mapping[str, Set[str]]:
+        """Return the set of genes in each pathway"""
+        return self._help_get_pathway_to_protein(self.pathway_model.name, self.protein_model.hgnc_symbol)
+
+    def get_pathway_name_to_hgnc_ids(self) -> Mapping[str, Set[str]]:
+        """Return the set of genes in each pathway"""
+        return self._help_get_pathway_to_protein(self.pathway_model.name, self.protein_model.hgnc_id)
+
+    def _help_get_pathway_to_protein(self, pathway_column, protein_column) -> Mapping[str, Set[str]]:
+        """Return the set of genes in each pathway"""
+        rv = multidict(
+            self.session
+                .query(pathway_column, protein_column)
+                .join(self.pathway_model.proteins)
+                .filter(protein_column.isnot(None))
+                .all()
+        )
+        return {k: set(v) for k, v in rv.items()}
+
     def get_pathway_size_distribution(self) -> Mapping[str, int]:
         """Return pathway sizes."""
         return dict(
@@ -263,31 +291,12 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
 
         return q.all()
 
-    def export_gene_sets(self, use_tqdm: bool = True) -> Mapping[str, Set[str]]:
-        """Return the pathway - genesets mapping."""
-        it = self._query_pathway().all()
-        if use_tqdm:
-            it = tqdm(it, total=self._query_pathway().count())
-        return {
-            pathway.name: {
-                protein.hgnc_symbol
-                for protein in pathway.proteins
-                if protein.hgnc_symbol
-            }
-            for pathway in it
-        }
-
     def get_gene_distribution(self) -> Counter:
-        """Return the proteins in the database within the gene set query.
-
-        :return: pathway sizes
-        """
+        """Return the proteins in the database within the gene set query."""
         return Counter(
-            protein.hgnc_symbol
-            for pathway in self.get_all_pathways()
-            if pathway.proteins
-            for protein in pathway.proteins
-            if protein.hgnc_symbol
+            hgnc_symbol
+            for pathway_id, hgnc_symbols in self.get_pathway_name_to_symbols()
+            for hgnc_symbol in hgnc_symbols
         )
 
     def _create_namespace_entry_from_model(self, model: CompathPathwayMixin, namespace: Namespace) -> NamespaceEntry:
@@ -306,7 +315,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         def export_gene_sets(manager: CompathManager, directory: str, fmt: str):
             """Export all pathway - gene info to a excel file."""
             # https://stackoverflow.com/questions/19736080/creating-dataframe-from-a-dictionary-where-entries-have-different-lengths
-            gene_sets_dict = manager.export_gene_sets()
+            gene_sets_dict = manager.get_pathway_name_to_symbols()
 
             path = os.path.join(directory, f'{manager.module_name}_gene_sets.{fmt}')
             if fmt == 'xlsx' or format is None:
