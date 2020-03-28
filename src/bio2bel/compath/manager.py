@@ -12,6 +12,7 @@ from collections import Counter
 from typing import Iterable, List, Mapping, Optional, Set, Tuple, Type
 
 import click
+from sqlalchemy import func
 from tqdm import tqdm
 
 from pybel import BELGraph
@@ -238,16 +239,16 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
             if pathway.proteins
         }
 
-    def get_pathway_size_distribution(self, use_tqdm: bool = False) -> Mapping[str, int]:
+    def get_pathway_size_distribution(self) -> Mapping[str, int]:
         """Return pathway sizes."""
-        pathways = self.get_all_pathways()
-        if use_tqdm:
-            pathways = tqdm(pathways)
-        return {
-            pathway.identifier: len(pathway.proteins)
-            for pathway in pathways
-            if pathway.proteins
-        }
+        return dict(
+            self.session
+                .query(self.pathway_model.identifier, func.count(self.protein_model.hgnc_id))
+                .join(self.pathway_model.proteins)
+                .group_by(self.pathway_model.identifier)
+                .having(func.count(self.protein_model.hgnc_id) > 0)
+                .all()
+        )
 
     def query_pathway_by_name(self, query: str, limit: Optional[int] = None) -> List[CompathPathwayMixin]:
         """Return all pathways having the query in their names.
