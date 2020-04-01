@@ -7,17 +7,18 @@ import os
 import sys
 from abc import ABCMeta, abstractmethod
 from functools import wraps
-from typing import List, Mapping
+from typing import List, Mapping, Type
 
 import click
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
 
 from .cli_manager import CliMixin
 from .connection_manager import ConnectionManager
-from ..utils import clear_cache, get_data_dir
+from ..utils import _get_managers, clear_cache, get_data_dir
 
 __all__ = [
     'AbstractManager',
+    'get_bio2bel_manager_classes',
 ]
 
 log = logging.getLogger(__name__)
@@ -383,3 +384,8 @@ def add_cli_summarize(main: click.Group) -> click.Group:  # noqa: D202
             click.echo(f'{name.capitalize()}: {count}')
 
     return main
+
+
+def get_bio2bel_manager_classes() -> Mapping[str, Type[AbstractManager]]:
+    """Get all Bio2BEL manager classes."""
+    return dict(_get_managers('bio2bel'))

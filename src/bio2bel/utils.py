@@ -24,7 +24,6 @@ __all__ = [
     'get_connection',
     'get_version',
     'get_bio2bel_modules',
-    'get_bio2bel_manager_classes',
     'clear_cache',
 ]
 
@@ -117,11 +116,6 @@ def get_connection(module_name: str, connection: Optional[str] = None) -> str:
 def get_version() -> str:
     """Get the software version of Bio2BEL."""
     return VERSION
-
-
-def get_bio2bel_manager_classes() -> Mapping[str, Type['bio2bel.manager.AbstractManager']]:
-    """Get all Bio2BEL manager classes."""
-    return dict(_get_managers('bio2bel'))
 
 
 def get_bio2bel_modules() -> Mapping[str, types.ModuleType]:

@@ -26,10 +26,10 @@ ignore =
 
 # flake8-import-order
 application-import-names =
-	bio2bel
+    bio2bel
     pybel
     bel_resources
-	tests
+    tests
 import-order-style = pycharm
 
 max-line-length = 120
