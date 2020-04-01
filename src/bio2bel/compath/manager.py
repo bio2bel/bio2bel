@@ -12,12 +12,11 @@ from collections import Counter
 from typing import Iterable, List, Mapping, Optional, Set, Tuple, Type
 
 import click
+from pyobo.io_utils import multidict
 from sqlalchemy import func
-from tqdm import tqdm
 
 from pybel import BELGraph
 from pybel.manager.models import Namespace, NamespaceEntry
-from pyobo.io_utils import multidict
 from .exc import CompathManagerPathwayModelError, CompathManagerProteinModelError
 from .mixins import CompathPathwayMixin, CompathProteinMixin
 from .utils import write_dict
@@ -58,8 +57,8 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         if not hasattr(self, 'namespace_model') or not self.namespace_model:
             self.namespace_model = self.pathway_model
 
-        if not hasattr(self,
-                       'flask_admin_models') or not self.flask_admin_models:  # set flask models if not already set
+        # set flask models if not already set
+        if not hasattr(self, 'flask_admin_models') or not self.flask_admin_models:
             self.flask_admin_models = [self.pathway_model, self.protein_model]
 
         super().__init__(*args, **kwargs)
@@ -118,12 +117,12 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         :param hgnc_symbol: hgnc_symbol to query
         :param top: return only X entries
         """
-        similar_genes = self._query_protein().filter(self.protein_model.hgnc_symbol.contains(hgnc_symbol)).all()
+        query = self._query_protein().filter(self.protein_model.hgnc_symbol.contains(hgnc_symbol))
 
         if top:
-            return similar_genes[:top]
+            query = query.limit(top)
 
-        return similar_genes
+        return query.all()
 
     def query_similar_pathways(self, pathway_name: str, top: Optional[int] = None) -> List[Tuple[str, str]]:
         """Filter pathways by name.
@@ -149,6 +148,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         :param hgnc_gene_symbol: HGNC gene symbol
         :return: associated with the gene
         """
+        # FIXME reimplement with better query
         protein = self.get_protein_by_hgnc_symbol(hgnc_gene_symbol)
         if protein is None:
             return []
@@ -224,6 +224,10 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         """Get all pathways stored in the database."""
         return self._query_pathway().all()
 
+    def get_pathway_id_name_mapping(self) -> Mapping[str, str]:
+        """Get all pathway identifiers to names."""
+        return dict(self.session.query(self.pathway_model.identifier, self.pathway_model.name).all())
+
     def get_all_pathway_names(self) -> List[str]:
         """Get all pathway names stored in the database."""
         return [
@@ -241,23 +245,23 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         }
 
     def get_pathway_id_to_symbols(self) -> Mapping[str, Set[str]]:
-        """Return the set of genes in each pathway"""
+        """Return the set of genes in each pathway."""
         return self._help_get_pathway_to_protein(self.pathway_model.identifier, self.protein_model.hgnc_symbol)
 
     def get_pathway_id_to_hgnc_ids(self) -> Mapping[str, Set[str]]:
-        """Return the set of genes in each pathway"""
+        """Return the set of genes in each pathway."""
         return self._help_get_pathway_to_protein(self.pathway_model.identifier, self.protein_model.hgnc_id)
 
     def get_pathway_name_to_symbols(self) -> Mapping[str, Set[str]]:
-        """Return the set of genes in each pathway"""
+        """Return the set of genes in each pathway."""
         return self._help_get_pathway_to_protein(self.pathway_model.name, self.protein_model.hgnc_symbol)
 
     def get_pathway_name_to_hgnc_ids(self) -> Mapping[str, Set[str]]:
-        """Return the set of genes in each pathway"""
+        """Return the set of genes in each pathway."""
         return self._help_get_pathway_to_protein(self.pathway_model.name, self.protein_model.hgnc_id)
 
     def _help_get_pathway_to_protein(self, pathway_column, protein_column) -> Mapping[str, Set[str]]:
-        """Return the set of genes in each pathway"""
+        """Return the set of genes in each pathway."""
         rv = multidict(
             self.session
                 .query(pathway_column, protein_column)

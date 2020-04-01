@@ -6,14 +6,20 @@ import logging
 from itertools import product
 from typing import Iterable, Tuple
 
-import ndex2
 from protmapper.uniprot_client import get_gene_name
-from pyobo import get_id_name_mapping, get_name_id_mapping
+from pyobo import get_filtered_xrefs, get_id_name_mapping, get_name_id_mapping
+from pyobo.ndex_utils import CX, iterate_aspect
+from pyobo.sources.pid import get_obo, iter_networks
+from pyobo.struct.typedef import pathway_has_part
+from sqlalchemy import Column, ForeignKey, Integer, String, Table
+from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
+from sqlalchemy.orm import relationship
 from tqdm import tqdm
 
 import pybel
 import pybel.dsl
 from pybel import BELGraph
+from ..compath import CompathManager, CompathPathwayMixin, CompathProteinMixin
 from ..utils import get_data_dir
 
 logger = logging.getLogger(__name__)
@@ -21,12 +27,11 @@ logger = logging.getLogger(__name__)
 MODULE_NAME = 'pid'
 DIRECTORY = get_data_dir(MODULE_NAME)
 
-NETWORKSET_UUID = '8a2d7ee9-1513-11e9-bb6a-0ac135e8bacf'
-
-client = ndex2.Ndex2()
+URL = 'https://github.com/NCIP/pathway-interaction-database/raw/master/download/NCI-Pathway-Info.xlsx'
 
 chebi_id_to_name = get_id_name_mapping('chebi')
 hgnc_name_to_id = get_name_id_mapping('hgnc')
+hgnc_id_to_entrez_id = get_filtered_xrefs('hgnc', 'ncbigene')
 
 relation_to_adder = {
     'controls-state-change-of': BELGraph.add_regulates,
@@ -51,20 +56,14 @@ MAPPING = {
 
 def iterate_graphs() -> Iterable[Tuple[str, BELGraph]]:
     """List network uuids."""
-    res = client.get_network_set(NETWORKSET_UUID)
-    network_uuids = res['networks']
-    for network_uuid in tqdm(network_uuids, desc='networks'):
-        # from pprint import pprint
-        # r = client.get_network_as_cx_stream(network_uuid)
-        # pprint(r.json())
-        yield network_uuid, get_graph_from_uuid(network_uuid)
+    for network_uuid, cx in tqdm(iter_networks(), desc='networks'):
+        yield network_uuid, get_graph_from_cx(network_uuid, cx)
 
 
-def get_graph_from_uuid(network_uuid: str) -> BELGraph:  # noqa: C901
+def get_graph_from_cx(network_uuid: str, cx: CX) -> BELGraph:  # noqa: C901
     """Get a PID network from NDEx."""
-    res = client.get_network_aspect_as_cx_stream(network_uuid, 'networkAttributes')
     metadata = {}
-    for entry in res.json():
+    for entry in iterate_aspect(cx, 'networkAttributes'):
         member_name = entry['n']
         if member_name == 'name':
             metadata['name'] = entry['v']
@@ -79,8 +78,7 @@ def get_graph_from_uuid(network_uuid: str) -> BELGraph:  # noqa: C901
     id_to_members = {}
     id_to_alias = {}
     # TODO nodeAttributes have list of protein definitions for some things
-    res = client.get_network_aspect_as_cx_stream(network_uuid, 'nodeAttributes')
-    for entry in res.json():
+    for entry in iterate_aspect(cx, 'nodeAttributes'):
         node_id = entry['po']
         member_name = entry['n']
         if member_name == 'type':
@@ -93,16 +91,12 @@ def get_graph_from_uuid(network_uuid: str) -> BELGraph:  # noqa: C901
             logger.warning(f'unhandled node attribute: {member_name}')
 
     id_to_citations = {}
-    res = client.get_network_aspect_as_cx_stream(network_uuid, 'edgeAttributes')
-    for entry in res.json():
+    for entry in iterate_aspect(cx, 'edgeAttributes'):
         if entry['n'] == 'citation':
             id_to_citations[entry['po']] = [x[len('pubmed:'):] for x in entry['v']]
 
     id_to_dsl = {}
-    res = client.get_network_aspect_as_cx_stream(network_uuid, 'nodes')
-    nodes = res.json()
-    # nodes = tqdm(nodes, desc='nodes', leave=False)
-    for node in nodes:
+    for node in iterate_aspect(cx, 'nodes'):
         node_id = node['@id']
         reference = node['r']
         if reference in MAPPING:
@@ -156,10 +150,7 @@ def get_graph_from_uuid(network_uuid: str) -> BELGraph:  # noqa: C901
             logger.warning(f'unexpected prefix: {prefix}')
             continue
 
-    res = client.get_network_aspect_as_cx_stream(network_uuid, 'edges')
-    edges = res.json()
-    # edges = tqdm(edges, desc='edges', leave=False)
-    for edge in edges:
+    for edge in iterate_aspect(cx, 'edges'):
         source_id, target_id = edge['s'], edge['t']
         if source_id not in id_to_dsl or target_id not in id_to_dsl:
             continue
@@ -206,16 +197,105 @@ def get_graph_from_uuid(network_uuid: str) -> BELGraph:  # noqa: C901
     return graph
 
 
-def main():
-    """Get and output graphs to desktop."""
-    import os
-    directory = os.path.join(os.path.expanduser('~'), 'Desktop', 'pid')
-    os.makedirs(directory, exist_ok=True)
-    for network_uuid, graph in iterate_graphs():
-        pybel.to_nodelink_file(graph, os.path.join(directory, f'{network_uuid}.bel.nodelink.json'), indent=2)
-    with open(os.path.join(directory, 'UNMAPPED.txt'), 'w') as file:
-        for unmapped in sorted(UNMAPPED):
-            print(unmapped, file=file)
+# Manager, models
+
+PATHWAY_TABLE = f'{MODULE_NAME}_pathway'
+PROTEIN_TABLE = f'{MODULE_NAME}_protein'
+PATHWAY_PROTEIN_TABLE = f'{MODULE_NAME}_pathway_protein'
+
+Base: DeclarativeMeta = declarative_base()
+
+pathway_protein = Table(
+    PATHWAY_PROTEIN_TABLE,
+    Base.metadata,
+    Column('pathway_id', Integer, ForeignKey(f'{PATHWAY_TABLE}.id'), primary_key=True),
+    Column('protein_id', Integer, ForeignKey(f'{PROTEIN_TABLE}.id'), primary_key=True),
+)
+
+
+class Protein(Base, CompathProteinMixin):
+    """Protein from PID."""
+
+    __tablename__ = PROTEIN_TABLE
+
+    id = Column(Integer, primary_key=True)
+
+    entrez_id = Column(String(255), doc='entrez id of the protein')
+    hgnc_id = Column(String(255), doc='HGNC id of the protein')
+    hgnc_symbol = Column(String(255), doc='HGN symbol of the protein')
+
+    def to_pybel(self) -> pybel.dsl.Protein:
+        """Return a protein."""
+        return pybel.dsl.Protein(namespace='hgnc', name=self.hgnc_symbol, identifier=self.hgnc_id)
+
+
+class Pathway(Base, CompathPathwayMixin):
+    """Pathway from PID."""
+
+    __tablename__ = PATHWAY_TABLE
+
+    id = Column(Integer, primary_key=True)
+
+    identifier = Column(String(255), doc='HGNC gene family id of the protein')
+    name = Column(String(255), doc='HGNC gene family name of the protein')
+
+    proteins = relationship(
+        Protein,
+        secondary=pathway_protein,
+        backref='pathways',
+    )
+
+
+class Manager(CompathManager):
+    """Manager for PID."""
+
+    module_name = MODULE_NAME
+    _base = Base
+    flask_admin_models = [Pathway, Protein]
+    namespace_model = pathway_model = Pathway
+    edge_model = pathway_protein
+    protein_model = Protein
+
+    def populate(self, *args, **kwargs) -> None:
+        """Populate the PID database."""
+        obo = get_obo()
+
+        x = {
+            reference.identifier: Protein(
+                entrez_id=hgnc_id_to_entrez_id.get(reference.identifier),
+                hgnc_id=reference.identifier,
+                hgnc_symbol=reference.name,
+            )
+            for term in obo
+            for reference in term.get_relationships(pathway_has_part)
+        }
+        logger.info('extracted %d proteins from pid.pathway', len(x))
+
+        for term in obo:
+            pathway = Pathway(
+                identifier=term.identifier,
+                name=term.name,
+                proteins=[
+                    x[reference.identifier]
+                    for reference in term.get_relationships(pathway_has_part)
+                ]
+            )
+            self.session.add(pathway)
+        self.session.commit()
+
+
+main = Manager.get_cli()
+
+# def main():
+#     """Get and output graphs to desktop."""
+#     import os
+#     directory = os.path.join(os.path.expanduser('~'), 'Desktop', 'pid')
+#     os.makedirs(directory, exist_ok=True)
+#     for network_uuid, graph in iterate_graphs():
+#         pybel.to_nodelink_file(graph, os.path.join(directory, f'{network_uuid}.bel.nodelink.json'), indent=2)
+#     with open(os.path.join(directory, 'UNMAPPED.txt'), 'w') as file:
+#         for unmapped in sorted(UNMAPPED):
+#             print(unmapped, file=file)
 
 
 if __name__ == '__main__':
