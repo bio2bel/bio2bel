@@ -6,10 +6,8 @@ import unittest
 
 from sqlalchemy.ext.declarative import declarative_base
 
-from bio2bel.manager.compath import (
-    CompathManager, CompathManagerPathwayModelError, CompathManagerProteinModelError,
-    CompathPathwayMixin, CompathProteinMixin,
-)
+from bio2bel.compath import CompathManager, CompathPathwayMixin, CompathProteinMixin
+from bio2bel.compath.exc import CompathManagerPathwayModelError, CompathManagerProteinModelError
 from bio2bel.testing import TemporaryConnectionMethodMixin
 
 Base = declarative_base()
