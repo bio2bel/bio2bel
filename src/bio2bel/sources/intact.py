@@ -105,6 +105,8 @@ sample_path = '/Users/sophiakrix/Downloads/intact_sample.txt'
 
 ID_INTA = '#ID(s) interactor A'
 ID_INTB = 'ID(s) interactor B'
+INTERACTION_TYPES = 'Interaction Type(s)'
+PUBLICATION_ID = 'Publication Identifier(s)'
 DATABASE_INT_A = 'database_intA'
 DATABASE_INT_B = 'database_intB'
 ONLY_ID_INT_A = 'id_intA'
@@ -121,14 +123,13 @@ def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
     :param url: URL to file from database
     :return: path of saved database file
     """
-
     return ensure_path(prefix=module_name, url=url)
 
 
 def _get_my_df() -> pd.DataFrame:
     """Get my dataframe."""
     path = _load_file()
-    df = pd.read_csv(path, sep=SEP)
+    df = pd.read_csv(path, sep=SEP, compression='zip')
     return df
 
 
@@ -143,80 +144,38 @@ def read_intact_file(df: pd.DataFrame) -> pd.DataFrame:
     :return: dataframe with IntAct information
     """
     print('Dataframe is being created from the file.')
+    # take relevant columns for source, target, relation and PubMed ID
 
-    '''
-    In the line below, the entries of '-' are excluded explicitly, because this is not a path
-    we can continue along to find a transcription factor. Also if an interaction has led to
-    this protein, it will be checked there as the second interactor. Therefore, these entries
-    are not included.
-    '''
-    df = df.loc[df['ID(s) interactor B'] != '-', :]
+    df = df.loc[:, [ID_INTA, ID_INTB, INTERACTION_TYPES, PUBLICATION_ID]]
 
-    # add column for identifier database
-    int_a = df.loc[:, ID_INTA]
-    int_b = df.loc[:, ID_INTB]
-
-    database_a = [x.split(':')[0] for x in int_a]
-    database_b = [x.split(':')[0] for x in int_b]
-
-    identifiers_a = [x.split(':')[1] for x in int_a]
-    identifiers_b = [x.split(':')[1] for x in int_b]
-
-    df[DATABASE_INT_A] = database_a
-    df[DATABASE_INT_B] = database_b
-
-    df[ONLY_ID_INT_A] = identifiers_a
-    df[ONLY_ID_INT_B] = identifiers_b
+    # drop nan value rows for interactor B
+    df = df.loc[df[ID_INTB] != '-', :]
 
     return df
 
 
-def get_alternative_id(column_name: str) -> List[List]:
-    """Split the "Alt. ID(s) interactor A" column into the individual IDs and
-    filter for the uniprot IDs.
+def split_to_list(unsplitted_list: List[str], separator: str = '|') -> List:
+    """Split a list of strings that contains multiple values that are separated by a defined separator into a list of lists.
 
-    :param column_name: the column name of the original df
-        with the alternative ids to be transformed
-
-    :return: nested list of alternative IDs for every protein
+    :param unsplitted_list: list of strings to be splitted
+    :param separator: separator between elements
+    :return: list of lists of splitted elements
     """
-    df = read_intact_file()
-    alt_int_a = df.loc[:, column_name]
-    all_alt_int_a = [x.split('|') for x in alt_int_a]
 
-    new_list = []
-    for protein in all_alt_int_a:
-        protein_list = []
-        for name in protein:
-            if UNIPROTKB in name:
-                name = name.split(':')[1]
-                protein_list.append(name)
-        new_list.append(protein_list)
-    return new_list
+    return [x.split(separator) for x in unsplitted_list]
 
 
-def add_alternative_id(df: pd.DataFrame) -> pd.DataFrame:
-    """Add a new column with the alternative IDs to the dataframe.
+def split_column_str_to_list(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
+    """Split the values of a column that has a string containing multiple values by a separator.
 
-    :return: dataframe with additional columns for alternative IDs
+    :param df: dataframe with string to be splitted
+    :param column_name: column name of string to be splitted
+    :return: dataframe with list of splitted elements
     """
-    for orig, new in zip(ORIG_ALT_ID_COLUMN_NAMES, NEW_ALT_ID_COLUMN_NAMES):
-        df.loc[:, new] = get_alternative_id(orig)
-    return df
+    list_column = df.loc[:, column_name]
+    splitted_lists = split_to_list(list_column, sep='|')
 
-
-def rename_all_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Input a dataframe, the function changes all column names to lower case, deletes non-alphabetical/numerical
-    and replaces spaces with underscores.
-
-    :return: dataframe with renamed columns
-    """
-    col_dict = {}
-
-    for col in df.columns:
-        col_dict[col] = col.lower().replace("(", "").replace(")", "").replace("#", "").replace(" ", "_").replace(
-            ".", '')
-    df = df.rename(columns=col_dict)
+    df.loc[:, column_name] = splitted_lists
 
     return df
 
@@ -308,14 +267,14 @@ def _add_my_row(graph: BELGraph, row) -> None:
             )
 
 def get_processed_intact_df():
+    print(_load_file())
     # original intact dataframe
     df = _get_my_df()
     # initally preprocess intact file
     df = read_intact_file(df)
     # additional ids
     df = add_alternative_id(df)
-    # rename columns to easy accessible and understandable values
-    df = rename_all_columns(df)
+
 
     print(df.head())
 
