@@ -177,8 +177,6 @@ def split_column_str_to_list(df: pd.DataFrame, column_name: str) -> pd.DataFrame
 
     return df
 
-# TODO: split for pubmed id
-
 
 def list_pubmed(publication_ids: Iterable[str]) -> List[str]:
     """Filter the publication ids for Pubmed IDs.
@@ -221,6 +219,21 @@ def add_to_df(df: pd.DataFrame, column_name: str, list_to_add = List) -> pd.Data
     """
     df.loc[:, column_name] = list_to_add
     return df
+
+
+def get_processed_df() -> pd.DataFrame:
+    """Load and filter dataframe.
+
+    :return: processed dataframe
+    """
+    df = _get_my_df()
+    relevant_df = read_intact_file(df=df)
+    filtered_df = filter_for_pubmed(df=relevant_df, column_name=PUBLICATION_ID)
+
+    return filtered_df
+
+# TODO: add edges
+
 
 def get_bel() -> BELGraph:
     """Get BEL graph.
