@@ -2,12 +2,12 @@
 
 """This script downloads and parses IntAct data and maps the interaction types to BEL."""
 
-import pandas as pd
+from typing import List, Iterable, Dict
 
-from typing import List, Iterable
-from protmapper.uniprot_client import get_mnemonic
-from bio2bel.utils import ensure_path
+import pandas as pd
 import pybel.dsl
+from bio2bel.utils import ensure_path
+from protmapper.uniprot_client import get_mnemonic
 from pybel import BELGraph
 
 SEP = '\t'
@@ -113,6 +113,13 @@ ONLY_ID_INT_A = 'id_intA'
 ONLY_ID_INT_B = 'id_intB'
 UNIPROTKB = 'uniprotkb'
 
+columns_mapping = {
+    '#ID(s) interactor A': 'source',
+    'ID(s) interactor B': 'target',
+    'Interaction Type(s)': 'relation',
+    'Publication Identifier(s)': 'pubmed_id',
+}
+
 
 def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
     """Load the file from the URL and place it into the bio2bel_sophia directory.
@@ -129,6 +136,16 @@ def _get_my_df() -> pd.DataFrame:
     path = _load_file()
     df = pd.read_csv(path, sep=SEP, compression='zip')
     return df
+
+
+def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
+    """Rename the columns in a dataframe according to the specified values in the dictionary.
+
+    :param df: dataframe with columns to be renamed
+    :param columns_mapping: mapping from original column names to new column names
+    :return: renamed dataframe
+    """
+    return df.rename(columns=columns_mapping)
 
 
 def read_intact_file(df: pd.DataFrame) -> pd.DataFrame:
@@ -210,7 +227,7 @@ def filter_for_pubmed(df: pd.DataFrame, column_name: str):
     return df
 
 
-def add_to_df(df: pd.DataFrame, column_name: str, list_to_add = List) -> pd.DataFrame:
+def add_to_df(df: pd.DataFrame, column_name: str, list_to_add=List) -> pd.DataFrame:
     """Add a column to a dataframe.
 
     :param df:
@@ -228,9 +245,11 @@ def get_processed_df() -> pd.DataFrame:
     """
     df = _get_my_df()
     relevant_df = read_intact_file(df=df)
-    filtered_df = filter_for_pubmed(df=relevant_df, column_name=PUBLICATION_ID)
+    renamed_df = relevant_df(df, columns_mapping)
+    filtered_df = filter_for_pubmed(df=renamed_df, column_name=PUBLICATION_ID)
 
     return filtered_df
+
 
 # TODO: add edges
 
@@ -320,6 +339,7 @@ def _add_my_row(graph: BELGraph, row) -> None:
                 ),
             )
 
+
 def get_processed_intact_df():
     print(_load_file())
     # original intact dataframe
@@ -329,12 +349,10 @@ def get_processed_intact_df():
     # filter for pubmed
     filter_for_pubmed(df, PUBLICATION_ID)
 
-
     print(df.head())
 
-
-    #print(_get_my_df(sample_path).head())
-    #print(_get_my_df(sample_path).loc[:5, 'Publication Identifier(s)'])
+    # print(_get_my_df(sample_path).head())
+    # print(_get_my_df(sample_path).loc[:5, 'Publication Identifier(s)'])
 
 
 if __name__ == '__main__':
