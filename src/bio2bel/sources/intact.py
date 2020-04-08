@@ -149,13 +149,9 @@ def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
 
 
 def read_intact_file(df: pd.DataFrame) -> pd.DataFrame:
-    """Read in a .txt file from IntAct containing the entire database and
-    return a dataframe with additional columns:
-    - 'intA_database' : the database for interactor A
-    - 'intB_database' : the database for interactor B
+    """Read in a .txt file from IntAct containing the entire database and return dataframe.
 
     :param df: intact dataframe to be preprocessed
-
     :return: dataframe with IntAct information
     """
     print('Dataframe is being created from the file.')
@@ -169,7 +165,7 @@ def read_intact_file(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def split_to_list(unsplitted_list: List[str], separator: str = '|') -> List:
+def split_to_list(unsplitted_list: str, separator: str = '|') -> List:
     """Split a list of strings that contains multiple values that are separated by a defined separator into a list of lists.
 
     :param unsplitted_list: list of strings to be splitted
@@ -188,7 +184,7 @@ def split_column_str_to_list(df: pd.DataFrame, column_name: str) -> pd.DataFrame
     :return: dataframe with list of splitted elements
     """
     list_column = df.loc[:, column_name]
-    splitted_lists = split_to_list(list_column, sep='|')
+    splitted_lists = split_to_list(list_column, separator='|')
 
     df.loc[:, column_name] = splitted_lists
 
@@ -203,13 +199,13 @@ def list_pubmed(publication_ids: Iterable[str]) -> List[str]:
     """
     final_list = []
     for publications in publication_ids:
-        publications_list = split_to_list(publications, sep='|')
+        publications_list = split_to_list(publications, separator='|')
         flag = False
         for i in publications_list:
             if i.startswith('pubmed:'):
                 final_list.append(i)
                 flag = True
-        if flag == False:
+        if not flag:
             final_list.append('no pubmed id')
 
     return final_list
@@ -227,12 +223,13 @@ def filter_for_pubmed(df: pd.DataFrame, column_name: str):
     return df
 
 
-def add_to_df(df: pd.DataFrame, column_name: str, list_to_add=List) -> pd.DataFrame:
+def add_to_df(df: pd.DataFrame, column_name: str, list_to_add: List) -> pd.DataFrame:
     """Add a column to a dataframe.
 
-    :param df:
-    :param column_name:
-    :return: df
+    :param df: dataframe
+    :param column_name: column name
+    :param list_to_add: list to be added in column in the dataframe
+    :return: df with updated column
     """
     df.loc[:, column_name] = list_to_add
     return df
@@ -257,7 +254,7 @@ def get_processed_df() -> pd.DataFrame:
 def get_bel() -> BELGraph:
     """Get BEL graph.
 
-    :return:
+    :return: BEL graph#
     """
     df = _get_my_df()
     graph = BELGraph(name='intact')
@@ -272,7 +269,7 @@ def _add_my_row(graph: BELGraph, row) -> None:
     target_uniprot_id = row['target']
 
     pubmed_ids = row['pubmed_ids']
-    pubmed_ids = pubmed_ids.split('|')
+    #pubmed_ids = pubmed_ids.split('|')
 
     source = pybel.dsl.Protein(
         namespace='uniprot',
@@ -286,6 +283,21 @@ def _add_my_row(graph: BELGraph, row) -> None:
     )
 
     for pubmed_id in pubmed_ids:
+
+        if relation == 'phosphorylation reaction':
+            target_ub = target.with_variants(
+                pybel.dsl.ProteinModification('Ph')
+            )
+            graph.add_decreases(
+                source,
+                target_ub,
+                citation=pubmed_id,
+                evidence='From intact',
+            )
+
+
+        # ===========CHARLIE==============
+
         if relation == 'deubiquitination':
             target_ub = target.with_variants(
                 pybel.dsl.ProteinModification('Ub')
