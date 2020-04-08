@@ -4,7 +4,7 @@
 
 import pandas as pd
 
-from typing import List
+from typing import List, Iterable
 from protmapper.uniprot_client import get_mnemonic
 from bio2bel.utils import ensure_path
 import pybel.dsl
@@ -112,8 +112,6 @@ DATABASE_INT_B = 'database_intB'
 ONLY_ID_INT_A = 'id_intA'
 ONLY_ID_INT_B = 'id_intB'
 UNIPROTKB = 'uniprotkb'
-ORIG_ALT_ID_COLUMN_NAMES = ['Alt. ID(s) interactor A', 'Alt. ID(s) interactor B']
-NEW_ALT_ID_COLUMN_NAMES = ['alternative_intA', 'alternative_intB']
 
 
 def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
@@ -144,8 +142,8 @@ def read_intact_file(df: pd.DataFrame) -> pd.DataFrame:
     :return: dataframe with IntAct information
     """
     print('Dataframe is being created from the file.')
-    # take relevant columns for source, target, relation and PubMed ID
 
+    # take relevant columns for source, target, relation and PubMed ID
     df = df.loc[:, [ID_INTA, ID_INTB, INTERACTION_TYPES, PUBLICATION_ID]]
 
     # drop nan value rows for interactor B
@@ -179,7 +177,50 @@ def split_column_str_to_list(df: pd.DataFrame, column_name: str) -> pd.DataFrame
 
     return df
 
+# TODO: split for pubmed id
 
+
+def list_pubmed(publication_ids: Iterable[str]) -> List[str]:
+    """Filter the publication ids for Pubmed IDs.
+
+    :param publication_ids: list of publication ids
+    :return: filtered list of pubmed ids
+    """
+    final_list = []
+    for publications in publication_ids:
+        publications_list = split_to_list(publications, sep='|')
+        flag = False
+        for i in publications_list:
+            if i.startswith('pubmed:'):
+                final_list.append(i)
+                flag = True
+        if flag == False:
+            final_list.append('no pubmed id')
+
+    return final_list
+
+
+def filter_for_pubmed(df: pd.DataFrame, column_name: str):
+    """Filter the publication ids for pubmed ids.
+
+    :param df: dataframe
+    :param column_name: column with publication ids
+    :return: dataframe with filtered column
+    """
+    pubmed_list = list_pubmed(df.loc[:, column_name])
+    df = add_to_df(df=df, column_name=column_name, list_to_add=pubmed_list)
+    return df
+
+
+def add_to_df(df: pd.DataFrame, column_name: str, list_to_add = List) -> pd.DataFrame:
+    """Add a column to a dataframe.
+
+    :param df:
+    :param column_name:
+    :return: df
+    """
+    df.loc[:, column_name] = list_to_add
+    return df
 
 def get_bel() -> BELGraph:
     """Get BEL graph.
@@ -272,8 +313,8 @@ def get_processed_intact_df():
     df = _get_my_df()
     # initally preprocess intact file
     df = read_intact_file(df)
-    # additional ids
-    df = add_alternative_id(df)
+    # filter for pubmed
+    filter_for_pubmed(df, PUBLICATION_ID)
 
 
     print(df.head())
