@@ -2,12 +2,13 @@
 
 """This script downloads and parses IntAct data and maps the interaction types to BEL."""
 
-from typing import List, Iterable, Dict
+from typing import Dict, Iterable, List
 
 import pandas as pd
+from protmapper.uniprot_client import get_mnemonic
+
 import pybel.dsl
 from bio2bel.utils import ensure_path
-from protmapper.uniprot_client import get_mnemonic
 from pybel import BELGraph
 
 SEP = '\t'
@@ -112,12 +113,15 @@ DATABASE_INT_B = 'database_intB'
 ONLY_ID_INT_A = 'id_intA'
 ONLY_ID_INT_B = 'id_intB'
 UNIPROTKB = 'uniprotkb'
-
+SOURCE = 'source'
+TARGET = 'target'
+RELATION = 'relation'
+PUBMED_ID = 'pubmed_id'
 columns_mapping = {
-    '#ID(s) interactor A': 'source',
-    'ID(s) interactor B': 'target',
-    'Interaction Type(s)': 'relation',
-    'Publication Identifier(s)': 'pubmed_id',
+    '#ID(s) interactor A': SOURCE,
+    'ID(s) interactor B': TARGET,
+    'Interaction Type(s)': RELATION,
+    'Publication Identifier(s)': PUBMED_ID,
 }
 
 
@@ -149,7 +153,8 @@ def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
 
 
 def read_intact_file(df: pd.DataFrame) -> pd.DataFrame:
-    """Read in a .txt file from IntAct containing the entire database and return dataframe.
+    """Read in a .txt file from IntAct containing the entire database and return dataframe with columns \
+    for source, target, relation and pubmed_id.
 
     :param df: intact dataframe to be preprocessed
     :return: dataframe with IntAct information
@@ -157,10 +162,10 @@ def read_intact_file(df: pd.DataFrame) -> pd.DataFrame:
     print('Dataframe is being created from the file.')
 
     # take relevant columns for source, target, relation and PubMed ID
-    df = df.loc[:, [ID_INTA, ID_INTB, INTERACTION_TYPES, PUBLICATION_ID]]
+    df = df.loc[:, [SOURCE, TARGET, RELATION, PUBMED_ID]]
 
     # drop nan value rows for interactor B
-    df = df.loc[df[ID_INTB] != '-', :]
+    df = df.loc[df[TARGET] != '-', :]
 
     return df
 
@@ -172,7 +177,6 @@ def split_to_list(unsplitted_list: str, separator: str = '|') -> List:
     :param separator: separator between elements
     :return: list of lists of splitted elements
     """
-
     return [x.split(separator) for x in unsplitted_list]
 
 
@@ -235,17 +239,25 @@ def add_to_df(df: pd.DataFrame, column_name: str, list_to_add: List) -> pd.DataF
     return df
 
 
-def get_processed_df() -> pd.DataFrame:
-    """Load and filter dataframe.
+def get_processed_intact_df() -> pd.DataFrame:
+    """Load, filter and rename intact dataframe.
 
     :return: processed dataframe
     """
+    print(_load_file())
+    # original intact dataframe
     df = _get_my_df()
-    relevant_df = read_intact_file(df=df)
-    renamed_df = relevant_df(df, columns_mapping)
-    filtered_df = filter_for_pubmed(df=renamed_df, column_name=PUBLICATION_ID)
 
-    return filtered_df
+    # rename columns
+    df = rename_columns(df=df, columns_mapping=columns_mapping)
+
+    # initally preprocess intact file
+    df = read_intact_file(df)
+
+    # filter for pubmed
+    df = filter_for_pubmed(df, PUBLICATION_ID)
+
+    return df
 
 
 # TODO: add edges
@@ -269,7 +281,7 @@ def _add_my_row(graph: BELGraph, row) -> None:
     target_uniprot_id = row['target']
 
     pubmed_ids = row['pubmed_ids']
-    #pubmed_ids = pubmed_ids.split('|')
+    # pubmed_ids = pubmed_ids.split('|')
 
     source = pybel.dsl.Protein(
         namespace='uniprot',
@@ -349,21 +361,6 @@ def _add_my_row(graph: BELGraph, row) -> None:
                     cell_line={'HEK2': True}
                 ),
             )
-
-
-def get_processed_intact_df():
-    print(_load_file())
-    # original intact dataframe
-    df = _get_my_df()
-    # initally preprocess intact file
-    df = read_intact_file(df)
-    # filter for pubmed
-    filter_for_pubmed(df, PUBLICATION_ID)
-
-    print(df.head())
-
-    # print(_get_my_df(sample_path).head())
-    # print(_get_my_df(sample_path).loc[:5, 'Publication Identifier(s)'])
 
 
 if __name__ == '__main__':

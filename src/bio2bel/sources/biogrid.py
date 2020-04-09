@@ -3,9 +3,11 @@
 """This script downloads and parses BioGRID data and maps the interaction types to BEL."""
 
 import pandas as pd
+
 import pybel.dsl
 from bio2bel.utils import ensure_path
 from pybel import BELGraph
+
 from protmapper.uniprot_client import get_mnemonic
 
 SEP = '\t'
@@ -56,7 +58,7 @@ def _get_my_df() -> pd.DataFrame:
     return df
 
 
-def _get_sample_df(path: str, separator: str='\t') -> pd.DataFrame:
+def _get_sample_df(path: str, separator: str = '\t') -> pd.DataFrame:
     """Get sample dataframe of biogrid.
 
     :param path: file path to original file
