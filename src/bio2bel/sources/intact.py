@@ -154,6 +154,15 @@ def filter_intact_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def filter_uniprot(df: pd.DataFrame) -> pd.DataFrame:
+    """Filter the intact dataframe for uniprot ids.
+
+    :param df: daframe with mixed protein identifiers
+    :return: dataframe with only uniprot identifiers
+    """
+    return df[df[SOURCE].str.contains("uniprot")]
+
+
 def split_to_list(unsplit_list: str, separator: str = '|') -> List:
     """Split a list of strings that contains multiple values that are separated by a defined separator into a list of lists.
 
@@ -216,18 +225,21 @@ def get_processed_intact_df() -> pd.DataFrame:
     :return: processed dataframe
     """
     # original intact dataframe
-    # df = _get_my_df()
+    df = _get_my_df()
     # TODO: use original df
 
-    df = _get_sample_df()
+    # df = _get_sample_df()
     # rename columns
     df = rename_columns(df=df, columns_mapping=columns_mapping)
 
+    # filter for uniprot ids
+    df = filter_uniprot(df=df)
+
     # initally preprocess intact file
-    df = filter_intact_df(df)
+    df = filter_intact_df(df=df)
 
     # filter for pubmed
-    df = filter_for_pubmed(df, PUBLICATION_ID)
+    df = filter_for_pubmed(df=df, column_name=PUBLICATION_ID)
 
     return df
 
@@ -399,4 +411,4 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
 
 if __name__ == '__main__':
-    print(_get_my_df())
+    print(get_processed_intact_df())
