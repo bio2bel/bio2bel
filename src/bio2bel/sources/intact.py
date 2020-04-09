@@ -2,6 +2,7 @@
 
 """This script downloads and parses IntAct data and maps the interaction types to BEL."""
 
+import os
 from typing import Dict, Iterable, List
 
 import pandas as pd
@@ -90,6 +91,10 @@ columns_mapping = {
     'Interaction Type(s)': RELATION,
     'Publication Identifier(s)': PUBMED_ID,
 }
+HOME = os.path.expanduser('~')
+BIO2BEL_DIR = os.path.join(HOME, '.bio2bel')
+INTACT_FILE = os.path.join(BIO2BEL_DIR, 'intact/intact.txt')
+SAMPLE_INTACT_FILE = os.path.join(BIO2BEL_DIR, 'intact/intact_sample.txt')
 
 
 def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
@@ -113,19 +118,21 @@ def _get_my_df() -> pd.DataFrame:
             return pd.read_csv(file, sep='\t')
 
 
+def _write_sample_df() -> None:
+    """Write a sample dataframe to file."""
+    path = _load_file()
+    with ZipFile(path) as zip_file:
+        with zip_file.open('intact.txt') as file:
+            df = pd.read_csv(file, sep='\t')
+            df.head().to_csv(SAMPLE_INTACT_FILE, sep=SEP)
+
+
 def _get_sample_df() -> pd.DataFrame:
     """Get sample dataframe of intact.
 
     :return: sample dataframe
     """
-    path = _load_file()
-    with ZipFile(path) as zip_file:
-        with zip_file.open('intact.txt') as file:
-            head = file.readlines()[0:5]
-            with open('sample_intact.txt', 'w') as f:
-                f.writelines(head)
-
-    return pd.read_csv('sample_intact.txt', sep=SEP)
+    return pd.read_csv(SAMPLE_INTACT_FILE, sep=SEP)
 
 
 def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
@@ -411,4 +418,4 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
 
 if __name__ == '__main__':
-    print(get_processed_intact_df())
+    _write_sample_df()

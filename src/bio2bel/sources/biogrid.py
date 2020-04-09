@@ -2,6 +2,7 @@
 
 """This script downloads and parses BioGRID data and maps the interaction types to BEL."""
 
+import os
 import pandas as pd
 
 import pybel.dsl
@@ -23,7 +24,11 @@ MODULE_NAME = 'biogrid'
 VERSION = '3.5.183'
 BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
 URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
-FILE = f'BIOGRID-ALL-{VERSION}.mitab.zip'
+
+HOME = os.path.expanduser('~')
+BIO2BEL_DIR = os.path.join(HOME, '.bio2bel')
+INTACT_FILE = os.path.join(BIO2BEL_DIR, 'intact/intact.txt')
+BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/BIOGRID-ALL-3.5.183.mitab')
 
 
 #: Relationship types in BioGRID that map to BEL relation 'increases'
@@ -73,7 +78,7 @@ def _get_my_df() -> pd.DataFrame:
     """
     path = _load_file()
     with ZipFile(path) as zip_file:
-        with zip_file.open(FILE) as file:
+        with zip_file.open(BIOGRID_FILE) as file:
             return pd.read_csv(file, sep='\t')
 
 
