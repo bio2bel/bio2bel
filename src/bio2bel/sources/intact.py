@@ -336,6 +336,15 @@ def _add_my_row(graph: BELGraph, row) -> None:
                 citation=pubmed_id,
                 evidence=EVIDENCE
             )
+        # no specified relation -> association
+        else:
+            graph.add_association(
+                source,
+                target,
+                citaion=pubmed_id,
+                evidence=EVIDENCE,
+            )
+
 
 
 if __name__ == '__main__':
