@@ -10,21 +10,34 @@ from pybel import BELGraph
 
 from protmapper.uniprot_client import get_mnemonic
 
+# from ..constants import BIOGRID_ASSOCIATION_ACTIONS, BIOGRID_DECREASES_ACTIONS, BIOGRID_INCREASES_ACTIONS
+
 SEP = '\t'
+BIOGRID = 'biogrid'
+SOURCE = 'source'
+TARGET = 'target'
+RELATION = 'relation'
+PUBMED_ID = 'pubmed_id'
+MODULE_NAME = 'biogrid'
+URL = 'https://downloads.thebiogrid.org/File/BioGRID/Release-Archive/BIOGRID-3.5.183/BIOGRID-ALL-3.5.183.mitab.zip'
 
-BIOGRID2BEL_MAPPER = {
+BIOGRID_INCREASES_ACTIONS = {
     # increases
-    'synthetic genetic interaction defined by inequality': 'increases',
-    'additive genetic interaction defined by inequality': 'increases',
+    'synthetic genetic interaction defined by inequality',
+    'additive genetic interaction defined by inequality',
+}
 
+BIOGRID_DECREASES_ACTIONS = {
     # decreases
-    'suppressive genetic interaction defined by inequality': 'decreases',
+    'suppressive genetic interaction defined by inequality',
+}
 
+BIOGRID_ASSOCIATION_ACTIONS = {
     # association
-    'direct interaction': 'association',
-    'physical association': 'association',
-    'colocalization': 'association',
-    'association': 'association',
+    'direct interaction',
+    'physical association',
+    'colocalization',
+    'association',
 }
 
 BIOGRID2BEL_FUNCTION_MAPPER = {
@@ -36,9 +49,6 @@ BIOGRID2BEL_FUNCTION_MAPPER = {
     'association': '',
     'additive genetic interaction defined by inequality': 'geneAbundance'
 }
-
-MODULE_NAME = 'biogrid'
-URL = 'https://downloads.thebiogrid.org/File/BioGRID/Release-Archive/BIOGRID-3.5.183/BIOGRID-ALL-3.5.183.mitab.zip'
 
 
 def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
@@ -78,19 +88,36 @@ def get_bel() -> BELGraph:
     :return: BEL graph
     """
     df = _get_my_df()
-    graph = BELGraph(name='intact')
+    graph = BELGraph(name=BIOGRID)
     for _, row in df.iterrows():
         _add_my_row(graph, row)
     return graph
 
 
+def get_processed_biogrid() -> pd.DataFrame:
+    """Load BioGRDID file, filter and rename columns and return a dataframe.
+
+    :return: dataframe of preprocessed BioGRID data
+    """
+    # TODO uncomment
+    df = _get_sample_df(path=_load_file())
+
+    return df
+
+
 def _add_my_row(graph: BELGraph, row) -> None:
-    relation = row['relation']
-    source_uniprot_id = row['source']
-    target_uniprot_id = row['target']
+    """Add for every pubmed ID an edge with information about relationship type, source and target.
+
+    :param graph: graph to add edges to
+    :param row: row with metainformation about source, target, relation, pubmed_id
+    :return: None
+    """
+    relation = row[RELATION]
+    source_uniprot_id = row[SOURCE]
+    target_uniprot_id = row[TARGET]
 
     pubmed_ids = row['pubmed_ids']
-    pubmed_ids = pubmed_ids.split('|')
+    # pubmed_ids = pubmed_ids.split('|')
 
     source = pybel.dsl.Protein(
         namespace='uniprot',
@@ -104,6 +131,11 @@ def _add_my_row(graph: BELGraph, row) -> None:
     )
 
     for pubmed_id in pubmed_ids:
+
+        # INCREASE
+        if relation in BIOGRID_INCREASES_ACTIONS:
+            pass
+    # =========================================
         if relation == 'deubiquitination':
             target_ub = target.with_variants(
                 pybel.dsl.ProteinModification('Ub')
@@ -158,9 +190,5 @@ def _add_my_row(graph: BELGraph, row) -> None:
             )
 
 
-def preprocess_biogrid() -> pd.DataFrame:
-    """Load BioGRDID file, filter and rename columns and return a dataframe.
-
-    :return: dataframe of preprocessed BioGRID data
-    """
-    return _get_my_df()
+if __name__ == '__main__':
+    print(get_processed_biogrid())

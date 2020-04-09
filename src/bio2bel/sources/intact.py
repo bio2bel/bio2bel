@@ -194,6 +194,12 @@ def get_bel() -> BELGraph:
 
 
 def _add_my_row(graph: BELGraph, row) -> None:
+    """Add for every pubmed ID an edge with information about relationship type, source and target.
+
+    :param graph: graph to add edges to
+    :param row: row with metainformation about source, target, relation, pubmed_id
+    :return: None
+    """
     relation = row[RELATION]
     source_uniprot_id = row[SOURCE]
     target_uniprot_id = row[TARGET]
