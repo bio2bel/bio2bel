@@ -157,14 +157,14 @@ def add_cli_to_bel(main: click.Group) -> click.Group:
         node_to_id = {}
 
         with open(nodelist_path, 'w') as file:
-            print('index', 'node', 'type', file=file)
+            print('index', 'node', 'type', file=file)  # noqa:T001
             for i, node in enumerate(sorted(graph)):
-                print(i, node, node.function, file=file)
+                print(i, node, node.function, file=file)  # noqa:T001
                 node_to_id[node] = i
 
         with open(edgelist_path, 'w') as file:
             for u, v in graph.edges():
-                print(node_to_id[u], node_to_id[v], file=file)
+                print(node_to_id[u], node_to_id[v], file=file)  # noqa:T001
 
     return main
 

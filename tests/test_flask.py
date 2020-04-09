@@ -64,7 +64,7 @@ class TestFlask(TemporaryConnectionMethodMixin):
         home_rv = client.get('/')
         self.assertIn(Model.__name__.encode('utf-8'), home_rv.data)
 
-        rv = client.get('/{}'.format(Model.__name__.lower()), follow_redirects=True)
+        rv = client.get(f'/{Model.__name__.lower()}', follow_redirects=True)
         self.assertIn(b'MODEL:1', rv.data)
 
     def test_app_truncated_view(self):
@@ -82,7 +82,7 @@ class TestFlask(TemporaryConnectionMethodMixin):
         home_data = home_rv.data.decode('utf-8')
         self.assertIn(Model.__name__, home_data)
 
-        rv = client.get('/{}'.format(Model.__name__.lower()), follow_redirects=True)
+        rv = client.get(f'/{Model.__name__.lower()}', follow_redirects=True)
         rv_data = rv.data.decode('utf-8')
         self.assertNotIn('MODEL:1', rv_data)
         self.assertIn('1111', rv_data)

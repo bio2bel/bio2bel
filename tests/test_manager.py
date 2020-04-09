@@ -138,7 +138,7 @@ class TestConnectionLoading(AbstractTemporaryCacheClassMixin):
 
     def test_repr(self):
         """Test the repr function of the AbstractManager."""
-        self.assertEqual('<TestManager url={}>'.format(self.connection), repr(self.manager))
+        self.assertEqual(f'<TestManager url={self.connection}>', repr(self.manager))
 
     def test_get_missing_model(self):
         """Test population."""

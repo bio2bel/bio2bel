@@ -34,7 +34,7 @@ for entry_point in iter_entry_points(group='bio2bel', name=None):
         web_modules[entry] = bio2bel_module.web
     except AttributeError:
         try:
-            web_modules[entry] = importlib.import_module('bio2bel_{}.web'.format(entry))
+            web_modules[entry] = importlib.import_module(f'bio2bel_{entry}.web')
         except ImportError:
             log.warning('no submodule bio2bel_%s.web', entry)
             continue
@@ -63,7 +63,7 @@ def create_application(connection: Optional[str] = None) -> Flask:
     engine, session = build_engine_session(connection)
 
     for name, add_admin in add_admins.items():
-        url = '/{}'.format(name)
+        url = f'/{name}'
         add_admin(app, session, url=url, endpoint=name, name=name)
         log.debug('added %s - %s to %s', name, add_admin, url)
 

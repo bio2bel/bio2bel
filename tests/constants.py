@@ -24,7 +24,7 @@ class Model(TestBase):
 
     __tablename__ = 'test_model'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa:A003
 
     test_id = Column(String(15), nullable=False, index=True, unique=True)
     name = Column(String(255), nullable=False, index=True)
@@ -92,6 +92,6 @@ class Manager(AbstractManager):
 
     def summarize(self) -> Mapping[str, int]:
         """Summarize the database."""
-        return dict(
-            models=self.count_model(),
-        )
+        return {
+            'models': self.count_model(),
+        }
