@@ -29,7 +29,7 @@ HOME = os.path.expanduser('~')
 BIO2BEL_DIR = os.path.join(HOME, '.bio2bel')
 INTACT_FILE = os.path.join(BIO2BEL_DIR, 'intact/intact.txt')
 BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/BIOGRID-ALL-3.5.183.mitab')
-
+SAMPLE_BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/biogrid_sample.tsv')
 
 #: Relationship types in BioGRID that map to BEL relation 'increases'
 BIOGRID_INCREASES_ACTIONS = {
@@ -82,14 +82,21 @@ def _get_my_df() -> pd.DataFrame:
             return pd.read_csv(file, sep='\t')
 
 
+def _write_sample_df() -> None:
+    """Write a sample dataframe to file."""
+    path = _load_file()
+    with ZipFile(path) as zip_file:
+        with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab') as file:
+            df = pd.read_csv(file, sep='\t')
+            df.head().to_csv(SAMPLE_BIOGRID_FILE, sep=SEP)
+
+
 def _get_sample_df() -> pd.DataFrame:
-    """Get sample dataframe of biogrid.
+    """Get sample dataframe of intact.
 
     :return: sample dataframe
     """
-    df = _get_my_df()
-    # generating sample dataframe
-    return df.sample(n=5)
+    return pd.read_csv(SAMPLE_BIOGRID_FILE, sep=SEP)
 
 
 def get_bel() -> BELGraph:

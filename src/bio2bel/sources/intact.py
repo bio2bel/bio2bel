@@ -88,13 +88,13 @@ PUBMED_ID = 'pubmed_id'
 columns_mapping = {
     '#ID(s) interactor A': SOURCE,
     'ID(s) interactor B': TARGET,
-    'Interaction Type(s)': RELATION,
+    'Interaction type(s)': RELATION,
     'Publication Identifier(s)': PUBMED_ID,
 }
 HOME = os.path.expanduser('~')
 BIO2BEL_DIR = os.path.join(HOME, '.bio2bel')
 INTACT_FILE = os.path.join(BIO2BEL_DIR, 'intact/intact.txt')
-SAMPLE_INTACT_FILE = os.path.join(BIO2BEL_DIR, 'intact/intact_sample.txt')
+SAMPLE_INTACT_FILE = os.path.join(BIO2BEL_DIR, 'intact/intact_sample.tsv')
 
 
 def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
@@ -142,6 +142,7 @@ def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
     :param columns_mapping: mapping from original column names to new column names
     :return: renamed dataframe
     """
+    print(df.columns)
     return df.rename(columns=columns_mapping)
 
 
@@ -156,7 +157,7 @@ def filter_intact_df(df: pd.DataFrame) -> pd.DataFrame:
     df = df[[SOURCE, TARGET, RELATION, PUBMED_ID]]
 
     # drop nan value rows for interactor B
-    df = df[df[TARGET] != '-', :]
+    df = df[df[TARGET] != '-']
 
     return df
 
@@ -177,7 +178,7 @@ def split_to_list(unsplit_list: str, separator: str = '|') -> List:
     :param separator: separator between elements
     :return: list of lists of splitted elements
     """
-    return [x.split(separator) for x in unsplit_list]
+    return unsplit_list.split(separator)
 
 
 def split_column_str_to_list(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
@@ -190,12 +191,12 @@ def split_column_str_to_list(df: pd.DataFrame, column_name: str) -> pd.DataFrame
     list_column = df.loc[:, column_name]
     splitted_lists = split_to_list(list_column, separator='|')
 
-    df.loc[:, column_name] = splitted_lists
+    df[column_name] = splitted_lists
 
     return df
 
 
-def list_pubmed(publication_ids: Iterable[str]) -> List[str]:
+def list_pubmed(publication_ids: Iterable[str]) -> List[List[str]]:
     """Filter the publication ids for Pubmed IDs.
 
     :param publication_ids: list of publication ids
@@ -204,14 +205,16 @@ def list_pubmed(publication_ids: Iterable[str]) -> List[str]:
     final_list = []
     for publications in publication_ids:
         publications_list = split_to_list(publications, separator='|')
+        print(publications_list)
         flag = False
+        row_list = []
         for i in publications_list:
             if i.startswith('pubmed:'):
-                final_list.append(i)
+                row_list.append(i)
                 flag = True
         if not flag:
-            final_list.append('no pubmed id')
-
+            row_list.append('no pubmed id')
+        final_list.append(row_list)
     return final_list
 
 
@@ -222,7 +225,7 @@ def filter_for_pubmed(df: pd.DataFrame, column_name: str):
     :param column_name: column with publication ids
     :return: dataframe with filtered column
     """
-    df[[column_name]] = list_pubmed(df[[column_name]])
+    df[column_name] = list_pubmed(df[column_name])
     return df
 
 
@@ -232,10 +235,11 @@ def get_processed_intact_df() -> pd.DataFrame:
     :return: processed dataframe
     """
     # original intact dataframe
-    df = _get_my_df()
-    # TODO: use original df
+    # df = _get_my_df()
 
-    # df = _get_sample_df()
+    # TODO: use original df
+    df = _get_sample_df()
+
     # rename columns
     df = rename_columns(df=df, columns_mapping=columns_mapping)
 
@@ -246,7 +250,7 @@ def get_processed_intact_df() -> pd.DataFrame:
     df = filter_intact_df(df=df)
 
     # filter for pubmed
-    df = filter_for_pubmed(df=df, column_name=PUBLICATION_ID)
+    df = filter_for_pubmed(df=df, column_name=PUBMED_ID)
 
     return df
 
@@ -418,4 +422,4 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
 
 if __name__ == '__main__':
-    _write_sample_df()
+    print(get_processed_intact_df())
