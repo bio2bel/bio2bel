@@ -70,7 +70,6 @@ MODULE_NAME = 'intact'
 VERSION = '2020-03-31'
 URL = f'ftp://ftp.ebi.ac.uk/pub/databases/intact/{VERSION}/psimitab/intact.zip'
 path = ensure_path(MODULE_NAME, URL)
-sample_path = '/Users/sophiakrix/Downloads/intact_sample.txt'
 
 ID_INTA = '#ID(s) interactor A'
 ID_INTB = 'ID(s) interactor B'
@@ -114,6 +113,21 @@ def _get_my_df() -> pd.DataFrame:
             return pd.read_csv(file, sep='\t')
 
 
+def _get_sample_df() -> pd.DataFrame:
+    """Get sample dataframe of intact.
+
+    :return: sample dataframe
+    """
+    path = _load_file()
+    with ZipFile(path) as zip_file:
+        with zip_file.open('intact.txt') as file:
+            head = file.readlines()[0:5]
+            with open('sample_intact.txt', 'w') as f:
+                f.writelines(head)
+
+    return pd.read_csv('sample_intact.txt', sep=SEP)
+
+
 def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
     """Rename the columns in a dataframe according to the specified values in the dictionary.
 
@@ -124,15 +138,13 @@ def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
     return df.rename(columns=columns_mapping)
 
 
-def read_intact_file(df: pd.DataFrame) -> pd.DataFrame:
-    """Read in a .txt file from IntAct containing the entire database and return dataframe with columns \
+def filter_intact_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Filter the original IntAct dataframe containing the entire database and return dataframe with columns \
     for source, target, relation and pubmed_id.
 
     :param df: intact dataframe to be preprocessed
-    :return: dataframe with IntAct information
+    :return: dataframe with source, target, relation, pubmed_id columsn
     """
-    print('Dataframe is being created from the file.')
-
     # take relevant columns for source, target, relation and PubMed ID
     df = df[[SOURCE, TARGET, RELATION, PUBMED_ID]]
 
@@ -203,23 +215,21 @@ def get_processed_intact_df() -> pd.DataFrame:
 
     :return: processed dataframe
     """
-    print(_load_file())
     # original intact dataframe
-    df = _get_my_df()
+    # df = _get_my_df()
+    # TODO: use original df
 
+    df = _get_sample_df()
     # rename columns
     df = rename_columns(df=df, columns_mapping=columns_mapping)
 
     # initally preprocess intact file
-    df = read_intact_file(df)
+    df = filter_intact_df(df)
 
     # filter for pubmed
     df = filter_for_pubmed(df, PUBLICATION_ID)
 
     return df
-
-
-# TODO: add edges
 
 
 def get_bel() -> BELGraph:

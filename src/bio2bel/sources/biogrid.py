@@ -23,6 +23,8 @@ MODULE_NAME = 'biogrid'
 VERSION = '3.5.183'
 BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
 URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
+FILE = f'BIOGRID-ALL-{VERSION}.mitab.zip'
+
 
 #: Relationship types in BioGRID that map to BEL relation 'increases'
 BIOGRID_INCREASES_ACTIONS = {
@@ -70,24 +72,19 @@ def _get_my_df() -> pd.DataFrame:
     :return: original dataframe
     """
     path = _load_file()
-    df = pd.read_csv(path, sep=SEP, compression='zip')
-    return df
+    with ZipFile(path) as zip_file:
+        with zip_file.open(FILE) as file:
+            return pd.read_csv(file, sep='\t')
 
 
-def _get_sample_df(path: str, separator: str = '\t') -> pd.DataFrame:
+def _get_sample_df() -> pd.DataFrame:
     """Get sample dataframe of biogrid.
 
-    :param path: file path to original file
-    :param separator: separator for tsv file
     :return: sample dataframe
     """
-    # making data frame from csv file
-    # TODO: uncomment and solve zip file issue
-    data = pd.read_csv('/Users/sophiakrix/Downloads/biogrid_sample.txt', sep=separator)
-    #data = pd.read_csv(path, sep=separator)
-    print(data.columns)
+    df = _get_my_df()
     # generating sample dataframe
-    return data.sample(n=5)
+    return df.sample(n=5)
 
 
 def get_bel() -> BELGraph:
@@ -110,6 +107,8 @@ def get_processed_biogrid() -> pd.DataFrame:
     df = _get_my_df()
 
     return df
+
+# TODO: add edges
 
 
 def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
@@ -198,4 +197,4 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    print(get_processed_biogrid())
+    print(_get_my_df())
