@@ -98,10 +98,10 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
 
     def summarize(self) -> Mapping[str, int]:
         """Summarize the database."""
-        return dict(
-            pathways=self.count_pathways(),
-            proteins=self.count_proteins(),
-        )
+        return {
+            'pathways': self.count_pathways(),
+            'proteins': self.count_proteins(),
+        }
 
     def _query_proteins_in_hgnc_list(self, gene_set: Iterable[str]) -> List[CompathProteinMixin]:
         """Return the proteins in the database within the gene set query.
@@ -181,7 +181,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         # Flat the pathways lists and applies Counter to get the number matches in every mapped pathway
         pathway_counter = Counter(itt.chain.from_iterable(pathways_lists))
 
-        enrichment_results = dict()
+        enrichment_results = {}
 
         for pathway_id, proteins_mapped in pathway_counter.items():
             pathway = self.get_pathway_by_id(pathway_id)
@@ -267,7 +267,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
                 .query(pathway_column, protein_column)
                 .join(self.pathway_model.proteins)
                 .filter(protein_column.isnot(None))
-                .all()
+                .all()  # noqa:C812
         )
         return {k: set(v) for k, v in rv.items()}
 
@@ -279,7 +279,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
                 .join(self.pathway_model.proteins)
                 .group_by(self.pathway_model.identifier)
                 .having(func.count(self.protein_model.hgnc_id) > 0)
-                .all()
+                .all()  # noqa:C812
         )
 
     def query_pathway_by_name(self, query: str, limit: Optional[int] = None) -> List[CompathPathwayMixin]:
@@ -328,7 +328,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
                 with open(path, 'w') as file:
                     for key, values in gene_sets_dict.items():
                         for value in values:
-                            print(key, value, file=file, sep='\t')
+                            print(key, value, file=file, sep='\t')  # noqa:T001
 
         return main
 

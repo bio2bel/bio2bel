@@ -66,7 +66,8 @@ EVIDENCE = 'From IntAct'
 SEP = '\t'
 
 MODULE_NAME = 'intact'
-URL = 'ftp://ftp.ebi.ac.uk/pub/databases/intact/current/psimitab/intact.zip'
+VERSION = '2020-03-31'
+URL = f'ftp://ftp.ebi.ac.uk/pub/databases/intact/{VERSION}/psimitab/intact.zip'
 path = ensure_path(MODULE_NAME, URL)
 sample_path = '/Users/sophiakrix/Downloads/intact_sample.txt'
 

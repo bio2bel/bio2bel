@@ -22,7 +22,7 @@ class TestCli(MockConnectionMixin):
         args = [
             '--connection',
             self.connection,
-            'populate'
+            'populate',
         ]
         self.runner.invoke(self.main, args)
 
@@ -33,7 +33,7 @@ class TestCli(MockConnectionMixin):
             '--connection',
             self.connection,
             'drop',
-            '--yes'
+            '--yes',
         ]
         self.runner.invoke(self.main, args)
 

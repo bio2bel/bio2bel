@@ -19,7 +19,9 @@ TARGET = 'target'
 RELATION = 'relation'
 PUBMED_ID = 'pubmed_id'
 MODULE_NAME = 'biogrid'
-URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive/BIOGRID-3.5.183/BIOGRID-ALL-3.5.183.mitab.zip'
+VERSION = '3.5.183'
+BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
+URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
 
 #: Relationship types in BioGRID that map to BEL relation 'increases'
 BIOGRID_INCREASES_ACTIONS = {
@@ -109,7 +111,7 @@ def get_processed_biogrid() -> pd.DataFrame:
     return df
 
 
-def _add_my_row(graph: BELGraph, row) -> None:
+def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
     """Add for every pubmed ID an edge with information about relationship type, source and target.
 
     :param graph: graph to add edges to

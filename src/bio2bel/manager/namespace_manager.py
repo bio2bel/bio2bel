@@ -207,7 +207,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
         return tqdm(
             self._get_query(self.namespace_model),
             total=self._count_model(self.namespace_model),
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -400,7 +400,7 @@ class BELNamespaceManagerMixin(ABC, ConnectionManager, CliMixin):
             return False
 
         with open(md5_hash_path, 'w') as file:
-            print(current_md5_hash, file=file)
+            print(current_md5_hash, file=file)  # noqa:T001
 
         with open(os.path.join(directory, f'{self.module_name}.belns'), 'w') as file:
             self.write_bel_namespace(file, use_names=False)

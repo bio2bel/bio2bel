@@ -83,7 +83,7 @@ def ensure_bio2bel_installation(name: str) -> Tuple[bool, types.ModuleType]:
         # https://stackoverflow.com/questions/12332975/installing-python-module-within-code
 
         with redirect_stdout(sys.stderr):
-            pip_exit_code = os.system(f'python -m pip install -q {package}')
+            pip_exit_code = os.system(f'python -m pip install -q {package}')  # noqa:S605
 
         if 0 != pip_exit_code:  # command failed
             logger.warning(f'could not find {package} on PyPI. Try installing from GitHub with:')

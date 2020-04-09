@@ -34,7 +34,7 @@ log = logging.getLogger(__name__)
 Base = declarative_base()
 
 TABLE_PREFIX = 'bio2bel'
-ACTION_TABLE_NAME = '{}_action'.format(TABLE_PREFIX)
+ACTION_TABLE_NAME = f'{TABLE_PREFIX}_action'
 
 
 class Action(Base):
@@ -42,7 +42,7 @@ class Action(Base):
 
     __tablename__ = ACTION_TABLE_NAME
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa:A003
 
     resource = Column(String(32), nullable=False,
                       doc='The normalized name of the Bio2BEL package (e.g., hgnc, chebi, etc)')
@@ -50,7 +50,7 @@ class Action(Base):
     created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow, doc='The date and time of upload')
 
     def __repr__(self):  # noqa: D105
-        return '{} {} at {}'.format(self.resource, self.action, self.created)
+        return f'{self.resource} {self.action} at {self.created}'
 
     @staticmethod
     def make_populate(resource: str) -> Action:
