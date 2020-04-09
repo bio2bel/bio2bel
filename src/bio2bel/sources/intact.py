@@ -260,56 +260,56 @@ def _add_my_row(graph: BELGraph, row) -> None:
         if relation in INTACT_INCREASES_ACTIONS:
 
             if relation == 'phosphorylation reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Ph')
                 )
             elif relation == 'sumoylation reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Sumo')
                 )
             elif relation == 'methylation reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Me')
                 )
             elif relation == 'transglutamination reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Me')
                 )
             elif relation == 'ubiquitination reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Ub')
                 )
             elif relation == 'acetylation reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Ac')
                 )
             elif relation == 'adp ribosylation reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('ADPRib')
                 )
             elif relation == 'neddylation reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Nedd')
                 )
             elif relation == 'hydroxylation reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Hy')
                 )
             elif relation == 'phosphotransfer reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Ph')
                 )
             elif relation == 'glycosylation reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Glyco')
                 )
             elif relation == 'palmitoylation reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Palm')
                 )
             graph.add_increases(
                 source,
-                target_ub,
+                target_mod,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
             )
@@ -318,43 +318,43 @@ def _add_my_row(graph: BELGraph, row) -> None:
         elif relation in INTACT_DECREASES_ACTIONS:
 
             if relation == 'deubiquitination reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Ub')
                 )
             elif relation == 'deacetylation reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Ac')
                 )
             elif relation == 'dephosphorylation reaction':
-                target_ub = target.with_variants(
+                target_mod = target.with_variants(
                     pybel.dsl.ProteinModification('Ph')
                 )
             elif relation == 'dna cleavage':
-                target_ub = pybel.dsl.Gene(
-                        namespace='uniprot',
-                        identifier=source_uniprot_id,
-                        name=get_mnemonic(source_uniprot_id)
-                    )
+                target_mod = pybel.dsl.Gene(
+                    namespace='uniprot',
+                    identifier=source_uniprot_id,
+                    name=get_mnemonic(source_uniprot_id)
+                )
             elif relation == 'rna cleavage':
-                target_ub = pybel.dsl.Rna(
+                target_mod = pybel.dsl.Rna(
                     namespace='uniprot',
                     identifier=source_uniprot_id,
                     name=get_mnemonic(source_uniprot_id)
                 )
             # both proteins
             elif relation == 'cleavage reaction' \
-                 or relation == 'lipoprotein cleavage reaction' \
-                 or relation == 'protein cleavage':
-                    graph.add_decreases(
-                        source,
-                        target,
-                        citation=pubmed_id,
-                        evidence=EVIDENCE,
-                    )
+                    or relation == 'lipoprotein cleavage reaction' \
+                    or relation == 'protein cleavage':
+                graph.add_decreases(
+                    source,
+                    target,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                )
 
             graph.add_decreases(
                 source,
-                target_ub,
+                target_mod,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
             )

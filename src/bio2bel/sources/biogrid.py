@@ -143,22 +143,22 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
             pass
     # =========================================
         if relation == 'deubiquitination':
-            target_ub = target.with_variants(
+            target_mod = target.with_variants(
                 pybel.dsl.ProteinModification('Ub')
             )
             graph.add_decreases(
                 source,
-                target_ub,
+                target_mod,
                 citation=pubmed_id,
                 evidence='From intact',
             )
         elif relation == 'ubiqutination':
-            target_ub = target.with_variants(
+            target_mod = target.with_variants(
                 pybel.dsl.ProteinModification('Ub')
             )
             graph.add_increases(
                 source,
-                target_ub,
+                target_mod,
                 citation=...,
                 evidence='From intact',
             )
