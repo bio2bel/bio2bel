@@ -295,7 +295,6 @@ def _add_my_row(graph: BELGraph, row) -> None:
                 evidence='From intact',
             )
 
-
         # ===========CHARLIE==============
 
         if relation == 'deubiquitination':

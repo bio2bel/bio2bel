@@ -2,12 +2,11 @@
 
 """This script downloads and parses BioGRID data and maps the interaction types to BEL."""
 
-import os
 import pandas as pd
-
-from bio2bel.utils import ensure_path
 import pybel.dsl
+from bio2bel.utils import ensure_path
 from pybel import BELGraph
+from protmapper.uniprot_client import get_mnemonic
 
 SEP = '\t'
 
@@ -47,7 +46,6 @@ def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
     :param url: URL to file from database
     :return: path of saved database file
     """
-
     return ensure_path(prefix=module_name, url=url)
 
 
@@ -57,22 +55,31 @@ def _get_my_df() -> pd.DataFrame:
     df = pd.read_csv(path)
     return df
 
-def _get_sample_df() -> pd.DataFrame:
+
+def _get_sample_df(path: str, separator: str='\t') -> pd.DataFrame:
     """Get sample dataframe of biogrid.
 
-    :return:
+    :param path: file path to original file
+    :param separator: separator for tsv file
+    :return: sample dataframe
     """
+    # making data frame from csv file
+    data = pd.read_csv(path, sep=separator)
+
+    # generating sample dataframe
+    return data.sample(n=5)
 
 
 def get_bel() -> BELGraph:
+    """Get a BEL graph for IntAct.
+
+    :return: BEL graph
+    """
     df = _get_my_df()
     graph = BELGraph(name='intact')
     for _, row in df.iterrows():
         _add_my_row(graph, row)
     return graph
-
-
-from protmapper.uniprot_client import get_mnemonic
 
 
 def _add_my_row(graph: BELGraph, row) -> None:
@@ -148,6 +155,10 @@ def _add_my_row(graph: BELGraph, row) -> None:
                 ),
             )
 
-def preprocess_biogrid():
-    _load_file(module_name=MODULE_NAME, url=URL)
 
+def preprocess_biogrid() -> pd.DataFrame:
+    """Load BioGRDID file, filter and rename columns and return a dataframe.
+
+    :return: dataframe of preprocessed BioGRID data
+    """
+    return _get_my_df()
