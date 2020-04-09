@@ -109,7 +109,7 @@ def get_processed_biogrid() -> pd.DataFrame:
     return df
 
 
-def _add_my_row(graph: BELGraph, row) -> None:
+def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
     """Add for every pubmed ID an edge with information about relationship type, source and target.
 
     :param graph: graph to add edges to
