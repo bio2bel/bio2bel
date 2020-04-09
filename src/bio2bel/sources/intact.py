@@ -11,8 +11,56 @@ import pybel.dsl
 from bio2bel.utils import ensure_path
 from pybel import BELGraph
 
-from ..constants import INTACT_INCREASES_ACTIONS, INTACT_DECREASES_ACTIONS, INTACT_ASSOCIATION_ACTIONS, \
-    INTACT_BINDS_ACTIONS
+# from ..constants import INTACT_INCREASES_ACTIONS, INTACT_DECREASES_ACTIONS, INTACT_ASSOCIATION_ACTIONS, \
+#     INTACT_BINDS_ACTIONS
+
+#: Relationship types in IntAct that map to BEL relation 'increases'
+INTACT_INCREASES_ACTIONS = {
+    'phosphorylation reaction',
+    'sumoylation reaction',
+    'methylation reaction',
+    'transglutamination reaction',
+    'ubiquitination reaction',
+    'acetylation reaction',
+    'adp ribosylation reaction',
+    'neddylation reaction',
+    'hydroxylation reaction',
+    'phosphotransfer reaction',
+    'glycosylation reaction',
+    'palmitoylation reaction',
+}
+
+#: Relationship types in IntAct that map to BEL relation 'decreases'
+INTACT_DECREASES_ACTIONS = {
+    # decreases
+    'deubiquitination reaction',
+    'protein cleavage',
+    'cleavage reaction',
+    'deacetylation reaction',
+    'lipoprotein cleavage reaction',
+    'dna cleavage',
+    'rna cleavage',
+    'dephosphorylation reaction',
+}
+
+#: Relationship types in IntAct that map to BEL relation 'association'
+INTACT_ASSOCIATION_ACTIONS = {
+    'physical association',
+    'association',
+    'colocalization',
+    'direct interaction',
+    'enzymatic reaction',
+    'atpase reaction',
+    'self interaction',
+    'gtpase reaction',
+    'putative self interaction',
+}
+
+#: Relationship types in IntAct that map to BEL relation 'hasComponent'
+INTACT_BINDS_ACTIONS = {
+    'covalent binding',
+    'disulfide bond',
+}
 
 EVIDENCE = 'From IntAct'
 SEP = '\t'
@@ -80,22 +128,22 @@ def read_intact_file(df: pd.DataFrame) -> pd.DataFrame:
     print('Dataframe is being created from the file.')
 
     # take relevant columns for source, target, relation and PubMed ID
-    df = df.loc[:, [SOURCE, TARGET, RELATION, PUBMED_ID]]
+    df = df[[SOURCE, TARGET, RELATION, PUBMED_ID]]
 
     # drop nan value rows for interactor B
-    df = df.loc[df[TARGET] != '-', :]
+    df = df[df[TARGET] != '-', :]
 
     return df
 
 
-def split_to_list(unsplitted_list: str, separator: str = '|') -> List:
+def split_to_list(unsplit_list: str, separator: str = '|') -> List:
     """Split a list of strings that contains multiple values that are separated by a defined separator into a list of lists.
 
-    :param unsplitted_list: list of strings to be splitted
+    :param unsplit_list: list of strings to be splitted
     :param separator: separator between elements
     :return: list of lists of splitted elements
     """
-    return [x.split(separator) for x in unsplitted_list]
+    return [x.split(separator) for x in unsplit_list]
 
 
 def split_column_str_to_list(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
@@ -352,6 +400,5 @@ def _add_my_row(graph: BELGraph, row) -> None:
             )
 
 
-
 if __name__ == '__main__':
-    get_processed_intact_df()
+    print(_get_my_df())

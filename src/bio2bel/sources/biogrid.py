@@ -67,7 +67,7 @@ def _get_my_df() -> pd.DataFrame:
     :return: original dataframe
     """
     path = _load_file()
-    df = pd.read_csv(path)
+    df = pd.read_csv(path, sep=SEP, compression='zip')
     return df
 
 
@@ -104,8 +104,7 @@ def get_processed_biogrid() -> pd.DataFrame:
 
     :return: dataframe of preprocessed BioGRID data
     """
-    # TODO uncomment
-    df = _get_sample_df(path=_load_file())
+    df = _get_my_df()
 
     return df
 
