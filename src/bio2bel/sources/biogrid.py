@@ -19,7 +19,9 @@ TARGET = 'target'
 RELATION = 'relation'
 PUBMED_ID = 'pubmed_id'
 MODULE_NAME = 'biogrid'
-URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive/BIOGRID-3.5.183/BIOGRID-ALL-3.5.183.mitab.zip'
+VERSION = '3.5.183'
+BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
+URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
 
 #: Relationship types in BioGRID that map to BEL relation 'increases'
 BIOGRID_INCREASES_ACTIONS = {
