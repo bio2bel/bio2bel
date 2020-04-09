@@ -38,7 +38,7 @@ def make_downloader(url: str, path: str) -> Callable[[bool], str]:  # noqa: D202
             logger.debug('using cached data at %s', path)
         else:
             logger.info('downloading %s to %s', url, path)
-            urlretrieve(url, path)
+            urlretrieve(url, path)  # noqa: S310
 
         return path
 
@@ -86,7 +86,7 @@ def make_df_getter(data_url: str, data_path: str, **kwargs) -> Callable[[Optiona
 
         return pd.read_csv(
             url or data_url,
-            **kwargs
+            **kwargs,
         )
 
     return get_df

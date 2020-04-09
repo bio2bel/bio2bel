@@ -70,9 +70,9 @@ class ConnectionManager:
     @classmethod
     def _assert_module_name(cls):
         if not hasattr(cls, 'module_name'):
-            raise Bio2BELMissingNameError('module_name class variable not set on {}'.format(cls.__name__))
+            raise Bio2BELMissingNameError(f'module_name class variable not set on {cls.__name__}')
         elif not isinstance(cls.module_name, str):
-            raise TypeError('module_name class variable not set as str: {}'.format(cls.__name__))
+            raise TypeError(f'module_name class variable not set as str: {cls.__name__}')
         elif cls.module_name != cls.module_name.lower():
             raise Bio2BELModuleCaseError('module_name class variable should be lowercase')
 
@@ -94,10 +94,7 @@ class ConnectionManager:
         Action.store_drop(self.module_name, session=self.session)
 
     def __repr__(self):  # noqa: D105
-        return '<{module_name}Manager url={url}>'.format(
-            module_name=self.module_name.capitalize(),
-            url=self.engine.url
-        )
+        return f'<{self.module_name.capitalize()}Manager url={self.engine.url}>'
 
 
 def build_engine_session(

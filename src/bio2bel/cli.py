@@ -69,7 +69,7 @@ def populate(connection, reset, force, skip):
     for idx, name, manager in _iterate_managers(connection, skip):
         click.echo(
             click.style(f'[{idx}/{len(MANAGERS)}] ', fg='blue', bold=True) +
-            click.style(f'populating {name}', fg='cyan', bold=True)
+            click.style(f'populating {name}', fg='cyan', bold=True),
         )
 
         if reset:
@@ -107,7 +107,7 @@ def populate(connection, reset, force, skip):
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 def drop(connection, skip):
     """Drop all."""
-    for idx, name, manager in _iterate_managers(connection, skip):
+    for _, name, manager in _iterate_managers(connection, skip):
         click.secho(f'dropping {name}', fg='cyan', bold=True)
         manager.drop_all()
 
@@ -133,7 +133,7 @@ def clear(skip):
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 def summarize(connection, skip):
     """Summarize all."""
-    for idx, name, manager in _iterate_managers(connection, skip):
+    for _, name, manager in _iterate_managers(connection, skip):
         click.secho(name, fg='cyan', bold=True)
         try:
             if not manager.is_populated():
@@ -160,7 +160,7 @@ def summarize(connection, skip):
 
         for field_name, count in sorted(summary.items()):
             click.echo(
-                click.style('=> ', fg='white', bold=True) + f"{field_name.replace('_', ' ').capitalize()}: {count}"
+                click.style('=> ', fg='white', bold=True) + f"{field_name.replace('_', ' ').capitalize()}: {count}",
             )
 
 
@@ -188,7 +188,7 @@ def sheet(connection, skip, file: TextIO, tablefmt: str, index: bool):
 
     rows = []
 
-    for i, (idx, name, manager) in enumerate(_iterate_managers(connection, skip), start=1):
+    for i, (_, name, manager) in enumerate(_iterate_managers(connection, skip), start=1):
         try:
             if not manager.is_populated():
                 continue
@@ -263,7 +263,7 @@ def write(connection, skip, directory, force):
     """Write a BEL namespace names/identifiers to terminology store."""
     os.makedirs(directory, exist_ok=True)
     from .manager.namespace_manager import BELNamespaceManagerMixin
-    for idx, name, manager in _iterate_managers(connection, skip):
+    for _, name, manager in _iterate_managers(connection, skip):
         if not (isinstance(manager, AbstractManager) and isinstance(manager, BELNamespaceManagerMixin)):
             continue
         click.secho(name, fg='cyan', bold=True)
@@ -304,7 +304,7 @@ def write(connection, skip, directory, force):
     os.makedirs(directory, exist_ok=True)
     from .manager.bel_manager import BELManagerMixin
     import pybel
-    for idx, name, manager in _iterate_managers(connection, skip):
+    for _, name, manager in _iterate_managers(connection, skip):
         if not isinstance(manager, BELManagerMixin):
             continue
         click.secho(name, fg='cyan', bold=True)
@@ -324,8 +324,8 @@ def write(connection, skip, directory, force):
 
 @main.command()
 @connection_option
-@click.option('--host', default='0.0.0.0')
-@click.option('--port', type=int, default=5000)
+@click.option('--host')
+@click.option('--port', type=int)
 def web(connection, host, port):
     """Run a combine web interface."""
     from bio2bel.web.application import create_application

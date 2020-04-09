@@ -12,7 +12,7 @@ __all__ = [
 class SpeciesMixin:
     """A database model mixin for species."""
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa:A003
 
     taxonomy_id = Column(String(255), doc='NCBI taxonomy identifier')
     name = Column(String(255), doc='NCBI taxonomy label')

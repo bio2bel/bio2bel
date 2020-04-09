@@ -92,7 +92,7 @@ def belns(keyword: str, directory: str, encoding: Optional[str]):
 
     namespace_hash = get_namespace_hash(items.items())
     with open(os.path.join(directory, f'{keyword}.belns.md5'), 'w') as file:
-        print(namespace_hash, file=file)
+        print(namespace_hash, file=file)  # noqa:T001
 
     with open(os.path.join(directory, f'{keyword}.belns.mapping'), 'w') as file:
         json.dump(mapping, file, indent=2)

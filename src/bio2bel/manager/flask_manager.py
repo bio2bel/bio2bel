@@ -140,7 +140,7 @@ def add_cli_flask(main: click.Group) -> click.Group:  # noqa: D202
     def web(manager, debug, port, host, secret_key):
         """Run the web app."""
         if not manager.is_populated():
-            click.echo('{} has not yet been populated'.format(manager.module_name))
+            click.echo(f'{manager.module_name} has not yet been populated')
             sys.exit(0)
 
         app = manager.get_flask_admin_app(url='/', secret_key=secret_key)

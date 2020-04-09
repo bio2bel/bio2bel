@@ -62,7 +62,7 @@ def ensure_path(prefix: str, url: str, path: Optional[str] = None) -> str:
 
     if not os.path.exists(path):
         logger.info('downloading %s to %s', url, path)
-        urlretrieve(url, path)
+        urlretrieve(url, path)  # noqa:S310
 
     return path
 
@@ -77,7 +77,7 @@ def get_module_config_cls(module_name: str) -> Type[_AbstractModuleConfig]:  # n
     class ModuleConfig(_AbstractModuleConfig):
         NAME = f'bio2bel:{module_name}'
         FILES = DEFAULT_CONFIG_PATHS + [
-            os.path.join(DEFAULT_CONFIG_DIRECTORY, module_name, 'config.ini')
+            os.path.join(DEFAULT_CONFIG_DIRECTORY, module_name, 'config.ini'),
         ]
 
     return ModuleConfig

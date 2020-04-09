@@ -218,7 +218,7 @@ class Protein(Base, CompathProteinMixin):
 
     __tablename__ = PROTEIN_TABLE
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa:A003
 
     entrez_id = Column(String(255), doc='entrez id of the protein')
     hgnc_id = Column(String(255), doc='HGNC id of the protein')
@@ -234,7 +234,7 @@ class Pathway(Base, CompathPathwayMixin):
 
     __tablename__ = PATHWAY_TABLE
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa:A003
 
     identifier = Column(String(255), doc='HGNC gene family id of the protein')
     name = Column(String(255), doc='HGNC gene family name of the protein')
@@ -278,7 +278,7 @@ class Manager(CompathManager):
                 proteins=[
                     x[reference.identifier]
                     for reference in term.get_relationships(pathway_has_part)
-                ]
+                ],
             )
             self.session.add(pathway)
         self.session.commit()
