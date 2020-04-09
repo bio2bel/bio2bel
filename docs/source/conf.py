@@ -22,6 +22,7 @@ import os
 import re
 import sys
 
+
 sys.path.insert(0, os.path.abspath('../../src'))
 
 # -- General configuration ------------------------------------------------
@@ -185,7 +186,7 @@ intersphinx_mapping = {
     'flask': ('http://flask.pocoo.org/docs/', None),
     'click': ('https://click.palletsprojects.com/en/7.x', None),
     'pybel': ('https://pybel.readthedocs.io/en/latest/', None),
-    'pandas': ('https://pandas.pydata.org', None),
+    'pandas': ('http://pandas.pydata.org/pandas-docs/dev', None),
     'indra': ('https://indra.readthedocs.io/en/latest/', None),
 }
 

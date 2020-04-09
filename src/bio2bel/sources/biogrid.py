@@ -21,19 +21,19 @@ PUBMED_ID = 'pubmed_id'
 MODULE_NAME = 'biogrid'
 URL = 'https://downloads.thebiogrid.org/File/BioGRID/Release-Archive/BIOGRID-3.5.183/BIOGRID-ALL-3.5.183.mitab.zip'
 
+#: Relationship types in BioGRID that map to BEL relation 'increases'
 BIOGRID_INCREASES_ACTIONS = {
-    # increases
     'synthetic genetic interaction defined by inequality',
     'additive genetic interaction defined by inequality',
 }
 
+#: Relationship types in BioGRID that map to BEL relation 'decreases'
 BIOGRID_DECREASES_ACTIONS = {
-    # decreases
     'suppressive genetic interaction defined by inequality',
 }
 
+#: Relationship types in BioGRID that map to BEL relation 'association'
 BIOGRID_ASSOCIATION_ACTIONS = {
-    # association
     'direct interaction',
     'physical association',
     'colocalization',
@@ -62,7 +62,10 @@ def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
 
 
 def _get_my_df() -> pd.DataFrame:
-    """Get my dataframe."""
+    """Get my dataframe.
+
+    :return: original dataframe
+    """
     path = _load_file()
     df = pd.read_csv(path)
     return df
@@ -76,8 +79,10 @@ def _get_sample_df(path: str, separator: str = '\t') -> pd.DataFrame:
     :return: sample dataframe
     """
     # making data frame from csv file
+    # TODO: uncomment and solve zip file issue
+    # data = pd.read_csv('/Users/sophiakrix/Downloads/biogrid_sample.txt', sep=separator)
     data = pd.read_csv(path, sep=separator)
-
+    print(data.columns)
     # generating sample dataframe
     return data.sample(n=5)
 

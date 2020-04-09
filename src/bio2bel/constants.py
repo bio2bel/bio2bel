@@ -61,8 +61,8 @@ directory_option = click.option(
     show_default=True,
 )
 
+#: Relationship types in IntAct that map to BEL relation 'increases'
 INTACT_INCREASES_ACTIONS = {
-    # increases
     'phosphorylation reaction',
     'sumoylation reaction',
     'methylation reaction',
@@ -77,6 +77,7 @@ INTACT_INCREASES_ACTIONS = {
     'palmitoylation reaction',
 }
 
+#: Relationship types in IntAct that map to BEL relation 'decreases'
 INTACT_DECREASES_ACTIONS = {
     # decreases
     'deubiquitination reaction',
@@ -89,8 +90,8 @@ INTACT_DECREASES_ACTIONS = {
     'dephosphorylation reaction',
 }
 
+#: Relationship types in IntAct that map to BEL relation 'association'
 INTACT_ASSOCIATION_ACTIONS = {
-    # association
     'physical association',
     'association',
     'colocalization',
@@ -102,8 +103,8 @@ INTACT_ASSOCIATION_ACTIONS = {
     'putative self interaction',
 }
 
+#: Relationship types in IntAct that map to BEL relation 'hasComponent'
 INTACT_BINDS_ACTIONS = {
-    # hasComponent
     'covalent binding',
     'disulfide bond',
 }
