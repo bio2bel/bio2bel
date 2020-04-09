@@ -205,7 +205,6 @@ def list_pubmed(publication_ids: Iterable[str]) -> List[List[str]]:
     final_list = []
     for publications in publication_ids:
         publications_list = split_to_list(publications, separator='|')
-        print(publications_list)
         flag = False
         row_list = []
         for i in publications_list:
@@ -260,7 +259,7 @@ def get_bel() -> BELGraph:
 
     :return: BEL graph#
     """
-    df = _get_my_df()
+    df = get_processed_intact_df()
     graph = BELGraph(name='intact')
     for _, row in df.iterrows():
         _add_my_row(graph, row)
@@ -278,7 +277,7 @@ def _add_my_row(graph: BELGraph, row) -> None:
     source_uniprot_id = row[SOURCE]
     target_uniprot_id = row[TARGET]
 
-    pubmed_ids = row['pubmed_ids']
+    pubmed_ids = row[PUBMED_ID]
     # pubmed_ids = pubmed_ids.split('|')
 
     source = pybel.dsl.Protein(
@@ -422,4 +421,4 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
 
 if __name__ == '__main__':
-    print(get_processed_intact_df())
+    print(get_bel())

@@ -20,6 +20,7 @@ SOURCE = 'source'
 TARGET = 'target'
 RELATION = 'relation'
 PUBMED_ID = 'pubmed_id'
+EVIDENCE = 'From BioGRID'
 MODULE_NAME = 'biogrid'
 VERSION = '3.5.183'
 BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
@@ -27,7 +28,6 @@ URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
 
 HOME = os.path.expanduser('~')
 BIO2BEL_DIR = os.path.join(HOME, '.bio2bel')
-INTACT_FILE = os.path.join(BIO2BEL_DIR, 'intact/intact.txt')
 BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/BIOGRID-ALL-3.5.183.mitab')
 SAMPLE_BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/biogrid_sample.tsv')
 
@@ -50,16 +50,6 @@ BIOGRID_ASSOCIATION_ACTIONS = {
     'association',
 }
 
-BIOGRID2BEL_FUNCTION_MAPPER = {
-    'direct interaction': '',
-    'suppressive genetic interaction defined by inequality': 'geneAbundance',
-    'physical association': '',
-    'colocalization': 'location',
-    'synthetic genetic interaction defined by inequality': 'geneAbundance',
-    'association': '',
-    'additive genetic interaction defined by inequality': 'geneAbundance'
-}
-
 
 def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
     """Load the file from the URL and place it into the bio2bel_sophia directory.
@@ -78,7 +68,7 @@ def _get_my_df() -> pd.DataFrame:
     """
     path = _load_file()
     with ZipFile(path) as zip_file:
-        with zip_file.open(BIOGRID_FILE) as file:
+        with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab') as file:
             return pd.read_csv(file, sep='\t')
 
 
@@ -120,8 +110,6 @@ def get_processed_biogrid() -> pd.DataFrame:
 
     return df
 
-# TODO: add edges
-
 
 def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
     """Add for every pubmed ID an edge with information about relationship type, source and target.
@@ -134,7 +122,7 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
     source_uniprot_id = row[SOURCE]
     target_uniprot_id = row[TARGET]
 
-    pubmed_ids = row['pubmed_ids']
+    pubmed_ids = row[PUBMED_ID]
     # pubmed_ids = pubmed_ids.split('|')
 
     source = pybel.dsl.Protein(
@@ -150,9 +138,32 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
     for pubmed_id in pubmed_ids:
 
-        # INCREASE
+        # INCREASES
         if relation in BIOGRID_INCREASES_ACTIONS:
-            pass
+            graph.add_increases(
+                source,
+                target,
+                citation=pubmed_id,
+                evidence=EVIDENCE,
+            )
+
+        # DECREASES
+        elif relation in BIOGRID_DECREASES_ACTIONS:
+            graph.add_decreases(
+                source,
+                target,
+                citation=pubmed_id,
+                evidence=EVIDENCE,
+            )
+
+        # ASSOCIATION
+        elif relation in BIOGRID_ASSOCIATION_ACTIONS:
+            graph.add_association(
+                source,
+                target,
+                citaion=pubmed_id,
+                evidence=EVIDENCE,
+            )
     # =========================================
         if relation == 'deubiquitination':
             target_mod = target.with_variants(
@@ -209,4 +220,4 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    print(_get_my_df())
+    print(_write_sample_df())
