@@ -7,6 +7,7 @@ from typing import Dict, Iterable, List
 import pandas as pd
 from protmapper.uniprot_client import get_mnemonic
 
+from zipfile import ZipFile
 import pybel.dsl
 from bio2bel.utils import ensure_path
 from pybel import BELGraph
@@ -103,10 +104,14 @@ def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
 
 
 def _get_my_df() -> pd.DataFrame:
-    """Get my dataframe."""
+    """Get my dataframe.
+
+    :return: original intact dataframe
+    """
     path = _load_file()
-    df = pd.read_csv(path, sep=SEP, compression='zip')
-    return df
+    with ZipFile(path) as zip_file:
+        with zip_file.open('intact.txt') as file:
+            return pd.read_csv(file, sep='\t')
 
 
 def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
@@ -380,13 +385,8 @@ def _add_my_row(graph: BELGraph, row) -> None:
             )
         # no specified relation -> association
         else:
-            graph.add_association(
-                source,
-                target,
-                citaion=pubmed_id,
-                evidence=EVIDENCE,
-            )
+            raise ValueError(f"The relation {relation} is not in the specified relations.")
 
 
 if __name__ == '__main__':
-    print(_load_file())
+    print(_get_my_df())

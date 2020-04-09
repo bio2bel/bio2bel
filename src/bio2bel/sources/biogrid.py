@@ -5,6 +5,7 @@
 import pandas as pd
 
 import pybel.dsl
+from zipfile import ZipFile
 from bio2bel.utils import ensure_path
 from pybel import BELGraph
 
