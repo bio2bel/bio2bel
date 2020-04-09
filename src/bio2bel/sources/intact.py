@@ -188,20 +188,7 @@ def filter_for_pubmed(df: pd.DataFrame, column_name: str):
     :param column_name: column with publication ids
     :return: dataframe with filtered column
     """
-    pubmed_list = list_pubmed(df.loc[:, column_name])
-    df = add_to_df(df=df, column_name=column_name, list_to_add=pubmed_list)
-    return df
-
-
-def add_to_df(df: pd.DataFrame, column_name: str, list_to_add: List) -> pd.DataFrame:
-    """Add a column to a dataframe.
-
-    :param df: dataframe
-    :param column_name: column name
-    :param list_to_add: list to be added in column in the dataframe
-    :return: df with updated column
-    """
-    df.loc[:, column_name] = list_to_add
+    df[[column_name]] = list_pubmed(df[[column_name]])
     return df
 
 
@@ -401,4 +388,4 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
 
 if __name__ == '__main__':
-    print(_get_my_df())
+    print(_load_file())
