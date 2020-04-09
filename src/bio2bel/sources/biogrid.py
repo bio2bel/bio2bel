@@ -3,14 +3,14 @@
 """This script downloads and parses BioGRID data and maps the interaction types to BEL."""
 
 import os
-import pandas as pd
-
-import pybel.dsl
 from zipfile import ZipFile
-from bio2bel.utils import ensure_path
-from pybel import BELGraph
 
+from typing import Iterable, List
+import pandas as pd
+import pybel.dsl
+from bio2bel.utils import ensure_path
 from protmapper.uniprot_client import get_mnemonic
+from pybel import BELGraph
 
 # from ..constants import BIOGRID_ASSOCIATION_ACTIONS, BIOGRID_DECREASES_ACTIONS, BIOGRID_INCREASES_ACTIONS
 
@@ -20,6 +20,7 @@ SOURCE = 'source'
 TARGET = 'target'
 RELATION = 'relation'
 PUBMED_ID = 'pubmed_id'
+UNIPROT = 'uniprot'
 EVIDENCE = 'From BioGRID'
 MODULE_NAME = 'biogrid'
 VERSION = '3.5.183'
@@ -28,8 +29,8 @@ URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
 
 HOME = os.path.expanduser('~')
 BIO2BEL_DIR = os.path.join(HOME, '.bio2bel')
-BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/BIOGRID-ALL-3.5.183.mitab')
-SAMPLE_BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/biogrid_sample.tsv')
+BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/BIOGRID-ALL-3.5.183.mitab.txt')
+SAMPLE_BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/biogrid_sample.txt')
 
 #: Relationship types in BioGRID that map to BEL relation 'increases'
 BIOGRID_INCREASES_ACTIONS = {
@@ -50,6 +51,14 @@ BIOGRID_ASSOCIATION_ACTIONS = {
     'association',
 }
 
+BIOGRID_COLUMN_MAPPER = {
+    'Alt IDs Interactor A': SOURCE,
+    'Alt IDs Interactor B': TARGET,
+    'Interaction Types': RELATION,
+    'Publication Identifiers': PUBMED_ID,
+
+}
+
 
 def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
     """Load the file from the URL and place it into the bio2bel_sophia directory.
@@ -68,7 +77,7 @@ def _get_my_df() -> pd.DataFrame:
     """
     path = _load_file()
     with ZipFile(path) as zip_file:
-        with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab') as file:
+        with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab.txt') as file:
             return pd.read_csv(file, sep='\t')
 
 
@@ -76,7 +85,7 @@ def _write_sample_df() -> None:
     """Write a sample dataframe to file."""
     path = _load_file()
     with ZipFile(path) as zip_file:
-        with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab') as file:
+        with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab.txt') as file:
             df = pd.read_csv(file, sep='\t')
             df.head().to_csv(SAMPLE_BIOGRID_FILE, sep=SEP)
 
@@ -87,6 +96,62 @@ def _get_sample_df() -> pd.DataFrame:
     :return: sample dataframe
     """
     return pd.read_csv(SAMPLE_BIOGRID_FILE, sep=SEP)
+
+
+def filter_biogrid_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Filter the original BioGRID dataframe containing the entire database and return dataframe with columns \
+    for source, target, relation and pubmed_id.
+
+    :param df: intact dataframe to be preprocessed
+    :return: dataframe with source, target, relation, pubmed_id columsn
+    """
+    # take relevant columns for source, target, relation and PubMed ID
+    df = df[[SOURCE, TARGET, RELATION, PUBMED_ID]]
+
+    return df
+
+
+def filter_for_prefix(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
+    """Split the Iterable by the separator
+
+    :param separator: separator between ids
+    :param prefix: prefix to filter for (e.g. 'pubmed')
+    :param list_ids: list of identifiers
+    :return: filtered list of ids
+    """
+
+    final_list = []
+    for ids in list_ids:
+        id_list = ids.split(separator)
+        flag = False
+        row_list = []
+        for i in id_list:
+            if i.startswith(prefix):
+                row_list.append(i)
+                flag = True
+        if not flag:
+            row_list.append(f'no {prefix} id')
+        final_list.append(row_list)
+    return final_list
+
+
+def get_processed_biogrid() -> pd.DataFrame:
+    """Load BioGRDID file, filter and rename columns and return a dataframe.
+
+    :return: dataframe of preprocessed BioGRID data
+    """
+    df = _get_sample_df()
+    # rename columns
+    df = df.rename(columns=BIOGRID_COLUMN_MAPPER)
+
+    # filter for source, target, relation, pubmed ids
+    df = filter_biogrid_df(df)
+
+    # filter for uniprot
+    df[SOURCE] = filter_for_prefix(list_ids=df[SOURCE], prefix=UNIPROT)
+    df[TARGET] = filter_for_prefix(list_ids=df[TARGET], prefix=UNIPROT)
+
+    return df
 
 
 def get_bel() -> BELGraph:
@@ -101,16 +166,6 @@ def get_bel() -> BELGraph:
     return graph
 
 
-def get_processed_biogrid() -> pd.DataFrame:
-    """Load BioGRDID file, filter and rename columns and return a dataframe.
-
-    :return: dataframe of preprocessed BioGRID data
-    """
-    df = _get_my_df()
-
-    return df
-
-
 def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
     """Add for every pubmed ID an edge with information about relationship type, source and target.
 
@@ -123,7 +178,6 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
     target_uniprot_id = row[TARGET]
 
     pubmed_ids = row[PUBMED_ID]
-    # pubmed_ids = pubmed_ids.split('|')
 
     source = pybel.dsl.Protein(
         namespace='uniprot',
@@ -164,60 +218,11 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                 citaion=pubmed_id,
                 evidence=EVIDENCE,
             )
-    # =========================================
-        if relation == 'deubiquitination':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification('Ub')
-            )
-            graph.add_decreases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence='From intact',
-            )
-        elif relation == 'ubiqutination':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification('Ub')
-            )
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=...,
-                evidence='From intact',
-            )
 
-        elif relation == 'degratation':
-            graph.add_decreases(
-                source,
-                target,
-                citation=...,
-                evidence='From intact',
-            )
-
-        elif relation == 'activates':
-            graph.add_increases(
-                source,
-                target,
-                ...,
-                object_modifier=pybel.dsl.activity(),
-            )
-        elif relation == 'co-expressed':
-            graph.add_correlation(
-                pybel.dsl.Rna(
-                    namespace='uniprot',
-                    identifier=source_uniprot_id,
-                    name=get_mnemonic(source_uniprot_id),
-                ),
-                pybel.dsl.Rna(
-                    namespace='uniprot',
-                    identifier=target_uniprot_id,
-                    name=get_mnemonic(target_uniprot_id),
-                ),
-                annotations=dict(
-                    cell_line={'HEK2': True}
-                ),
-            )
+        # no specified relation
+        else:
+            raise ValueError(f"The relation {relation} is not in the specified relations.")
 
 
 if __name__ == '__main__':
-    print(_write_sample_df())
+    print(get_processed_biogrid())

@@ -415,7 +415,7 @@ def _add_my_row(graph: BELGraph, row) -> None:
                 citation=pubmed_id,
                 evidence=EVIDENCE
             )
-        # no specified relation -> association
+        # no specified relation
         else:
             raise ValueError(f"The relation {relation} is not in the specified relations.")
 
