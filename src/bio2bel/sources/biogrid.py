@@ -80,8 +80,8 @@ def _get_sample_df(path: str, separator: str = '\t') -> pd.DataFrame:
     """
     # making data frame from csv file
     # TODO: uncomment and solve zip file issue
-    # data = pd.read_csv('/Users/sophiakrix/Downloads/biogrid_sample.txt', sep=separator)
-    data = pd.read_csv(path, sep=separator)
+    data = pd.read_csv('/Users/sophiakrix/Downloads/biogrid_sample.txt', sep=separator)
+    #data = pd.read_csv(path, sep=separator)
     print(data.columns)
     # generating sample dataframe
     return data.sample(n=5)
