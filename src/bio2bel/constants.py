@@ -60,3 +60,95 @@ directory_option = click.option(
     help='output directory, defaults to current.',
     show_default=True,
 )
+
+INTACT_INCREASES_ACTIONS = {
+    # increases
+    'phosphorylation reaction',
+    'sumoylation reaction',
+    'methylation reaction',
+    'transglutamination reaction',
+    'ubiquitination reaction',
+    'acetylation reaction',
+    'adp ribosylation reaction',
+    'neddylation reaction',
+    'hydroxylation reaction',
+    'phosphotransfer reaction',
+    'glycosylation reaction',
+    'palmitoylation reaction',
+}
+
+INTACT_DECREASES_ACTIONS = {
+    # decreases
+    'deubiquitination reaction',
+    'protein cleavage',
+    'cleavage reaction',
+    'deacetylation reaction',
+    'lipoprotein cleavage reaction',
+    'dna cleavage',
+    'rna cleavage',
+    'dephosphorylation reaction',
+}
+
+INTACT_ASSOCIATION_ACTIONS = {
+    # association
+    'physical association',
+    'association',
+    'colocalization',
+    'direct interaction',
+    'enzymatic reaction',
+    'atpase reaction',
+    'self interaction',
+    'gtpase reaction',
+    'putative self interaction',
+}
+
+INTACT_BINDS_ACTIONS = {
+    # hasComponent
+    'covalent binding',
+    'disulfide bond',
+}
+
+INTACT2BEL_FUNCTION_MAPPER = {
+    # complexAbundance
+    'covalent binding': 'complexAbundance',
+
+    # protein Modification
+    'deubiquitination reaction': 'proteinModification(Ub)',
+    'phosphorylation reaction': 'proteinModification(Ph)',
+    'sumoylation reaction': 'proteinModification',
+    'methylation reaction': 'proteinModification(Me)',
+    'transglutamination reaction': 'proteinModification',
+    'ubiquitination reaction': 'proteinModification(Ub)',
+    'acetylation reaction': 'proteinModification',
+    'adp ribosylation reaction': 'proteinModification',
+    'dephosphorylation reaction': 'proteinModification(Ph)',
+    'neddylation reaction': 'proteinModification',
+    'hydroxylation reaction': 'proteinModification',
+
+    # location
+    'colocalization': 'location',
+
+    # degradation
+    'protein cleavage': 'degradation',
+    'cleavage reaction': 'degradation',
+
+    'physical association': '',
+    'association': '',
+
+    'direct interaction': '',
+
+    'enzymatic reaction': '',
+
+    'atpase reaction': 'reaction',
+    'phosphotransfer reaction': 'proteinModification',
+    'disulfide bond': 'complexAbundance',
+    'self interaction': '',
+    'deacetylation reaction': '',
+    'lipoprotein cleavage reaction': 'proteinAbundance',
+    'gtpase reaction': 'reaction',
+    'glycosylation reaction': 'proteinModification(Glyco)',
+    'palmitoylation reaction': 'proteinModification',
+    'putative self interaction': '',
+    'dna cleavage': 'geneAbundance',
+    'rna cleavage': 'rnaAbundace',
+}

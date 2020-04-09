@@ -11,93 +11,11 @@ import pybel.dsl
 from bio2bel.utils import ensure_path
 from pybel import BELGraph
 
+from ..constants import INTACT_INCREASES_ACTIONS, INTACT_DECREASES_ACTIONS, INTACT_ASSOCIATION_ACTIONS, \
+    INTACT_BINDS_ACTIONS
+
+EVIDENCE = 'From IntAct'
 SEP = '\t'
-
-INTACT2BEL_MAPPER = {
-    # increases
-    'phosphorylation reaction': 'increases',
-    'sumoylation reaction': 'increases',
-    'methylation reaction': 'increases',
-    'transglutamination reaction': 'increases',
-    'ubiquitination reaction': 'increases',
-    'acetylation reaction': 'increases',
-    'adp ribosylation reaction': 'increases',
-    'neddylation reaction': 'increases',
-    'hydroxylation reaction': 'increases',
-    'phosphotransfer reaction': 'increases',
-    'glycosylation reaction': 'increases',
-    'palmitoylation reaction': 'increases',
-
-    # decreases
-    'deubiquitination reaction': 'decreases',
-    'protein cleavage': 'decreases',
-    'cleavage reaction': 'decreases',
-    'deacetylation reaction': 'decreases',
-    'lipoprotein cleavage reaction': 'decreases',
-    'dna cleavage': 'decreases',
-    'rna cleavage': 'decreases',
-    'dephosphorylation reaction': 'decreases',
-
-    # association
-    'physical association': 'association',
-    'association': 'association',
-    'colocalization': 'association',
-    'direct interaction': 'association',
-    'enzymatic reaction': 'association',
-    'atpase reaction': 'association',
-    'self interaction': 'association',
-    'gtpase reaction': 'association',
-    'putative self interaction': 'association',
-
-    # hasComponent  -> association
-    'covalent binding': 'hasComponent',
-    'disulfide bond': 'hasComponent',
-}
-
-INTACT2BEL_FUNCTION_MAPPER = {
-    # complexAbundance
-    'covalent binding': 'complexAbundance',
-
-    # protein Modification
-    'deubiquitination reaction': 'proteinModification(Ub)',
-    'phosphorylation reaction': 'proteinModification(Ph)',
-    'sumoylation reaction': 'proteinModification',
-    'methylation reaction': 'proteinModification(Me)',
-    'transglutamination reaction': 'proteinModification',
-    'ubiquitination reaction': 'proteinModification(Ub)',
-    'acetylation reaction': 'proteinModification',
-    'adp ribosylation reaction': 'proteinModification',
-    'dephosphorylation reaction': 'proteinModification(Ph)',
-    'neddylation reaction': 'proteinModification',
-    'hydroxylation reaction': 'proteinModification',
-
-    # location
-    'colocalization': 'location',
-
-    # degradation
-    'protein cleavage': 'degradation',
-    'cleavage reaction': 'degradation',
-
-    'physical association': '',
-    'association': '',
-
-    'direct interaction': '',
-
-    'enzymatic reaction': '',
-
-    'atpase reaction': 'reaction',
-    'phosphotransfer reaction': 'proteinModification',
-    'disulfide bond': 'complexAbundance',
-    'self interaction': '',
-    'deacetylation reaction': '',
-    'lipoprotein cleavage reaction': 'proteinAbundance',
-    'gtpase reaction': 'reaction',
-    'glycosylation reaction': 'proteinModification(Glyco)',
-    'palmitoylation reaction': 'proteinModification',
-    'putative self interaction': '',
-    'dna cleavage': 'geneAbundance',
-    'rna cleavage': 'rnaAbundace',
-}
 
 MODULE_NAME = 'intact'
 URL = 'ftp://ftp.ebi.ac.uk/pub/databases/intact/current/psimitab/intact.zip'
@@ -276,9 +194,9 @@ def get_bel() -> BELGraph:
 
 
 def _add_my_row(graph: BELGraph, row) -> None:
-    relation = row['relation']
-    source_uniprot_id = row['source']
-    target_uniprot_id = row['target']
+    relation = row[RELATION]
+    source_uniprot_id = row[SOURCE]
+    target_uniprot_id = row[TARGET]
 
     pubmed_ids = row['pubmed_ids']
     # pubmed_ids = pubmed_ids.split('|')
@@ -296,70 +214,127 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
     for pubmed_id in pubmed_ids:
 
-        if relation == 'phosphorylation reaction':
-            target_ub = target.with_variants(
-                pybel.dsl.ProteinModification('Ph')
-            )
-            graph.add_decreases(
-                source,
-                target_ub,
-                citation=pubmed_id,
-                evidence='From intact',
-            )
+        # INCREASE
+        if relation in INTACT_INCREASES_ACTIONS:
 
-        # ===========CHARLIE==============
-
-        if relation == 'deubiquitination':
-            target_ub = target.with_variants(
-                pybel.dsl.ProteinModification('Ub')
-            )
-            graph.add_decreases(
-                source,
-                target_ub,
-                citation=pubmed_id,
-                evidence='From intact',
-            )
-        elif relation == 'ubiqutination':
-            target_ub = target.with_variants(
-                pybel.dsl.ProteinModification('Ub')
-            )
+            if relation == 'phosphorylation reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Ph')
+                )
+            elif relation == 'sumoylation reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Sumo')
+                )
+            elif relation == 'methylation reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Me')
+                )
+            elif relation == 'transglutamination reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Me')
+                )
+            elif relation == 'ubiquitination reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Ub')
+                )
+            elif relation == 'acetylation reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Ac')
+                )
+            elif relation == 'adp ribosylation reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('ADPRib')
+                )
+            elif relation == 'neddylation reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Nedd')
+                )
+            elif relation == 'hydroxylation reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Hy')
+                )
+            elif relation == 'phosphotransfer reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Ph')
+                )
+            elif relation == 'glycosylation reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Glyco')
+                )
+            elif relation == 'palmitoylation reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Palm')
+                )
             graph.add_increases(
                 source,
                 target_ub,
-                citation=...,
-                evidence='From intact',
+                citation=pubmed_id,
+                evidence=EVIDENCE,
             )
 
-        elif relation == 'degratation':
-            graph.add_decreases(
-                source,
-                target,
-                citation=...,
-                evidence='From intact',
-            )
+        # DECREASES
+        elif relation in INTACT_DECREASES_ACTIONS:
 
-        elif relation == 'activates':
-            graph.add_increases(
-                source,
-                target,
-                ...,
-                object_modifier=pybel.dsl.activity(),
-            )
-        elif relation == 'co-expressed':
-            graph.add_correlation(
-                pybel.dsl.Rna(
+            if relation == 'deubiquitination reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Ub')
+                )
+            elif relation == 'deacetylation reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Ac')
+                )
+            elif relation == 'dephosphorylation reaction':
+                target_ub = target.with_variants(
+                    pybel.dsl.ProteinModification('Ph')
+                )
+            elif relation == 'dna cleavage':
+                target_ub = pybel.dsl.Gene(
+                        namespace='uniprot',
+                        identifier=source_uniprot_id,
+                        name=get_mnemonic(source_uniprot_id)
+                    )
+            elif relation == 'rna cleavage':
+                target_ub = pybel.dsl.Rna(
                     namespace='uniprot',
                     identifier=source_uniprot_id,
-                    name=get_mnemonic(source_uniprot_id),
-                ),
-                pybel.dsl.Rna(
-                    namespace='uniprot',
-                    identifier=target_uniprot_id,
-                    name=get_mnemonic(target_uniprot_id),
-                ),
-                annotations=dict(
-                    cell_line={'HEK2': True}
-                ),
+                    name=get_mnemonic(source_uniprot_id)
+                )
+            # both proteins
+            elif relation == 'cleavage reaction' \
+                 or relation == 'lipoprotein cleavage reaction' \
+                 or relation == 'protein cleavage':
+                    graph.add_decreases(
+                        source,
+                        target,
+                        citation=pubmed_id,
+                        evidence=EVIDENCE,
+                    )
+
+            graph.add_decreases(
+                source,
+                target_ub,
+                citation=pubmed_id,
+                evidence=EVIDENCE,
+            )
+
+        # ASSOCIATION:
+        elif relation in INTACT_ASSOCIATION_ACTIONS:
+
+            graph.add_association(
+                source,
+                target,
+                citaion=pubmed_id,
+                evidence=EVIDENCE,
+            )
+
+        # BINDS
+        elif relation in INTACT_BINDS_ACTIONS:
+
+            graph.add_binds(
+                source,
+                target,
+                citation=pubmed_id,
+                evidence=EVIDENCE
             )
 
 
