@@ -111,13 +111,35 @@ def filter_biogrid_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def filter_for_prefix(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
+def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
     """Split the Iterable by the separator
 
     :param separator: separator between ids
     :param prefix: prefix to filter for (e.g. 'pubmed')
     :param list_ids: list of identifiers
     :return: filtered list of ids
+    """
+
+    final_list = []
+    for ids in list_ids:
+        id_list = ids.split(separator)
+        flag = False
+        for i in id_list:
+            if i.startswith(prefix):
+                final_list.append(i)
+                flag = True
+        if not flag:
+            final_list.append(f'no {prefix} id')
+    return final_list
+
+
+def filter_for_prefix_multi(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
+    """Split the Iterable by the separator
+
+    :param separator: separator between ids
+    :param prefix: prefix to filter for (e.g. 'pubmed')
+    :param list_ids: list of identifiers
+    :return: filtered list of lists of ids
     """
 
     final_list = []
@@ -148,9 +170,10 @@ def get_processed_biogrid() -> pd.DataFrame:
     df = filter_biogrid_df(df)
 
     # filter for uniprot
-    df[SOURCE] = filter_for_prefix(list_ids=df[SOURCE], prefix=UNIPROT)
-    df[TARGET] = filter_for_prefix(list_ids=df[TARGET], prefix=UNIPROT)
+    df[SOURCE] = filter_for_prefix_single(list_ids=df[SOURCE], prefix=UNIPROT)
+    df[TARGET] = filter_for_prefix_single(list_ids=df[TARGET], prefix=UNIPROT)
 
+    print('max length source:', max(df[SOURCE]))
     return df
 
 
@@ -180,12 +203,12 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
     pubmed_ids = row[PUBMED_ID]
 
     source = pybel.dsl.Protein(
-        namespace='uniprot',
+        namespace='uniprot/swiss-prot',
         identifier=source_uniprot_id,
         name=get_mnemonic(source_uniprot_id),
     )
     target = pybel.dsl.Protein(
-        namespace='uniprot',
+        namespace='uniprot/swiss-prot',
         identifier=target_uniprot_id,
         name=get_mnemonic(target_uniprot_id),
     )
