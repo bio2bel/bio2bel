@@ -10,6 +10,7 @@ import pybel.dsl
 from bio2bel.utils import ensure_path
 from protmapper.uniprot_client import get_mnemonic
 from pybel import BELGraph
+from pybel.dsl import ProteinModification
 from tqdm import tqdm
 
 #: Relationship types in IntAct that map to BEL relation 'increases'
@@ -39,6 +40,7 @@ INTACT_DECREASES_ACTIONS = {
     'dna cleavage',
     'rna cleavage',
     'dephosphorylation reaction',
+    'deformylation reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'association'
@@ -77,6 +79,12 @@ PROTEIN_MOD_DICT = {
     'deacetylation reaction': 'Ac',
     'dephosphorylation reaction': 'Ph',
 }
+
+formylation = ProteinModification(
+    name='protein formylation',
+    namespace='GO',
+    identifier='0018256',
+)
 
 EVIDENCE = 'From IntAct'
 SEP = '\t'
@@ -207,7 +215,6 @@ def get_processed_intact_df() -> pd.DataFrame:
         prefix='('
     )
 
-    print(df.loc[1, :])
     return df
 
 
@@ -265,6 +272,19 @@ def _add_my_row(graph: BELGraph, row) -> None:
                     citation=pubmed_id,
                     evidence=EVIDENCE,
                 )
+            # oxidoreductase activity
+            elif relation == 'oxidoreductase activity electron transfer reaction':
+                graph.add_increases(
+                    source,
+                    target,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    subject_modifier=pybel.dsl.BiologicalProcess(
+                        name='oxidoreductase activity',
+                        namespace='GO',
+                        identifier='GO:0016491'
+                    ),
+                )
 
         # DECREASES
         elif relation in INTACT_DECREASES_ACTIONS:
@@ -300,6 +320,15 @@ def _add_my_row(graph: BELGraph, row) -> None:
                 )
                 continue
 
+            # deformylation reaction
+            elif relation == 'deformylation reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein formylation',
+                        namespace='GO',
+                        identifier='0018256', ),
+                )
+
             graph.add_decreases(
                 source,
                 target_mod,
@@ -313,7 +342,7 @@ def _add_my_row(graph: BELGraph, row) -> None:
             graph.add_association(
                 source,
                 target,
-                citaion=pubmed_id,
+                citation=pubmed_id,
                 evidence=EVIDENCE,
             )
 
@@ -332,6 +361,4 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
 
 if __name__ == '__main__':
-    print(get_processed_intact_df())
-
-    # get_bel().summarize()
+    get_bel().summarize()
