@@ -28,7 +28,8 @@ INTACT_INCREASES_ACTIONS = {
     'glycosylation reaction',
     'palmitoylation reaction',
     'oxidoreductase activity electron transfer reaction',
-    'protein amidation',
+    'amidation reaction',
+    'dna strand elongation',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
@@ -280,7 +281,16 @@ def _add_my_row(graph: BELGraph, row) -> None:
                     pybel.dsl.ProteinModification(
                         name='protein amidation',
                         namespace='GO',
-                        identifier='0018032', ),
+                        identifier='0018032',
+                    ),
+                )
+            # dna strand elongation
+            elif relation == 'dna strand elongation':
+                target_mod = pybel.dsl.Gene(
+                    name='DNA strand elongation',
+                    namespace='GO',
+                    identifier='0022616',
+
                 )
             # take mapping from relation to abbreviation of reaction
             # protein modification
