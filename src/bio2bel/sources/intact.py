@@ -29,6 +29,7 @@ INTACT_INCREASES_ACTIONS = {
     'oxidoreductase activity electron transfer reaction',
     'amidation reaction',
     'dna strand elongation',
+    'isomerase reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
@@ -260,14 +261,11 @@ def _add_my_row(graph: BELGraph, row) -> None:
         # INCREASE
 
         if relation in INTACT_INCREASES_ACTIONS:
+
             # oxidoreductase activity
             if relation == 'oxidoreductase activity electron transfer reaction':
                 target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification(
-                        name='oxidoreductase activity',
-                        namespace='GO',
-                        identifier='0016491'
-                    )
+                    pybel.dsl.ProteinModification('Red')
                 )
 
                 graph.add_increases(
@@ -276,6 +274,15 @@ def _add_my_row(graph: BELGraph, row) -> None:
                     citation=pubmed_id,
                     evidence=EVIDENCE,
                     subject_modifier=pybel.dsl.activity(),
+                )
+            # isomerase reaction
+            elif relation == 'isomerase reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='isomerase activity',
+                        namespace='GO',
+                        identifier='0016853',
+                    ),
                 )
             # protein amidation
             elif relation == 'amidation reaction':
@@ -385,7 +392,11 @@ def _add_my_row(graph: BELGraph, row) -> None:
             )
         # no specified relation
         else:
-            raise ValueError(f"The relation {relation} is not in the specified relations.")
+            if target:
+                raise ValueError(
+                    f"The relation {relation} between {source} and {target} is not in the specified relations.")
+            elif target_mod:
+                raise ValueError(f"The relation {relation} between {source} and {target_mod} is not in the specified relations.")
 
 
 if __name__ == '__main__':
