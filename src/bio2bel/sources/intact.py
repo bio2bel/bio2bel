@@ -262,16 +262,20 @@ def _add_my_row(graph: BELGraph, row) -> None:
         if relation in INTACT_INCREASES_ACTIONS:
             # oxidoreductase activity
             if relation == 'oxidoreductase activity electron transfer reaction':
-                graph.add_increases(
-                    source,
-                    target,
-                    citation=pubmed_id,
-                    evidence=EVIDENCE,
-                    subject_modifier=pybel.dsl.BiologicalProcess(
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
                         name='oxidoreductase activity',
                         namespace='GO',
                         identifier='0016491'
-                    ),
+                    )
+                )
+
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    subject_modifier=pybel.dsl.activity(),
                 )
             # protein amidation
             elif relation == 'amidation reaction':
