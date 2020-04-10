@@ -3,13 +3,14 @@
 """This script downloads and parses BioGRID data and maps the interaction types to BEL."""
 
 import os
+from typing import Iterable, List
 from zipfile import ZipFile
 
-from typing import Iterable, List
 import pandas as pd
+from protmapper.uniprot_client import get_mnemonic
+
 import pybel.dsl
 from bio2bel.utils import ensure_path
-from protmapper.uniprot_client import get_mnemonic
 from pybel import BELGraph
 
 # from ..constants import BIOGRID_ASSOCIATION_ACTIONS, BIOGRID_DECREASES_ACTIONS, BIOGRID_INCREASES_ACTIONS
@@ -112,14 +113,13 @@ def filter_biogrid_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
-    """Split the Iterable by the separator
+    """Split the Iterable by the separator.
 
     :param separator: separator between ids
     :param prefix: prefix to filter for (e.g. 'pubmed')
     :param list_ids: list of identifiers
     :return: filtered list of ids
     """
-
     final_list = []
     for ids in list_ids:
         id_list = ids.split(separator)
@@ -134,14 +134,13 @@ def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, separator: st
 
 
 def filter_for_prefix_multi(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
-    """Split the Iterable by the separator
+    """Split the Iterable by the separator.
 
     :param separator: separator between ids
     :param prefix: prefix to filter for (e.g. 'pubmed')
     :param list_ids: list of identifiers
     :return: filtered list of lists of ids
     """
-
     final_list = []
     for ids in list_ids:
         id_list = ids.split(separator)
@@ -173,7 +172,6 @@ def get_processed_biogrid() -> pd.DataFrame:
     df[SOURCE] = filter_for_prefix_single(list_ids=df[SOURCE], prefix=UNIPROT)
     df[TARGET] = filter_for_prefix_single(list_ids=df[TARGET], prefix=UNIPROT)
 
-    print('max length source:', max(df[SOURCE]))
     return df
 
 
@@ -248,4 +246,4 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    print(get_processed_biogrid())
+    get_processed_biogrid()

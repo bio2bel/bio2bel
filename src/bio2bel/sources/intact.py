@@ -4,11 +4,11 @@
 
 import os
 from typing import Dict, Iterable, List
+from zipfile import ZipFile
 
 import pandas as pd
 from protmapper.uniprot_client import get_mnemonic
 
-from zipfile import ZipFile
 import pybel.dsl
 from bio2bel.utils import ensure_path
 from pybel import BELGraph
@@ -62,6 +62,24 @@ INTACT_ASSOCIATION_ACTIONS = {
 INTACT_BINDS_ACTIONS = {
     'covalent binding',
     'disulfide bond',
+}
+
+PROTEIN_MOD_DICT = {
+    'phosphorylation reaction': 'Ph',
+    'sumoylation reaction': 'Sumo',
+    'methylation reaction': 'Me',
+    'transglutamination reaction': 'Gln',
+    'ubiquitination reaction': 'Ub',
+    'acetylation reaction': 'Ac',
+    'adp ribosylation reaction': 'ADPRib',
+    'neddylation reaction': 'Nedd',
+    'hydroxylation reaction': 'Hy',
+    'phosphotransfer reaction': 'Ph',
+    'glycosylation reaction': 'Glyco',
+    'palmitoylation reaction': 'Palm',
+    'deubiquitination reaction': 'Ub',
+    'deacetylation reaction': 'Ac',
+    'dephosphorylation reaction': 'Ph',
 }
 
 EVIDENCE = 'From IntAct'
@@ -142,7 +160,6 @@ def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
     :param columns_mapping: mapping from original column names to new column names
     :return: renamed dataframe
     """
-    print(df.columns)
     return df.rename(columns=columns_mapping)
 
 
@@ -295,88 +312,42 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
         # INCREASE
         if relation in INTACT_INCREASES_ACTIONS:
+            # take mapping from relation to abbreviation of reaction
+            # protein modification
+            if relation in PROTEIN_MOD_DICT.keys():
+                abbreviation = PROTEIN_MOD_DICT[relation]
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(abbreviation),
+                )
 
-            if relation == 'phosphorylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Ph')
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
                 )
-            elif relation == 'sumoylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Sumo')
-                )
-            elif relation == 'methylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Me')
-                )
-            elif relation == 'transglutamination reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Me')
-                )
-            elif relation == 'ubiquitination reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Ub')
-                )
-            elif relation == 'acetylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Ac')
-                )
-            elif relation == 'adp ribosylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('ADPRib')
-                )
-            elif relation == 'neddylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Nedd')
-                )
-            elif relation == 'hydroxylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Hy')
-                )
-            elif relation == 'phosphotransfer reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Ph')
-                )
-            elif relation == 'glycosylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Glyco')
-                )
-            elif relation == 'palmitoylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Palm')
-                )
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-            )
 
         # DECREASES
         elif relation in INTACT_DECREASES_ACTIONS:
-
-            if relation == 'deubiquitination reaction':
+            # protein modification
+            if relation in PROTEIN_MOD_DICT.keys():
+                abbreviation = PROTEIN_MOD_DICT[relation]
                 target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Ub')
+                    pybel.dsl.ProteinModification(abbreviation),
                 )
-            elif relation == 'deacetylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Ac')
-                )
-            elif relation == 'dephosphorylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Ph')
-                )
+            # dna cleavage
             elif relation == 'dna cleavage':
                 target_mod = pybel.dsl.Gene(
                     namespace='uniprot',
                     identifier=source_uniprot_id,
-                    name=get_mnemonic(source_uniprot_id)
+                    name=get_mnemonic(source_uniprot_id),
                 )
+            # rna cleavage
             elif relation == 'rna cleavage':
                 target_mod = pybel.dsl.Rna(
                     namespace='uniprot',
                     identifier=source_uniprot_id,
-                    name=get_mnemonic(source_uniprot_id)
+                    name=get_mnemonic(source_uniprot_id),
                 )
             # both proteins
             elif relation == 'cleavage reaction' \
@@ -388,6 +359,7 @@ def _add_my_row(graph: BELGraph, row) -> None:
                     citation=pubmed_id,
                     evidence=EVIDENCE,
                 )
+                continue
 
             graph.add_decreases(
                 source,
@@ -413,7 +385,7 @@ def _add_my_row(graph: BELGraph, row) -> None:
                 source,
                 target,
                 citation=pubmed_id,
-                evidence=EVIDENCE
+                evidence=EVIDENCE,
             )
         # no specified relation
         else:
@@ -421,4 +393,4 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
 
 if __name__ == '__main__':
-    print(get_bel())
+    get_bel()
