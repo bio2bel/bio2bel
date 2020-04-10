@@ -2,7 +2,6 @@
 
 """This script downloads and parses BioGRID data and maps the interaction types to BEL."""
 
-import os
 from typing import Iterable, List
 
 import pandas as pd
@@ -26,11 +25,6 @@ MODULE_NAME = 'biogrid'
 VERSION = '3.5.183'
 BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
 URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
-
-HOME = os.path.expanduser('~')
-BIO2BEL_DIR = os.path.join(HOME, '.bio2bel')
-BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/BIOGRID-ALL-3.5.183.mitab.txt')
-SAMPLE_BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/biogrid_sample.txt')
 
 #: Relationship types in BioGRID that map to BEL relation 'increases'
 BIOGRID_INCREASES_ACTIONS = {
@@ -64,35 +58,6 @@ def _get_my_df() -> pd.DataFrame:
     """Get the BioGrid dataframe."""
     path = ensure_path(prefix=MODULE_NAME, url=URL)
     return pd.read_csv(path, sep='\t', compression='zip', dtype=str)
-
-def _write_sample_df() -> None:
-    """Write a sample dataframe to file."""
-    path = ensure_path(prefix=MODULE_NAME, url=URL)
-    with ZipFile(path) as zip_file:
-        with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab.txt') as file:
-            df = pd.read_csv(file, sep='\t')
-            df.head().to_csv(SAMPLE_BIOGRID_FILE, sep=SEP)
-
-
-def _get_sample_df() -> pd.DataFrame:
-    """Get sample dataframe of intact.
-
-    :return: sample dataframe
-    """
-    return pd.read_csv(SAMPLE_BIOGRID_FILE, sep=SEP)
-
-
-def filter_biogrid_df(df: pd.DataFrame) -> pd.DataFrame:
-    """Filter the original BioGRID dataframe containing the entire database and return dataframe with columns \
-    for source, target, relation and pubmed_id.
-
-    :param df: intact dataframe to be preprocessed
-    :return: dataframe with source, target, relation, pubmed_id columsn
-    """
-    # take relevant columns for source, target, relation and PubMed ID
-    df = df[[SOURCE, TARGET, RELATION, PUBMED_ID]]
-
-    return df
 
 
 def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
@@ -148,8 +113,8 @@ def get_processed_biogrid() -> pd.DataFrame:
     # rename columns
     df = df.rename(columns=BIOGRID_COLUMN_MAPPER)
 
-    # filter for source, target, relation, pubmed ids
-    df = filter_biogrid_df(df)
+    # take relevant columns for source, target, relation and PubMed ID
+    df = df[[SOURCE, TARGET, RELATION, PUBMED_ID]]
 
     # filter for uniprot
     df[SOURCE] = filter_for_prefix_single(list_ids=df[SOURCE], prefix=UNIPROT)

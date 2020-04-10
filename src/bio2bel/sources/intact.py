@@ -6,12 +6,11 @@ from typing import Dict, Iterable, List
 from zipfile import ZipFile
 
 import pandas as pd
-from protmapper.uniprot_client import get_mnemonic
-from tqdm import tqdm
-
 import pybel.dsl
 from bio2bel.utils import ensure_path
+from protmapper.uniprot_client import get_mnemonic
 from pybel import BELGraph
+from tqdm import tqdm
 
 #: Relationship types in IntAct that map to BEL relation 'increases'
 INTACT_INCREASES_ACTIONS = {
@@ -90,26 +89,27 @@ ID_INTA = '#ID(s) interactor A'
 ID_INTB = 'ID(s) interactor B'
 INTERACTION_TYPES = 'Interaction Type(s)'
 PUBLICATION_ID = 'Publication Identifier(s)'
-DATABASE_INT_A = 'database_intA'
-DATABASE_INT_B = 'database_intB'
-ONLY_ID_INT_A = 'id_intA'
-ONLY_ID_INT_B = 'id_intB'
 UNIPROTKB = 'uniprotkb'
 SOURCE = 'source'
 TARGET = 'target'
 RELATION = 'relation'
 PUBMED_ID = 'pubmed_id'
-columns_mapping = {
+COLUMNS_MAPPING = {
     '#ID(s) interactor A': SOURCE,
     'ID(s) interactor B': TARGET,
     'Interaction type(s)': RELATION,
     'Publication Identifier(s)': PUBMED_ID,
 }
 
+sample_path = '/Users/sophiakrix/.bio2bel/intact/intact_sample.tsv'
+
 
 def _get_my_df() -> pd.DataFrame:
-    """Get the IntAct dataframe."""
-    path = ensure_path(MODULE_NAME, URL)
+    """Get my dataframe.
+
+    :return: original intact dataframe
+    """
+    path = ensure_path(prefix=MODULE_NAME, url=URL)
     with ZipFile(path) as zip_file:
         with zip_file.open('intact.txt') as file:
             return pd.read_csv(file, sep='\t')
@@ -125,86 +125,51 @@ def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
     return df.rename(columns=columns_mapping)
 
 
-def filter_intact_df(df: pd.DataFrame) -> pd.DataFrame:
-    """Filter the original IntAct dataframe containing the entire database and return dataframe with columns \
-    for source, target, relation and pubmed_id.
+def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, rstrip: str = ' ', lstrip: str = ' ',
+                             separator: str = '|') -> List[List[str]]:
+    """Split the Iterable by the separator.
 
-    :param df: intact dataframe to be preprocessed
-    :return: dataframe with source, target, relation, pubmed_id columsn
-    """
-    # take relevant columns for source, target, relation and PubMed ID
-    df = df[[SOURCE, TARGET, RELATION, PUBMED_ID]]
-
-    # drop nan value rows for interactor B
-    df = df[df[TARGET] != '-']
-
-    return df
-
-
-def filter_uniprot(df: pd.DataFrame) -> pd.DataFrame:
-    """Filter the intact dataframe for uniprot ids.
-
-    :param df: daframe with mixed protein identifiers
-    :return: dataframe with only uniprot identifiers
-    """
-    return df[df[SOURCE].str.contains("uniprot")]
-
-
-def split_to_list(unsplit_list: str, separator: str = '|') -> List:
-    """Split a list of strings that contains multiple values that are separated by a defined separator into a list of lists.
-
-    :param unsplit_list: list of strings to be splitted
-    :param separator: separator between elements
-    :return: list of lists of splitted elements
-    """
-    return unsplit_list.split(separator)
-
-
-def split_column_str_to_list(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
-    """Split the values of a column that has a string containing multiple values by a separator.
-
-    :param df: dataframe with string to be splitted
-    :param column_name: column name of string to be splitted
-    :return: dataframe with list of splitted elements
-    """
-    list_column = df.loc[:, column_name]
-    splitted_lists = split_to_list(list_column, separator='|')
-
-    df[column_name] = splitted_lists
-
-    return df
-
-
-def list_pubmed(publication_ids: Iterable[str]) -> List[List[str]]:
-    """Filter the publication ids for Pubmed IDs.
-
-    :param publication_ids: list of publication ids
-    :return: filtered list of pubmed ids
+    :param separator: separator between ids
+    :param prefix: prefix to filter for (e.g. 'pubmed')
+    :param rstrip: characters to strip from split value from left
+    :param lstrip: characters to strip from split value from right
+    :param list_ids: list of identifiers
+    :return: filtered list of ids
     """
     final_list = []
-    for publications in publication_ids:
-        publications_list = split_to_list(publications, separator='|')
+    for ids in list_ids:
+        id_list = ids.split(separator)
         flag = False
-        row_list = []
-        for i in publications_list:
-            if i.startswith('pubmed:'):
-                row_list.append(i)
+        for i in id_list:
+            if i.startswith(prefix):
+                final_list.append(i.lstrip(lstrip).rstrip(rstrip))
                 flag = True
         if not flag:
-            row_list.append('no pubmed id')
-        final_list.append(row_list)
+            final_list.append(f'no {prefix} id')
     return final_list
 
 
-def filter_for_pubmed(df: pd.DataFrame, column_name: str):
-    """Filter the publication ids for pubmed ids.
+def filter_for_prefix_multi(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
+    """Split the Iterable by the separator.
 
-    :param df: dataframe
-    :param column_name: column with publication ids
-    :return: dataframe with filtered column
+    :param separator: separator between ids
+    :param prefix: prefix to filter for (e.g. 'pubmed')
+    :param list_ids: list of identifiers
+    :return: filtered list of lists of ids
     """
-    df[column_name] = list_pubmed(df[column_name])
-    return df
+    final_list = []
+    for ids in list_ids:
+        id_list = ids.split(separator)
+        flag = False
+        row_list = []
+        for i in id_list:
+            if i.startswith(prefix):
+                row_list.append(i)
+                flag = True
+        if not flag:
+            row_list.append(f'no {prefix} id')
+        final_list.append(row_list)
+    return final_list
 
 
 def get_processed_intact_df() -> pd.DataFrame:
@@ -216,17 +181,33 @@ def get_processed_intact_df() -> pd.DataFrame:
     df = _get_my_df()
 
     # rename columns
-    df = rename_columns(df=df, columns_mapping=columns_mapping)
+    df = rename_columns(df=df, columns_mapping=COLUMNS_MAPPING)
+
+    # take relevant columns for source, target, relation and PubMed ID
+    df = df[[SOURCE, TARGET, RELATION, PUBMED_ID]]
+
+    # drop nan value rows for interactor B
+    df = df[df[TARGET] != '-']
 
     # filter for uniprot ids
-    df = filter_uniprot(df=df)
-
-    # initally preprocess intact file
-    df = filter_intact_df(df=df)
+    df = df[df[SOURCE].str.contains("uniprot")]
 
     # filter for pubmed
-    df = filter_for_pubmed(df=df, column_name=PUBMED_ID)
+    df[PUBMED_ID] = filter_for_prefix_multi(
+        list_ids=df[PUBMED_ID],
+        prefix='pubmed'
+    )
 
+    # filter interaction types
+    df[RELATION] = filter_for_prefix_single(
+        list_ids=df[RELATION],
+        rstrip=')',
+        lstrip='(',
+        separator='"',
+        prefix='('
+    )
+
+    print(df.loc[1, :])
     return df
 
 
@@ -254,7 +235,6 @@ def _add_my_row(graph: BELGraph, row) -> None:
     target_uniprot_id = row[TARGET]
 
     pubmed_ids = row[PUBMED_ID]
-    # pubmed_ids = pubmed_ids.split('|')
 
     source = pybel.dsl.Protein(
         namespace='uniprot',
@@ -352,4 +332,6 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
 
 if __name__ == '__main__':
-    get_bel().summarize()
+    print(get_processed_intact_df())
+
+    # get_bel().summarize()
