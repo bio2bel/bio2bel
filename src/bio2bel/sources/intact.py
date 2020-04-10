@@ -27,6 +27,8 @@ INTACT_INCREASES_ACTIONS = {
     'phosphotransfer reaction',
     'glycosylation reaction',
     'palmitoylation reaction',
+    'oxidoreductase activity electron transfer reaction',
+    'protein amidation',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
@@ -257,10 +259,32 @@ def _add_my_row(graph: BELGraph, row) -> None:
     for pubmed_id in pubmed_ids:
 
         # INCREASE
+
         if relation in INTACT_INCREASES_ACTIONS:
+            # oxidoreductase activity
+            if relation == 'oxidoreductase activity electron transfer reaction':
+                graph.add_increases(
+                    source,
+                    target,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    subject_modifier=pybel.dsl.BiologicalProcess(
+                        name='oxidoreductase activity',
+                        namespace='GO',
+                        identifier='0016491'
+                    ),
+                )
+            # protein amidation
+            elif relation == 'amidation reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein amidation',
+                        namespace='GO',
+                        identifier='0018032', ),
+                )
             # take mapping from relation to abbreviation of reaction
             # protein modification
-            if relation in PROTEIN_MOD_DICT.keys():
+            elif relation in PROTEIN_MOD_DICT.keys():
                 abbreviation = PROTEIN_MOD_DICT[relation]
                 target_mod = target.with_variants(
                     pybel.dsl.ProteinModification(abbreviation),
@@ -271,19 +295,6 @@ def _add_my_row(graph: BELGraph, row) -> None:
                     target_mod,
                     citation=pubmed_id,
                     evidence=EVIDENCE,
-                )
-            # oxidoreductase activity
-            elif relation == 'oxidoreductase activity electron transfer reaction':
-                graph.add_increases(
-                    source,
-                    target,
-                    citation=pubmed_id,
-                    evidence=EVIDENCE,
-                    subject_modifier=pybel.dsl.BiologicalProcess(
-                        name='oxidoreductase activity',
-                        namespace='GO',
-                        identifier='GO:0016491'
-                    ),
                 )
 
         # DECREASES
