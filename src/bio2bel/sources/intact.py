@@ -2,19 +2,16 @@
 
 """This script downloads and parses IntAct data and maps the interaction types to BEL."""
 
-import os
 from typing import Dict, Iterable, List
 from zipfile import ZipFile
 
 import pandas as pd
 from protmapper.uniprot_client import get_mnemonic
+from tqdm import tqdm
 
 import pybel.dsl
 from bio2bel.utils import ensure_path
 from pybel import BELGraph
-
-# from ..constants import INTACT_INCREASES_ACTIONS, INTACT_DECREASES_ACTIONS, INTACT_ASSOCIATION_ACTIONS, \
-#     INTACT_BINDS_ACTIONS
 
 #: Relationship types in IntAct that map to BEL relation 'increases'
 INTACT_INCREASES_ACTIONS = {
@@ -88,7 +85,6 @@ SEP = '\t'
 MODULE_NAME = 'intact'
 VERSION = '2020-03-31'
 URL = f'ftp://ftp.ebi.ac.uk/pub/databases/intact/{VERSION}/psimitab/intact.zip'
-path = ensure_path(MODULE_NAME, URL)
 
 ID_INTA = '#ID(s) interactor A'
 ID_INTB = 'ID(s) interactor B'
@@ -109,48 +105,14 @@ columns_mapping = {
     'Interaction type(s)': RELATION,
     'Publication Identifier(s)': PUBMED_ID,
 }
-HOME = os.path.expanduser('~')
-BIO2BEL_DIR = os.path.join(HOME, '.bio2bel')
-INTACT_FILE = os.path.join(BIO2BEL_DIR, 'intact/intact.txt')
-SAMPLE_INTACT_FILE = os.path.join(BIO2BEL_DIR, 'intact/intact_sample.tsv')
-
-
-def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
-    """Load the file from the URL and place it into the bio2bel_sophia directory.
-
-    :param module_name: name of module (database)
-    :param url: URL to file from database
-    :return: path of saved database file
-    """
-    return ensure_path(prefix=module_name, url=url)
 
 
 def _get_my_df() -> pd.DataFrame:
-    """Get my dataframe.
-
-    :return: original intact dataframe
-    """
-    path = _load_file()
+    """Get the IntAct dataframe."""
+    path = ensure_path(MODULE_NAME, URL)
     with ZipFile(path) as zip_file:
         with zip_file.open('intact.txt') as file:
             return pd.read_csv(file, sep='\t')
-
-
-def _write_sample_df() -> None:
-    """Write a sample dataframe to file."""
-    path = _load_file()
-    with ZipFile(path) as zip_file:
-        with zip_file.open('intact.txt') as file:
-            df = pd.read_csv(file, sep='\t')
-            df.head().to_csv(SAMPLE_INTACT_FILE, sep=SEP)
-
-
-def _get_sample_df() -> pd.DataFrame:
-    """Get sample dataframe of intact.
-
-    :return: sample dataframe
-    """
-    return pd.read_csv(SAMPLE_INTACT_FILE, sep=SEP)
 
 
 def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
@@ -251,10 +213,7 @@ def get_processed_intact_df() -> pd.DataFrame:
     :return: processed dataframe
     """
     # original intact dataframe
-    # df = _get_my_df()
-
-    # TODO: use original df
-    df = _get_sample_df()
+    df = _get_my_df()
 
     # rename columns
     df = rename_columns(df=df, columns_mapping=columns_mapping)
@@ -274,11 +233,11 @@ def get_processed_intact_df() -> pd.DataFrame:
 def get_bel() -> BELGraph:
     """Get BEL graph.
 
-    :return: BEL graph#
+    :return: BEL graph
     """
     df = get_processed_intact_df()
-    graph = BELGraph(name='intact')
-    for _, row in df.iterrows():
+    graph = BELGraph(name=MODULE_NAME)
+    for _, row in tqdm(df.iterrows(), total=len(df.index), desc=f'mapping {MODULE_NAME}'):
         _add_my_row(graph, row)
     return graph
 
@@ -393,4 +352,4 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
 
 if __name__ == '__main__':
-    get_bel()
+    get_bel().summarize()
