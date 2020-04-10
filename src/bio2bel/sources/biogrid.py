@@ -4,16 +4,14 @@
 
 import os
 from typing import Iterable, List
-from zipfile import ZipFile
 
 import pandas as pd
 from protmapper.uniprot_client import get_mnemonic
+from tqdm import tqdm
 
 import pybel.dsl
 from bio2bel.utils import ensure_path
 from pybel import BELGraph
-
-# from ..constants import BIOGRID_ASSOCIATION_ACTIONS, BIOGRID_DECREASES_ACTIONS, BIOGRID_INCREASES_ACTIONS
 
 SEP = '\t'
 BIOGRID = 'biogrid'
@@ -24,6 +22,7 @@ PUBMED_ID = 'pubmed_id'
 UNIPROT = 'uniprot'
 EVIDENCE = 'From BioGRID'
 MODULE_NAME = 'biogrid'
+
 VERSION = '3.5.183'
 BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
 URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
@@ -62,15 +61,9 @@ BIOGRID_COLUMN_MAPPER = {
 
 
 def _get_my_df() -> pd.DataFrame:
-    """Get my dataframe.
-
-    :return: original dataframe
-    """
+    """Get the BioGrid dataframe."""
     path = ensure_path(prefix=MODULE_NAME, url=URL)
-    with ZipFile(path) as zip_file:
-        with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab.txt') as file:
-            return pd.read_csv(file, sep='\t')
-
+    return pd.read_csv(path, sep='\t', compression='zip', dtype=str)
 
 def _write_sample_df() -> None:
     """Write a sample dataframe to file."""
@@ -151,7 +144,7 @@ def get_processed_biogrid() -> pd.DataFrame:
 
     :return: dataframe of preprocessed BioGRID data
     """
-    df = _get_sample_df()
+    df = _get_my_df()
     # rename columns
     df = df.rename(columns=BIOGRID_COLUMN_MAPPER)
 
@@ -172,7 +165,7 @@ def get_bel() -> BELGraph:
     """
     df = _get_my_df()
     graph = BELGraph(name=BIOGRID)
-    for _, row in df.iterrows():
+    for _, row in tqdm(df.iterrows(), total=len(df.index), desc=f'mapping {BIOGRID}'):
         _add_my_row(graph, row)
     return graph
 
@@ -236,5 +229,4 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    _write_sample_df()
-    # get_processed_biogrid()
+    get_bel().summarize()
