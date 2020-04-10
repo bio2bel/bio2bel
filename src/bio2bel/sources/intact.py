@@ -49,6 +49,8 @@ INTACT_DECREASES_ACTIONS = {
     'deformylation reaction',
     'demethylation reaction',
     'deneddylation reaction',
+    'lipid cleavage',
+    'deamidation reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'association'
@@ -369,9 +371,11 @@ def _add_my_row(graph: BELGraph, row) -> None:
                     identifier=source_uniprot_id,
                     name=get_mnemonic(source_uniprot_id),
                 )
-            # both proteins
+
+            # cleavage
             elif relation == 'cleavage reaction' \
                     or relation == 'lipoprotein cleavage reaction' \
+                    or relation == 'lipid cleavage' \
                     or relation == 'protein cleavage':
                 graph.add_decreases(
                     source,
@@ -390,7 +394,15 @@ def _add_my_row(graph: BELGraph, row) -> None:
                         identifier='0018256',
                     ),
                 )
-
+            # protein amidation
+            elif relation == 'amidation reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein amidation',
+                        namespace='GO',
+                        identifier='0018032',
+                    ),
+                )
             # protein modification
             elif relation in PROTEIN_MOD_DICT.keys():
                 abbreviation = PROTEIN_MOD_DICT[relation]
