@@ -61,22 +61,12 @@ BIOGRID_COLUMN_MAPPER = {
 }
 
 
-def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
-    """Load the file from the URL and place it into the bio2bel_sophia directory.
-
-    :param module_name: name of module (database)
-    :param url: URL to file from database
-    :return: path of saved database file
-    """
-    return ensure_path(prefix=module_name, url=url)
-
-
 def _get_my_df() -> pd.DataFrame:
     """Get my dataframe.
 
     :return: original dataframe
     """
-    path = _load_file()
+    path = ensure_path(prefix=MODULE_NAME, url=URL)
     with ZipFile(path) as zip_file:
         with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab.txt') as file:
             return pd.read_csv(file, sep='\t')
@@ -84,7 +74,7 @@ def _get_my_df() -> pd.DataFrame:
 
 def _write_sample_df() -> None:
     """Write a sample dataframe to file."""
-    path = _load_file()
+    path = ensure_path(prefix=MODULE_NAME, url=URL)
     with ZipFile(path) as zip_file:
         with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab.txt') as file:
             df = pd.read_csv(file, sep='\t')
@@ -246,4 +236,5 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    get_processed_biogrid()
+    _write_sample_df()
+    # get_processed_biogrid()
