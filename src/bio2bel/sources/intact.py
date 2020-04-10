@@ -30,6 +30,9 @@ INTACT_INCREASES_ACTIONS = {
     'amidation reaction',
     'dna strand elongation',
     'isomerase reaction',
+    'isomerization  reaction',
+    'proline isomerization  reaction',
+    'sulfurtransfer reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
@@ -85,6 +88,7 @@ PROTEIN_MOD_DICT = {
     'dephosphorylation reaction': 'Ph',
     'deneddylation reaction': 'Nedd',
     'demethylation reaction': 'Me',
+    'sulfurtransfer reaction': 'Sulf'
 
 }
 
@@ -275,8 +279,10 @@ def _add_my_row(graph: BELGraph, row) -> None:
                     evidence=EVIDENCE,
                     subject_modifier=pybel.dsl.activity(),
                 )
+                continue
             # isomerase reaction
-            elif relation == 'isomerase reaction':
+            elif relation == 'isomerase reaction' \
+                    or relation == 'isomerization  reaction':
                 target_mod = target.with_variants(
                     pybel.dsl.ProteinModification(
                         name='isomerase activity',
@@ -284,6 +290,33 @@ def _add_my_row(graph: BELGraph, row) -> None:
                         identifier='0016853',
                     ),
                 )
+
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    subject_modifier=pybel.dsl.activity(),
+                )
+                continue
+            # proline isomerase reaction
+            elif relation == 'proline isomerization  reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein peptidyl-prolyl isomerization',
+                        namespace='GO',
+                        identifier='0000413',
+                    ),
+                )
+
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    subject_modifier=pybel.dsl.activity(),
+                )
+                continue
             # protein amidation
             elif relation == 'amidation reaction':
                 target_mod = target.with_variants(
@@ -299,7 +332,6 @@ def _add_my_row(graph: BELGraph, row) -> None:
                     name='DNA strand elongation',
                     namespace='GO',
                     identifier='0022616',
-
                 )
             # take mapping from relation to abbreviation of reaction
             # protein modification
@@ -315,6 +347,9 @@ def _add_my_row(graph: BELGraph, row) -> None:
                     citation=pubmed_id,
                     evidence=EVIDENCE,
                 )
+                continue
+            else:
+                raise ValueError(f"The relation {relation} is not in INCREASE relations.")
 
         # DECREASES
         elif relation in INTACT_DECREASES_ACTIONS:
@@ -396,7 +431,8 @@ def _add_my_row(graph: BELGraph, row) -> None:
                 raise ValueError(
                     f"The relation {relation} between {source} and {target} is not in the specified relations.")
             elif target_mod:
-                raise ValueError(f"The relation {relation} between {source} and {target_mod} is not in the specified relations.")
+                raise ValueError(
+                    f"The relation {relation} between {source} and {target_mod} is not in the specified relations.")
 
 
 if __name__ == '__main__':
