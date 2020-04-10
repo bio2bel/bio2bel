@@ -62,6 +62,7 @@ INTACT_ASSOCIATION_ACTIONS = {
     'self interaction',
     'gtpase reaction',
     'putative self interaction',
+    'predicted interaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'hasComponent'
