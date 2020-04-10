@@ -10,7 +10,6 @@ import pybel.dsl
 from bio2bel.utils import ensure_path
 from protmapper.uniprot_client import get_mnemonic
 from pybel import BELGraph
-from pybel.dsl import ProteinModification
 from tqdm import tqdm
 
 #: Relationship types in IntAct that map to BEL relation 'increases'
@@ -83,6 +82,9 @@ PROTEIN_MOD_DICT = {
     'deubiquitination reaction': 'Ub',
     'deacetylation reaction': 'Ac',
     'dephosphorylation reaction': 'Ph',
+    'deneddylation reaction': 'Nedd',
+    'demethylation reaction': 'Me',
+
 }
 
 EVIDENCE = 'From IntAct'
@@ -338,19 +340,8 @@ def _add_my_row(graph: BELGraph, row) -> None:
                     pybel.dsl.ProteinModification(
                         name='protein formylation',
                         namespace='GO',
-                        identifier='0018256', ),
-                )
-
-            # demethylation reaction
-            elif relation == 'demethylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Me'),
-                )
-
-            # deneddylation reaction
-            elif relation == 'deneddylation reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Nedd'),
+                        identifier='0018256',
+                    ),
                 )
 
             # protein modification
@@ -359,6 +350,8 @@ def _add_my_row(graph: BELGraph, row) -> None:
                 target_mod = target.with_variants(
                     pybel.dsl.ProteinModification(abbreviation),
                 )
+            else:
+                raise ValueError(f"The relation {relation} is not in DECREASE relations.")
 
             graph.add_decreases(
                 source,
