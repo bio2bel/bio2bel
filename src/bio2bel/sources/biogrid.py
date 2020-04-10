@@ -2,18 +2,15 @@
 
 """This script downloads and parses BioGRID data and maps the interaction types to BEL."""
 
-import os
 from typing import Iterable, List
-from zipfile import ZipFile
 
 import pandas as pd
 from protmapper.uniprot_client import get_mnemonic
+from tqdm import tqdm
 
 import pybel.dsl
 from bio2bel.utils import ensure_path
 from pybel import BELGraph
-
-# from ..constants import BIOGRID_ASSOCIATION_ACTIONS, BIOGRID_DECREASES_ACTIONS, BIOGRID_INCREASES_ACTIONS
 
 SEP = '\t'
 BIOGRID = 'biogrid'
@@ -24,14 +21,10 @@ PUBMED_ID = 'pubmed_id'
 UNIPROT = 'uniprot'
 EVIDENCE = 'From BioGRID'
 MODULE_NAME = 'biogrid'
+
 VERSION = '3.5.183'
 BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
 URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
-
-HOME = os.path.expanduser('~')
-BIO2BEL_DIR = os.path.join(HOME, '.bio2bel')
-BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/BIOGRID-ALL-3.5.183.mitab.txt')
-SAMPLE_BIOGRID_FILE = os.path.join(BIO2BEL_DIR, 'biogrid/biogrid_sample.txt')
 
 #: Relationship types in BioGRID that map to BEL relation 'increases'
 BIOGRID_INCREASES_ACTIONS = {
@@ -61,42 +54,10 @@ BIOGRID_COLUMN_MAPPER = {
 }
 
 
-def _load_file(module_name: str = MODULE_NAME, url: str = URL) -> str:
-    """Load the file from the URL and place it into the bio2bel_sophia directory.
-
-    :param module_name: name of module (database)
-    :param url: URL to file from database
-    :return: path of saved database file
-    """
-    return ensure_path(prefix=module_name, url=url)
-
-
 def _get_my_df() -> pd.DataFrame:
-    """Get my dataframe.
-
-    :return: original dataframe
-    """
-    path = _load_file()
-    with ZipFile(path) as zip_file:
-        with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab.txt') as file:
-            return pd.read_csv(file, sep='\t')
-
-
-def _write_sample_df() -> None:
-    """Write a sample dataframe to file."""
-    path = _load_file()
-    with ZipFile(path) as zip_file:
-        with zip_file.open(f'BIOGRID-ALL-{VERSION}.mitab.txt') as file:
-            df = pd.read_csv(file, sep='\t')
-            df.head().to_csv(SAMPLE_BIOGRID_FILE, sep=SEP)
-
-
-def _get_sample_df() -> pd.DataFrame:
-    """Get sample dataframe of intact.
-
-    :return: sample dataframe
-    """
-    return pd.read_csv(SAMPLE_BIOGRID_FILE, sep=SEP)
+    """Get the BioGrid dataframe."""
+    path = ensure_path(prefix=MODULE_NAME, url=URL)
+    return pd.read_csv(path, sep='\t', compression='zip', dtype=str)
 
 
 def filter_biogrid_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -161,7 +122,7 @@ def get_processed_biogrid() -> pd.DataFrame:
 
     :return: dataframe of preprocessed BioGRID data
     """
-    df = _get_sample_df()
+    df = _get_my_df()
     # rename columns
     df = df.rename(columns=BIOGRID_COLUMN_MAPPER)
 
@@ -182,7 +143,7 @@ def get_bel() -> BELGraph:
     """
     df = _get_my_df()
     graph = BELGraph(name=BIOGRID)
-    for _, row in df.iterrows():
+    for _, row in tqdm(df.iterrows(), total=len(df.index), desc=f'mapping {BIOGRID}'):
         _add_my_row(graph, row)
     return graph
 
@@ -246,4 +207,4 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    get_processed_biogrid()
+    get_bel().summarize()
