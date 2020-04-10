@@ -44,6 +44,8 @@ INTACT_DECREASES_ACTIONS = {
     'rna cleavage',
     'dephosphorylation reaction',
     'deformylation reaction',
+    'demethylation reaction',
+    'deneddylation reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'association'
@@ -82,12 +84,6 @@ PROTEIN_MOD_DICT = {
     'deacetylation reaction': 'Ac',
     'dephosphorylation reaction': 'Ph',
 }
-
-formylation = ProteinModification(
-    name='protein formylation',
-    namespace='GO',
-    identifier='0018256',
-)
 
 EVIDENCE = 'From IntAct'
 SEP = '\t'
@@ -309,14 +305,9 @@ def _add_my_row(graph: BELGraph, row) -> None:
 
         # DECREASES
         elif relation in INTACT_DECREASES_ACTIONS:
-            # protein modification
-            if relation in PROTEIN_MOD_DICT.keys():
-                abbreviation = PROTEIN_MOD_DICT[relation]
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification(abbreviation),
-                )
+
             # dna cleavage
-            elif relation == 'dna cleavage':
+            if relation == 'dna cleavage':
                 target_mod = pybel.dsl.Gene(
                     namespace='uniprot',
                     identifier=source_uniprot_id,
@@ -348,6 +339,25 @@ def _add_my_row(graph: BELGraph, row) -> None:
                         name='protein formylation',
                         namespace='GO',
                         identifier='0018256', ),
+                )
+
+            # demethylation reaction
+            elif relation == 'demethylation reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification('Me'),
+                )
+
+            # deneddylation reaction
+            elif relation == 'deneddylation reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification('Nedd'),
+                )
+
+            # protein modification
+            elif relation in PROTEIN_MOD_DICT.keys():
+                abbreviation = PROTEIN_MOD_DICT[relation]
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(abbreviation),
                 )
 
             graph.add_decreases(
