@@ -37,6 +37,7 @@ INTACT_INCREASES_ACTIONS = {
     'ampylation reaction',
     'aminoacylation reaction',
     'myristoylation reaction',
+    'lipid addition',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
@@ -361,6 +362,23 @@ def _add_my_row(graph: BELGraph, row) -> None:
                         identifier='0018377',
                     ),
                 )
+            # lipid addition
+            elif relation == 'lipid addition':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='lipid binding',
+                        namespace='GO',
+                        identifier='0008289',
+                    ),
+                )
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    subject_modifier=pybel.dsl.activity(),
+                )
+                continue
             # aminoacylation reaction (tRNA-ligase activity)
             elif relation == 'aminoacylation reaction':
                 target_mod = target.with_variants(

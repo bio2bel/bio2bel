@@ -2,21 +2,23 @@
 
 """This script downloads and parses BioGRID data and maps the interaction types to BEL."""
 
+import logging
 from typing import Iterable, List
 
-import logging
 import pandas as pd
+import pybel.dsl
 from protmapper.uniprot_client import get_mnemonic
+from pybel import BELGraph
 from tqdm import tqdm
 
-import pybel.dsl
 from bio2bel.utils import ensure_path
-from pybel import BELGraph
 
 SEP = '\t'
 BIOGRID = 'biogrid'
 SOURCE = 'source'
 TARGET = 'target'
+ALT_SOURCE_ID = 'alt_source_id'
+ALT_TARGET_ID = 'alt_target_id'
 RELATION = 'relation'
 PUBMED_ID = 'pubmed_id'
 UNIPROT = 'uniprot'
@@ -47,8 +49,10 @@ BIOGRID_ASSOCIATION_ACTIONS = {
 }
 
 BIOGRID_COLUMN_MAPPER = {
-    'Alt IDs Interactor A': SOURCE,
-    'Alt IDs Interactor B': TARGET,
+    '#ID Interactor A': SOURCE,
+    'ID Interactor B': TARGET,
+    'Alt IDs Interactor A': ALT_SOURCE_ID,
+    'Alt IDs Interactor B': ALT_TARGET_ID,
     'Interaction Types': RELATION,
     'Publication Identifiers': PUBMED_ID,
 }
@@ -58,16 +62,19 @@ log = logging.getLogger(__name__)
 
 def _get_my_df() -> pd.DataFrame:
     """Get the BioGrid dataframe."""
-    path = ensure_path(prefix=MODULE_NAME, url=URL)[:-3]+'txt'
+    path = ensure_path(prefix=MODULE_NAME, url=URL)[:-3] + 'txt'
     log.info(path)
     return pd.read_csv(path, sep='\t', dtype=str)
 
 
-def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
+def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, rstrip: str = ' ', lstrip: str = ' ',
+                             separator: str = '|') -> List[List[str]]:
     """Split the Iterable by the separator.
 
     :param separator: separator between ids
     :param prefix: prefix to filter for (e.g. 'pubmed')
+    :param rstrip: characters to strip from split value from left
+    :param lstrip: characters to strip from split value from right
     :param list_ids: list of identifiers
     :return: filtered list of ids
     """
@@ -77,10 +84,10 @@ def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, separator: st
         flag = False
         for i in id_list:
             if i.startswith(prefix):
-                final_list.append(i)
+                final_list.append(i.lstrip(lstrip).rstrip(rstrip))
                 flag = True
         if not flag:
-            final_list.append(f'no {prefix} id')
+            final_list.append('nan')
     return final_list
 
 
@@ -101,9 +108,12 @@ def filter_for_prefix_multi(list_ids: Iterable[str], prefix: str, separator: str
             if i.startswith(prefix):
                 row_list.append(i)
                 flag = True
+        # if no matching value with prefix is found, append 'nan' as individual value
         if not flag:
-            row_list.append(f'no {prefix} id')
-        final_list.append(row_list)
+            final_list.append('nan')
+        # if at least one value is found, append list
+        if len(row_list) > 0:
+            final_list.append(row_list)
     return final_list
 
 
@@ -116,12 +126,28 @@ def get_processed_biogrid() -> pd.DataFrame:
     # rename columns
     df = df.rename(columns=BIOGRID_COLUMN_MAPPER)
 
-    # take relevant columns for source, target, relation and PubMed ID
-    df = df[[SOURCE, TARGET, RELATION, PUBMED_ID]]
+    # take relevant columns for source, target, alternative ids, relation and PubMed ID
+    df = df[[SOURCE, TARGET, ALT_SOURCE_ID, ALT_TARGET_ID, RELATION, PUBMED_ID]]
 
     # filter for uniprot
-    df[SOURCE] = filter_for_prefix_multi(list_ids=df[SOURCE], prefix=UNIPROT)
-    df[TARGET] = filter_for_prefix_multi(list_ids=df[TARGET], prefix=UNIPROT)
+    df[SOURCE] = filter_for_prefix_single(list_ids=df[SOURCE], prefix=UNIPROT)
+    df[TARGET] = filter_for_prefix_single(list_ids=df[TARGET], prefix=UNIPROT)
+    # also in alternative ids
+    df[ALT_SOURCE_ID] = filter_for_prefix_multi(list_ids=df[ALT_SOURCE_ID], prefix=UNIPROT)
+    df[ALT_TARGET_ID] = filter_for_prefix_multi(list_ids=df[ALT_TARGET_ID], prefix=UNIPROT)
+
+    # drop rows if no uniprot id
+    df = df.dropna(subset=[SOURCE, ALT_SOURCE_ID], how='all')
+    df = df.dropna(subset=[TARGET, ALT_TARGET_ID], how='all')
+
+    # filter for relation
+    df[RELATION] = filter_for_prefix_single(
+        list_ids=df[RELATION],
+        rstrip=')',
+        lstrip='(',
+        separator='"',
+        prefix='(',
+    )
 
     return df
 
@@ -197,6 +223,6 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    print(_get_my_df())
-    # print(get_processed_biogrid())
+    # print(_get_my_df())
+    print(get_processed_biogrid())
     # get_bel().summarize()
