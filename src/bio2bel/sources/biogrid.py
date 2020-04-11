@@ -132,7 +132,7 @@ def expand_df(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
         if len(row[column_name]) > 1:
             # for every id, copy the entire row and add to df
             for item in row[column_name]:
-                copied_row = df.loc[index, row]
+                copied_row = df.loc[index, :]
                 # replace multiple values by single value
                 copied_row[index] = item
                 # add expanded row to df
