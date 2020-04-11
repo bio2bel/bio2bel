@@ -51,6 +51,7 @@ INTACT_DECREASES_ACTIONS = {
     'deneddylation reaction',
     'lipid cleavage',
     'deamidation reaction',
+    'decarboxylation reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'association'
@@ -394,13 +395,22 @@ def _add_my_row(graph: BELGraph, row) -> None:
                         identifier='0018256',
                     ),
                 )
-            # protein amidation
-            elif relation == 'amidation reaction':
+            # protein deamidation
+            elif relation == 'deamidation reaction':
                 target_mod = target.with_variants(
                     pybel.dsl.ProteinModification(
                         name='protein amidation',
                         namespace='GO',
                         identifier='0018032',
+                    ),
+                )
+            # protein decarboxylation
+            elif relation == 'decarboxylation reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein carboxylation',
+                        namespace='GO',
+                        identifier='0018214',
                     ),
                 )
             # protein modification
