@@ -34,6 +34,8 @@ INTACT_INCREASES_ACTIONS = {
     'proline isomerization  reaction',
     'sulfurtransfer reaction',
     'deamination reaction',
+    'ampylation reaction',
+    'aminoacylation reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
@@ -340,6 +342,33 @@ def _add_my_row(graph: BELGraph, row) -> None:
                         identifier='0018032',
                     ),
                 )
+            # ampylation reaction
+            elif relation == 'ampylation reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein adenylylation',
+                        namespace='GO',
+                        identifier='0018117',
+                    ),
+                )
+            # aminoacylation reaction (tRNA-ligase activity)
+            elif relation == 'aminoacylation reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='tRNA aminoacylation',
+                        namespace='GO',
+                        identifier='0043039',
+                    ),
+                )
+
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    object_modifier=pybel.dsl.activity(),
+                )
+                continue
             # dna strand elongation
             elif relation == 'dna strand elongation':
                 target_mod = pybel.dsl.Gene(
