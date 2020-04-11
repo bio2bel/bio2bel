@@ -6,12 +6,13 @@ import logging
 from typing import Iterable, List
 
 import pandas as pd
-import pybel.dsl
 from protmapper.uniprot_client import get_mnemonic
-from pybel import BELGraph
 from tqdm import tqdm
 
+import pybel.dsl
 from bio2bel.utils import ensure_path
+from pybel import BELGraph
+
 
 SEP = '\t'
 BIOGRID = 'biogrid'
@@ -223,6 +224,4 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    # print(_get_my_df())
     print(get_processed_biogrid())
-    # get_bel().summarize()

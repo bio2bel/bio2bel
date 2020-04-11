@@ -6,11 +6,13 @@ from typing import Dict, Iterable, List
 from zipfile import ZipFile
 
 import pandas as pd
+from protmapper.uniprot_client import get_mnemonic
+from tqdm import tqdm
+
 import pybel.dsl
 from bio2bel.utils import ensure_path
-from protmapper.uniprot_client import get_mnemonic
 from pybel import BELGraph
-from tqdm import tqdm
+
 
 #: Relationship types in IntAct that map to BEL relation 'increases'
 INTACT_INCREASES_ACTIONS = {
@@ -97,7 +99,7 @@ PROTEIN_MOD_DICT = {
     'dephosphorylation reaction': 'Ph',
     'deneddylation reaction': 'Nedd',
     'demethylation reaction': 'Me',
-    'sulfurtransfer reaction': 'Sulf'
+    'sulfurtransfer reaction': 'Sulf',
 
 }
 
@@ -218,7 +220,7 @@ def get_processed_intact_df() -> pd.DataFrame:
     # filter for pubmed
     df[PUBMED_ID] = filter_for_prefix_multi(
         list_ids=df[PUBMED_ID],
-        prefix='pubmed'
+        prefix='pubmed',
     )
 
     # filter interaction types
@@ -227,7 +229,7 @@ def get_processed_intact_df() -> pd.DataFrame:
         rstrip=')',
         lstrip='(',
         separator='"',
-        prefix='('
+        prefix='(',
     )
 
     return df
@@ -245,7 +247,7 @@ def get_bel() -> BELGraph:
     return graph
 
 
-def _add_my_row(graph: BELGraph, row) -> None:
+def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
     """Add for every pubmed ID an edge with information about relationship type, source and target.
 
     :param graph: graph to add edges to
@@ -278,7 +280,7 @@ def _add_my_row(graph: BELGraph, row) -> None:
             # oxidoreductase activity
             if relation == 'oxidoreductase activity electron transfer reaction':
                 target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification('Red')
+                    pybel.dsl.ProteinModification('Red'),
                 )
 
                 graph.add_increases(
