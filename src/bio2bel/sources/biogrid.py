@@ -50,7 +50,6 @@ BIOGRID_COLUMN_MAPPER = {
     'Alt IDs Interactor B': TARGET,
     'Interaction Types': RELATION,
     'Publication Identifiers': PUBMED_ID,
-
 }
 
 

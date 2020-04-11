@@ -33,6 +33,7 @@ INTACT_INCREASES_ACTIONS = {
     'isomerization  reaction',
     'proline isomerization  reaction',
     'sulfurtransfer reaction',
+    'deamination reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
@@ -330,6 +331,15 @@ def _add_my_row(graph: BELGraph, row) -> None:
                         identifier='0018032',
                     ),
                 )
+            # protein deamination (negative effect, increases the deaminated target protein abundance)
+            elif relation == 'deamination reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein deamination',
+                        namespace='GO',
+                        identifier='0018032',
+                    ),
+                )
             # dna strand elongation
             elif relation == 'dna strand elongation':
                 target_mod = pybel.dsl.Gene(
@@ -404,6 +414,7 @@ def _add_my_row(graph: BELGraph, row) -> None:
                         identifier='0018032',
                     ),
                 )
+
             # protein decarboxylation
             elif relation == 'decarboxylation reaction':
                 target_mod = target.with_variants(
