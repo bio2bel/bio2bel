@@ -118,6 +118,32 @@ def filter_for_prefix_multi(list_ids: Iterable[str], prefix: str, separator: str
     return final_list
 
 
+def expand_df(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
+    """Add row with same content to dataframe if there are multiple values in one column.
+
+    The specified column must contain an Iterable.
+
+    :param column_name: name of column with multiple values to be simplified
+    :param df: dataframe with multiple values in one column
+    :return: dataframe with expanded values
+    """
+    for index, row in df.iterrows():
+        # if there are multiple entries in the column
+        if len(row[column_name]) > 1:
+            # for every id, copy the entire row and add to df
+            for item in row[column_name]:
+                copied_row = df.loc[index, row]
+                # replace multiple values by single value
+                copied_row[index] = item
+                # add expanded row to df
+                df.append(copied_row)
+
+            # remove row with multiple values
+            df = df.drop([index])
+
+    return df
+
+
 def get_processed_biogrid() -> pd.DataFrame:
     """Load BioGRDID file, filter and rename columns and return a dataframe.
 
@@ -140,6 +166,10 @@ def get_processed_biogrid() -> pd.DataFrame:
     # drop rows if no uniprot id
     df = df.dropna(subset=[SOURCE, ALT_SOURCE_ID], how='all')
     df = df.dropna(subset=[TARGET, ALT_TARGET_ID], how='all')
+
+    # expand dataframe if multiple uniprot ids exist
+    df = expand_df(df=df, column_name=ALT_SOURCE_ID)
+    df = expand_df(df=df, column_name=ALT_TARGET_ID)
 
     # filter for relation
     df[RELATION] = filter_for_prefix_single(
