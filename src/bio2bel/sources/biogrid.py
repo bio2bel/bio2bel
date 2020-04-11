@@ -5,6 +5,7 @@
 import logging
 from typing import Iterable, List
 
+import numpy as np
 import pandas as pd
 from protmapper.uniprot_client import get_mnemonic
 from tqdm import tqdm
@@ -127,19 +128,26 @@ def expand_df(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
     :param df: dataframe with multiple values in one column
     :return: dataframe with expanded values
     """
-    for index, row in df.iterrows():
+    values_data = df.values
+    column_index = df.columns.get_loc(column_name)
+    # index, row of each drug
+    for index, value_list in enumerate(tqdm(values_data, desc='Expanding dataframe ...')):
         # if there are multiple entries in the column
-        if len(row[column_name]) > 1:
+        if len(value_list[column_index]) > 1:
             # for every id, copy the entire row and add to df
-            for item in row[column_name]:
-                copied_row = df.loc[index, :]
+            for item in value_list[column_index]:
+                copied_row = value_list.copy()
                 # replace multiple values by single value
-                copied_row[index] = item
-                # add expanded row to df
-                df.append(copied_row)
+                copied_row[column_index] = item
+                # add expanded row to array
+                values_data = np.concatenate((values_data, copied_row), axis=0)
 
-            # remove row with multiple values
-            df = df.drop([index])
+    df = pd.DataFrame(values_data,
+                      index=[x for x in range(len(values_data))],
+                      columns=[SOURCE, TARGET, ALT_SOURCE_ID, ALT_TARGET_ID, RELATION, PUBMED_ID],
+                      )
+
+    df = df.drop(df[df.ALT_SOURCE_ID] == list)
 
     return df
 
