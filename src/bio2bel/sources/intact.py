@@ -36,6 +36,7 @@ INTACT_INCREASES_ACTIONS = {
     'deamination reaction',
     'ampylation reaction',
     'aminoacylation reaction',
+    'myristoylation reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
@@ -349,6 +350,15 @@ def _add_my_row(graph: BELGraph, row) -> None:
                         name='protein adenylylation',
                         namespace='GO',
                         identifier='0018117',
+                    ),
+                )
+            # myristoylation reaction
+            elif relation == 'myristoylation reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein myristoylation',
+                        namespace='GO',
+                        identifier='0018377',
                     ),
                 )
             # aminoacylation reaction (tRNA-ligase activity)

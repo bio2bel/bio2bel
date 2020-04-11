@@ -4,6 +4,7 @@
 
 from typing import Iterable, List
 
+import logging
 import pandas as pd
 from protmapper.uniprot_client import get_mnemonic
 from tqdm import tqdm
@@ -52,11 +53,14 @@ BIOGRID_COLUMN_MAPPER = {
     'Publication Identifiers': PUBMED_ID,
 }
 
+log = logging.getLogger(__name__)
+
 
 def _get_my_df() -> pd.DataFrame:
     """Get the BioGrid dataframe."""
-    path = ensure_path(prefix=MODULE_NAME, url=URL)
-    return pd.read_csv(path, sep='\t', compression='zip', dtype=str)
+    path = ensure_path(prefix=MODULE_NAME, url=URL)[:-3]+'txt'
+    log.info(path)
+    return pd.read_csv(path, sep='\t', dtype=str)
 
 
 def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
@@ -116,8 +120,8 @@ def get_processed_biogrid() -> pd.DataFrame:
     df = df[[SOURCE, TARGET, RELATION, PUBMED_ID]]
 
     # filter for uniprot
-    df[SOURCE] = filter_for_prefix_single(list_ids=df[SOURCE], prefix=UNIPROT)
-    df[TARGET] = filter_for_prefix_single(list_ids=df[TARGET], prefix=UNIPROT)
+    df[SOURCE] = filter_for_prefix_multi(list_ids=df[SOURCE], prefix=UNIPROT)
+    df[TARGET] = filter_for_prefix_multi(list_ids=df[TARGET], prefix=UNIPROT)
 
     return df
 
@@ -127,7 +131,7 @@ def get_bel() -> BELGraph:
 
     :return: BEL graph
     """
-    df = _get_my_df()
+    df = get_processed_biogrid()
     graph = BELGraph(name=BIOGRID)
     for _, row in tqdm(df.iterrows(), total=len(df.index), desc=f'mapping {BIOGRID}'):
         _add_my_row(graph, row)
@@ -193,4 +197,6 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    get_bel().summarize()
+    print(_get_my_df())
+    # print(get_processed_biogrid())
+    # get_bel().summarize()
