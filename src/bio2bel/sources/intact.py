@@ -71,7 +71,6 @@ INTACT_ASSOCIATION_ACTIONS = {
     'self interaction',
     'gtpase reaction',
     'putative self interaction',
-    'predicted interaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'hasComponent'
@@ -100,6 +99,10 @@ PROTEIN_MOD_DICT = {
     'demethylation reaction': 'Me',
     'sulfurtransfer reaction': 'Sulf',
 
+}
+
+INTACT_OMIT_INTERACTIONS = {
+    'predicted interaction',
 }
 
 EVIDENCE = 'From IntAct'
@@ -526,14 +529,15 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                 citation=pubmed_id,
                 evidence=EVIDENCE,
             )
+
+        # reactions to omit
+        elif relation in INTACT_OMIT_INTERACTIONS:
+            continue
+
         # no specified relation
         else:
-            if target:
-                raise ValueError(
-                    f"The relation {relation} between {source} and {target} is not in the specified relations.")
-            elif target_mod:
-                raise ValueError(
-                    f"The relation {relation} between {source} and {target_mod} is not in the specified relations.")
+            raise ValueError(
+                f"The relation {relation} between {source} and {target} is not in the specified relations.")
 
 
 if __name__ == '__main__':
