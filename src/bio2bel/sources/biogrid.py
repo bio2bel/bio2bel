@@ -64,7 +64,9 @@ log = logging.getLogger(__name__)
 
 def _get_my_df() -> pd.DataFrame:
     """Get the BioGrid dataframe."""
-    path = ensure_path(prefix=MODULE_NAME, url=URL)[:-3] + 'txt'
+    # path = ensure_path(prefix=MODULE_NAME, url=URL)[:-3] + 'txt'
+    # TODO use original df
+    path = '/Users/sophiakrix/.bio2bel/biogrid/biogrid_sample.txt'
     log.info(path)
     return pd.read_csv(path, sep='\t', dtype=str)
 
@@ -128,28 +130,16 @@ def expand_df(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
     :param df: dataframe with multiple values in one column
     :return: dataframe with expanded values
     """
-    values_data = df.values
-    column_index = df.columns.get_loc(column_name)
-    # index, row of each drug
-    for index, value_list in enumerate(tqdm(values_data, desc='Expanding dataframe ...')):
-        # if there are multiple entries in the column
-        if len(value_list[column_index]) > 1:
-            # for every id, copy the entire row and add to df
-            for item in value_list[column_index]:
-                copied_row = value_list.copy()
-                # replace multiple values by single value
-                copied_row[column_index] = item
-                # add expanded row to array
-                values_data = np.concatenate((values_data, copied_row), axis=0)
+    # identify columns with single values that do not neet to be expanded
+    columns_to_keep = df.columns.to_list()
+    columns_to_keep.remove(column_name)
 
-    df = pd.DataFrame(values_data,
-                      index=[x for x in range(len(values_data))],
-                      columns=[SOURCE, TARGET, ALT_SOURCE_ID, ALT_TARGET_ID, RELATION, PUBMED_ID],
-                      )
+    # create expanded df
+    lens = [len(item) for item in df[column_name]]
+    df_to_keep = {column: np.repeat(df[column].values, lens) for column in columns_to_keep}
 
-    df = df.drop(df[df.ALT_SOURCE_ID] == list)
-
-    return df
+    merged_df = {**df_to_keep, **{column_name: np.concatenate(df[column_name].values)}}
+    return pd.DataFrame(merged_df)
 
 
 def get_processed_biogrid() -> pd.DataFrame:
