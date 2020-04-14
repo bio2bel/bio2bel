@@ -98,7 +98,6 @@ PROTEIN_MOD_DICT = {
     'deneddylation reaction': 'Nedd',
     'demethylation reaction': 'Me',
     'sulfurtransfer reaction': 'Sulf',
-
 }
 
 INTACT_OMIT_INTERACTIONS = {

@@ -165,6 +165,9 @@ def get_processed_biogrid() -> pd.DataFrame:
     df = df.dropna(subset=[SOURCE, ALT_SOURCE_ID], how='all')
     df = df.dropna(subset=[TARGET, ALT_TARGET_ID], how='all')
 
+    # change uniprot/swiss-prot prefix to uniprot
+    df = df.replace(r'^uniprot/swissprot:.*', r'uniprot:.*', regex=True)
+
     # expand dataframe if multiple uniprot ids exist
     df = expand_df(df=df, column_name=ALT_SOURCE_ID)
     df = expand_df(df=df, column_name=ALT_TARGET_ID)
@@ -207,12 +210,12 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
     pubmed_ids = row[PUBMED_ID]
 
     source = pybel.dsl.Protein(
-        namespace='uniprot/swiss-prot',
+        namespace='uniprot',
         identifier=source_uniprot_id,
         name=get_mnemonic(source_uniprot_id),
     )
     target = pybel.dsl.Protein(
-        namespace='uniprot/swiss-prot',
+        namespace='uniprot',
         identifier=target_uniprot_id,
         name=get_mnemonic(target_uniprot_id),
     )
