@@ -79,7 +79,7 @@ INTACT_BINDS_ACTIONS = {
     'disulfide bond',
 }
 
-PROTEIN_MOD_DICT = {
+PROTEIN_INCREASES_MOD_DICT = {
     'phosphorylation reaction': 'Ph',
     'sumoylation reaction': 'Sumo',
     'methylation reaction': 'Me',
@@ -92,12 +92,15 @@ PROTEIN_MOD_DICT = {
     'phosphotransfer reaction': 'Ph',
     'glycosylation reaction': 'Glyco',
     'palmitoylation reaction': 'Palm',
+    'sulfurtransfer reaction': 'Sulf',
+}
+
+PROTEIN_DECREASES_MOD_DICT = {
     'deubiquitination reaction': 'Ub',
     'deacetylation reaction': 'Ac',
     'dephosphorylation reaction': 'Ph',
     'deneddylation reaction': 'Nedd',
     'demethylation reaction': 'Me',
-    'sulfurtransfer reaction': 'Sulf',
 }
 
 INTACT_OMIT_INTERACTIONS = {
@@ -399,8 +402,8 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                 )
             # take mapping from relation to abbreviation of reaction
             # protein modification
-            elif relation in PROTEIN_MOD_DICT:
-                abbreviation = PROTEIN_MOD_DICT[relation]
+            elif relation in PROTEIN_INCREASES_MOD_DICT:
+                abbreviation = PROTEIN_INCREASES_MOD_DICT[relation]
                 target_mod = target.with_variants(
                     pybel.dsl.ProteinModification(abbreviation),
                 )
@@ -494,8 +497,8 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                     ),
                 )
             # protein modification
-            elif relation in PROTEIN_MOD_DICT.keys():
-                abbreviation = PROTEIN_MOD_DICT[relation]
+            elif relation in PROTEIN_DECREASES_MOD_DICT.keys():
+                abbreviation = PROTEIN_DECREASES_MOD_DICT[relation]
                 target_mod = target.with_variants(
                     pybel.dsl.ProteinModification(abbreviation),
                 )

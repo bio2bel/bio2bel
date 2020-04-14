@@ -251,7 +251,7 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
         # no specified relation
         else:
-            raise ValueError(f"The relation {relation} is not in the specified relations.")
+            raise ValueError(f'Unhandled BioGrid relation: {relation}')
 
 
 if __name__ == '__main__':
