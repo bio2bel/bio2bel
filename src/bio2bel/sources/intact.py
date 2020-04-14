@@ -35,7 +35,6 @@ INTACT_INCREASES_ACTIONS = {
     'isomerization  reaction',
     'proline isomerization  reaction',
     'sulfurtransfer reaction',
-    'deamination reaction',
     'ampylation reaction',
     'aminoacylation reaction',
     'myristoylation reaction',
@@ -59,6 +58,7 @@ INTACT_DECREASES_ACTIONS = {
     'lipid cleavage',
     'deamidation reaction',
     'decarboxylation reaction',
+    'deamination reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'association'
@@ -337,15 +337,6 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                         identifier='0018032',
                     ),
                 )
-            # protein deamination (negative effect, increases the deaminated target protein abundance)
-            elif relation == 'deamination reaction':
-                target_mod = target.with_variants(
-                    pybel.dsl.ProteinModification(
-                        name='protein deamination',
-                        namespace='GO',
-                        identifier='0018032',
-                    ),
-                )
             # ampylation reaction
             elif relation == 'ampylation reaction':
                 target_mod = target.with_variants(
@@ -408,7 +399,7 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                 )
             # take mapping from relation to abbreviation of reaction
             # protein modification
-            elif relation in PROTEIN_MOD_DICT.keys():
+            elif relation in PROTEIN_MOD_DICT:
                 abbreviation = PROTEIN_MOD_DICT[relation]
                 target_mod = target.with_variants(
                     pybel.dsl.ProteinModification(abbreviation),
@@ -473,7 +464,14 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                         identifier='0018032',
                     ),
                 )
-
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    object_modifier=pybel.dsl.activity(),
+                )
+                continue
             # protein decarboxylation
             elif relation == 'decarboxylation reaction':
                 target_mod = target.with_variants(
@@ -481,6 +479,16 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                         name='protein carboxylation',
                         namespace='GO',
                         identifier='0018214',
+                    ),
+                )
+
+            # protein deamination
+            elif relation == 'deamination reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='amino acid binding',
+                        namespace='GO',
+                        identifier='0016597',
                     ),
                 )
             # protein modification
