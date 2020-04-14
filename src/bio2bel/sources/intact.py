@@ -6,13 +6,12 @@ from typing import Dict, Iterable, List
 from zipfile import ZipFile
 
 import pandas as pd
+import pybel.dsl
 from protmapper.uniprot_client import get_mnemonic
+from pybel import BELGraph
 from tqdm import tqdm
 
-import pybel.dsl
 from bio2bel.utils import ensure_path
-from pybel import BELGraph
-
 
 #: Relationship types in IntAct that map to BEL relation 'increases'
 INTACT_INCREASES_ACTIONS = {
@@ -292,8 +291,7 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                 )
                 continue
             # isomerase reaction
-            elif relation == 'isomerase reaction' \
-                    or relation == 'isomerization  reaction':
+            elif relation in {'isomerase reaction', 'isomerization  reaction'}:
                 target_mod = target.with_variants(
                     pybel.dsl.ProteinModification(
                         name='isomerase activity',
@@ -434,10 +432,12 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                 )
 
             # cleavage
-            elif relation == 'cleavage reaction' \
-                    or relation == 'lipoprotein cleavage reaction' \
-                    or relation == 'lipid cleavage' \
-                    or relation == 'protein cleavage':
+            elif relation in {
+                'cleavage reaction',
+                'lipoprotein cleavage reaction',
+                'lipid cleavage',
+                'protein cleavage',
+            }:
                 graph.add_decreases(
                     source,
                     target,
