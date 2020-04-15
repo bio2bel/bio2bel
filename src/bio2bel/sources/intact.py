@@ -2,7 +2,6 @@
 
 """This script downloads and parses IntAct data and maps the interaction types to BEL."""
 
-from typing import Dict, Iterable, List
 from zipfile import ZipFile
 
 import pandas as pd
@@ -10,6 +9,7 @@ import pybel.dsl
 from protmapper.uniprot_client import get_mnemonic
 from pybel import BELGraph
 from tqdm import tqdm
+from typing import Dict, Iterable, List
 
 from bio2bel.utils import ensure_path
 
@@ -421,14 +421,14 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
         # DECREASES
         elif relation in INTACT_DECREASES_ACTIONS:
 
-            # dna cleavage
+            #: dna cleavage: Covalent bond breakage of a DNA molecule leading to the formation of smaller fragments
             if relation == 'dna cleavage':
                 target_mod = pybel.dsl.Gene(
                     namespace='uniprot',
                     identifier=source_uniprot_id,
                     name=get_mnemonic(source_uniprot_id),
                 )
-            # rna cleavage
+            #: rna cleavage: Any process by which an RNA molecule is cleaved at specific sites or in a regulated manner
             elif relation == 'rna cleavage':
                 target_mod = pybel.dsl.Rna(
                     namespace='uniprot',
@@ -438,9 +438,9 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
             # cleavage
             elif relation in {
+                #: Covalent bond breakage in a molecule leading to the formation of smaller molecules
                 'cleavage reaction',
-                'lipoprotein cleavage reaction',
-                'lipid cleavage',
+                #: Covalent modification of a polypeptide occuring during its maturation or its proteolytic degradation
                 'protein cleavage',
             }:
                 graph.add_decreases(
@@ -448,6 +448,42 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                     target,
                     citation=pubmed_id,
                     evidence=EVIDENCE,
+                )
+                continue
+
+            #: Reaction monitoring the cleavage (hydrolysis) or a lipid molecule
+            elif relation == 'lipid cleavage':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='lipid catabolic process',
+                        namespace='GO',
+                        identifier='0016042',
+                    )
+                )
+
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    object_modifier=pybel.dsl.activity(),
+                )
+
+            #: 'lipoprotein cleavage reaction': Cleavage of a lipid group covalently bound to a protein residue
+            elif relation == 'lipoprotein cleavage reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='lipoprotein modification',
+                        namespace='GO',
+                        identifier='0042160',
+                    ),
+                )
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    object_modifier=pybel.dsl.activity(),
                 )
                 continue
 
@@ -543,4 +579,7 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    get_bel().summarize()
+    # get_bel().summarize()
+
+    df = get_processed_intact_df()
+    print('lipid cleavage: ', df.loc[df[RELATION] == 'lipoprotein cleavage reaction'])
