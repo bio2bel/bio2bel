@@ -38,8 +38,8 @@ INTACT_INCREASES_ACTIONS = {
     'aminoacylation reaction',
     'myristoylation reaction',
     'lipid addition',
-'gtpase reaction',
-'atpase reaction',
+    'gtpase reaction',
+    'atpase reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
@@ -67,10 +67,14 @@ INTACT_ASSOCIATION_ACTIONS = {
     'physical association',
     'association',
     'colocalization',
-    'direct interaction',
     'enzymatic reaction',
     'self interaction',
     'putative self interaction',
+}
+
+#: Relationship types in IntAct that map to BEL relation 'regulates'
+INTACT_REGULATES_ACTIONS = {
+    'direct interaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'hasComponent'
@@ -258,7 +262,10 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
     :param row: row with metainformation about source, target, relation, pubmed_id
     :return: None
     """
-    relation = row[RELATION]
+
+    # map double spaces to single spaces in relation string
+    relation = ' '.join(row[RELATION].split())
+
     source_uniprot_id = row[SOURCE]
     target_uniprot_id = row[TARGET]
 
@@ -588,6 +595,16 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
         elif relation in INTACT_ASSOCIATION_ACTIONS:
 
             graph.add_association(
+                source,
+                target,
+                citation=pubmed_id,
+                evidence=EVIDENCE,
+            )
+
+        # REGULATES:
+        elif relation in INTACT_REGULATES_ACTIONS:
+
+            graph.add_regulates(
                 source,
                 target,
                 citation=pubmed_id,
