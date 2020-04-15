@@ -38,6 +38,8 @@ INTACT_INCREASES_ACTIONS = {
     'aminoacylation reaction',
     'myristoylation reaction',
     'lipid addition',
+'gtpase reaction',
+'atpase reaction',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
@@ -67,9 +69,7 @@ INTACT_ASSOCIATION_ACTIONS = {
     'colocalization',
     'direct interaction',
     'enzymatic reaction',
-    'atpase reaction',
     'self interaction',
-    'gtpase reaction',
     'putative self interaction',
 }
 
@@ -382,6 +382,42 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                         name='tRNA aminoacylation',
                         namespace='GO',
                         identifier='0043039',
+                    ),
+                )
+
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    object_modifier=pybel.dsl.activity(),
+                )
+                continue
+            # 'gtpase reaction'
+            elif relation == 'gtpase reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='GTPase activity',
+                        namespace='GO',
+                        identifier='0003924',
+                    ),
+                )
+
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    object_modifier=pybel.dsl.activity(),
+                )
+                continue
+            # 'atpase reaction'
+            elif relation == 'atpase reaction':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='ATPase activity',
+                        namespace='GO',
+                        identifier='0016887',
                     ),
                 )
 
