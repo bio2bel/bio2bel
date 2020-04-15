@@ -11,7 +11,6 @@ from protmapper.uniprot_client import get_mnemonic
 from tqdm import tqdm
 
 import pybel.dsl
-from bio2bel.utils import ensure_path
 from pybel import BELGraph
 
 
@@ -255,4 +254,4 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    print(get_processed_biogrid())
+    get_processed_biogrid()

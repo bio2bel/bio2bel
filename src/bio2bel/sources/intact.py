@@ -2,16 +2,17 @@
 
 """This script downloads and parses IntAct data and maps the interaction types to BEL."""
 
+from typing import Dict, Iterable, List
 from zipfile import ZipFile
 
 import pandas as pd
-import pybel.dsl
 from protmapper.uniprot_client import get_mnemonic
-from pybel import BELGraph
 from tqdm import tqdm
-from typing import Dict, Iterable, List
 
+import pybel.dsl
 from bio2bel.utils import ensure_path
+from pybel import BELGraph
+
 
 #: Relationship types in IntAct that map to BEL relation 'increases'
 INTACT_INCREASES_ACTIONS = {
@@ -501,7 +502,7 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                         name='lipid catabolic process',
                         namespace='GO',
                         identifier='0016042',
-                    )
+                    ),
                 )
 
                 graph.add_decreases(
@@ -632,7 +633,4 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 
 if __name__ == '__main__':
-    # get_bel().summarize()
-
-    df = get_processed_intact_df()
-    print('lipid cleavage: ', df.loc[df[RELATION] == 'lipoprotein cleavage reaction'])
+    get_bel().summarize()
