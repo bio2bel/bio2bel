@@ -118,13 +118,6 @@ def _add_rows(df: pd.DataFrame, graph: BELGraph) -> None:
         evidence = 'From TFregulons'
 
         for citation in citations:
-            graph.add_binds(
-                tf_protein,
-                target_gene,
-                citation=citation,
-                evidence=evidence,
-            )
-
             if effect == 1:
                 binds_dna_adder, affects_expression_adder = graph.add_directly_increases, graph.add_increases
             else:
