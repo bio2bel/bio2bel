@@ -48,9 +48,12 @@ BIOGRID_DECREASES_ACTIONS = {
 #: Relationship types in BioGRID that map to BEL relation 'association'
 BIOGRID_ASSOCIATION_ACTIONS = {
     'direct interaction',
-    'physical association',
     'colocalization',
     'association',
+}
+
+BIOGRID_BINDS_ACTIONS = {
+    'physical association',
 }
 
 BIOGRID_COLUMN_MAPPER = {
@@ -276,10 +279,18 @@ def _add_my_row(
             graph.add_association(
                 source,
                 target,
-                citaion=pubmed_id,
+                citation=pubmed_id,
                 evidence=EVIDENCE,
             )
 
+        # BINDS
+        elif relation in BIOGRID_BINDS_ACTIONS:
+            graph.add_binds(
+                source,
+                target,
+                citation=pubmed_id,
+                evidence=EVIDENCE,
+            )
         # no specified relation
         else:
             raise ValueError(f'Unhandled BioGrid relation: {relation}')
