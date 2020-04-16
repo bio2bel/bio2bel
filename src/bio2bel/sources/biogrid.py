@@ -24,6 +24,7 @@ ALT_SOURCE_ID = 'alt_source_id'
 ALT_TARGET_ID = 'alt_target_id'
 RELATION = 'relation'
 PUBMED_ID = 'pubmed_id'
+INTERACTION_DETECTION_METHOD = 'Interaction Detection Method'
 UNIPROT = 'uniprot'
 EVIDENCE = 'From BioGRID'
 MODULE_NAME = 'biogrid'
@@ -175,7 +176,7 @@ def get_processed_biogrid() -> pd.DataFrame:
     df = df.rename(columns=BIOGRID_COLUMN_MAPPER)
 
     # take relevant columns for source, target, alternative ids, relation and PubMed ID
-    df = df[[SOURCE, TARGET, ALT_SOURCE_ID, ALT_TARGET_ID, RELATION, PUBMED_ID]]
+    df = df[[SOURCE, TARGET, ALT_SOURCE_ID, ALT_TARGET_ID, RELATION, PUBMED_ID, INTERACTION_DETECTION_METHOD]]
 
     # filter for uniprot
     for column in [SOURCE, TARGET]:
@@ -200,6 +201,15 @@ def get_processed_biogrid() -> pd.DataFrame:
     # filter for relation
     df[RELATION] = filter_for_prefix_single(
         list_ids=df[RELATION],
+        rstrip=')',
+        lstrip='(',
+        separator='"',
+        prefix='(',
+    )
+
+    # filter for interaction detection method
+    df[INTERACTION_DETECTION_METHOD] = filter_for_prefix_single(
+        list_ids=df[INTERACTION_DETECTION_METHOD],
         rstrip=')',
         lstrip='(',
         separator='"',
