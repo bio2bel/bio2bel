@@ -4,19 +4,17 @@
 
 import logging
 import os
-from typing import Iterable, List
 
 import numpy as np
 import pandas as pd
-from protmapper.uniprot_client import get_mnemonic
-from tqdm import tqdm
-
 import pybel.dsl
-from bio2bel.utils import ensure_path
+from protmapper.uniprot_client import get_mnemonic
 from pybel import BELGraph
+from tqdm import tqdm
+from typing import Iterable, List
 
 from bio2bel.constants import BIOGRID_RESULTS_DIR
-
+from bio2bel.utils import ensure_path
 
 SEP = '\t'
 BIOGRID = 'biogrid'
@@ -64,7 +62,7 @@ BIOGRID_COLUMN_MAPPER = {
     'Publication Identifiers': PUBMED_ID,
 }
 
- logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def _get_my_df() -> pd.DataFrame:
@@ -76,8 +74,13 @@ def _get_my_df() -> pd.DataFrame:
     return pd.read_csv(path, sep='\t', dtype=str)
 
 
-def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, rstrip: str = ' ', lstrip: str = ' ',
-                             separator: str = '|') -> List[List[str]]:
+def filter_for_prefix_single(
+        list_ids: Iterable[str],
+        prefix: str,
+        rstrip: str = ' ',
+        lstrip: str = ' ',
+        separator: str = '|',
+) -> List[List[str]]:
     """Split the Iterable by the separator.
 
     :param separator: separator between ids
@@ -100,7 +103,11 @@ def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, rstrip: str =
     return final_list
 
 
-def filter_for_prefix_multi(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
+def filter_for_prefix_multi(
+        list_ids: Iterable[str],
+        prefix: str,
+        separator: str = '|',
+) -> List[List[str]]:
     """Split the Iterable by the separator.
 
     :param separator: separator between ids
@@ -168,15 +175,16 @@ def get_processed_biogrid() -> pd.DataFrame:
     df = df[[SOURCE, TARGET, ALT_SOURCE_ID, ALT_TARGET_ID, RELATION, PUBMED_ID]]
 
     # filter for uniprot
-    df[SOURCE] = filter_for_prefix_single(list_ids=df[SOURCE], prefix=UNIPROT)
-    df[TARGET] = filter_for_prefix_single(list_ids=df[TARGET], prefix=UNIPROT)
+    for column in [SOURCE, TARGET]:
+        df[column] = filter_for_prefix_single(list_ids=df[column], prefix=UNIPROT)
+
     # also in alternative ids
-    df[ALT_SOURCE_ID] = filter_for_prefix_multi(list_ids=df[ALT_SOURCE_ID], prefix=UNIPROT)
-    df[ALT_TARGET_ID] = filter_for_prefix_multi(list_ids=df[ALT_TARGET_ID], prefix=UNIPROT)
+    for column in [ALT_SOURCE_ID, ALT_TARGET_ID]:
+        df[column] = filter_for_prefix_multi(list_ids=df[column], prefix=UNIPROT)
 
     # drop rows if no uniprot id
-    df = df.dropna(subset=[SOURCE, ALT_SOURCE_ID], how='all')
-    df = df.dropna(subset=[TARGET, ALT_TARGET_ID], how='all')
+    for column, alt_column in zip([SOURCE, TARGET], [ALT_SOURCE_ID, ALT_TARGET_ID]):
+        df = df.dropna(subset=[column, alt_column], how='all', inplace=True)
 
     # change uniprot/swiss-prot prefix to uniprot
     df = df.replace(r'^uniprot/swissprot:.*', r'uniprot:.*', regex=True)

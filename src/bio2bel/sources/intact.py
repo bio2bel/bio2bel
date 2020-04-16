@@ -2,17 +2,16 @@
 
 """This script downloads and parses IntAct data and maps the interaction types to BEL."""
 
-from typing import Dict, Iterable, List
 from zipfile import ZipFile
 
 import pandas as pd
-from protmapper.uniprot_client import get_mnemonic
-from tqdm import tqdm
-
 import pybel.dsl
-from bio2bel.utils import ensure_path
+from protmapper.uniprot_client import get_mnemonic
 from pybel import BELGraph
+from tqdm import tqdm
+from typing import Dict, Iterable, List
 
+from bio2bel.utils import ensure_path
 
 #: Relationship types in IntAct that map to BEL relation 'increases'
 INTACT_INCREASES_ACTIONS = {
@@ -159,8 +158,13 @@ def rename_columns(df: pd.DataFrame, columns_mapping: Dict) -> pd.DataFrame:
     return df.rename(columns=columns_mapping)
 
 
-def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, rstrip: str = ' ', lstrip: str = ' ',
-                             separator: str = '|') -> List[List[str]]:
+def filter_for_prefix_single(
+        list_ids: Iterable[str],
+        prefix: str,
+        rstrip: str = ' ',
+        lstrip: str = ' ',
+        separator: str = '|'
+) -> List[List[str]]:
     """Split the Iterable by the separator.
 
     :param separator: separator between ids
@@ -183,7 +187,11 @@ def filter_for_prefix_single(list_ids: Iterable[str], prefix: str, rstrip: str =
     return final_list
 
 
-def filter_for_prefix_multi(list_ids: Iterable[str], prefix: str, separator: str = '|') -> List[List[str]]:
+def filter_for_prefix_multi(
+        list_ids: Iterable[str],
+        prefix: str,
+        separator: str = '|',
+) -> List[List[str]]:
     """Split the Iterable by the separator.
 
     :param separator: separator between ids
