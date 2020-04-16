@@ -232,7 +232,8 @@ def get_bel() -> BELGraph:
             relation=row[RELATION],
             source_uniprot_id=row[SOURCE],
             target_uniprot_id=row[TARGET],
-            pubmed_ids=row[PUBMED_ID,
+            pubmed_ids=row[PUBMED_ID],
+            int_detection_method=row[INTERACTION_DETECTION_METHOD],
         )
     return graph
 
@@ -243,6 +244,7 @@ def _add_my_row(
         source_uniprot_id: str,
         target_uniprot_id: str,
         pubmed_ids: str,
+        int_detection_method: str,
 ) -> None:  # noqa:C901
     """Add for every pubmed ID an edge with information about relationship type, source and target.
 
@@ -251,6 +253,7 @@ def _add_my_row(
     :param source_uniprot_id: row value of column source
     :param target_uniprot_id: row value of column target
     :param pubmed_ids: row value of column pubmed_ids
+    :param int_detection_method: row value of column interaction detection method
     :return: None
     """
     source = pybel.dsl.Protein(
@@ -273,6 +276,7 @@ def _add_my_row(
                 target,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
+                annotation=int_detection_method,
             )
 
         # DECREASES
@@ -282,6 +286,7 @@ def _add_my_row(
                 target,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
+                annotation=int_detection_method,
             )
 
         # ASSOCIATION
@@ -291,6 +296,7 @@ def _add_my_row(
                 target,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
+                annotation=int_detection_method,
             )
 
         # BINDS
@@ -300,6 +306,7 @@ def _add_my_row(
                 target,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
+                annotation=int_detection_method,
             )
         # no specified relation
         else:
