@@ -214,23 +214,32 @@ def get_bel() -> BELGraph:
     df = get_processed_biogrid()
     graph = BELGraph(name=BIOGRID)
     for _, row in tqdm(df.iterrows(), total=len(df.index), desc=f'mapping {BIOGRID}'):
-        _add_my_row(graph, row)
+        _add_my_row(
+            graph,
+            relation=row[RELATION],
+            source_uniprot_id=row[SOURCE],
+            target_uniprot_id=row[TARGET],
+            pubmed_ids=row[PUBMED_ID,
+        )
     return graph
 
 
-def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
+def _add_my_row(
+        graph: BELGraph,
+        relation: str,
+        source_uniprot_id: str,
+        target_uniprot_id: str,
+        pubmed_ids: str,
+) -> None:  # noqa:C901
     """Add for every pubmed ID an edge with information about relationship type, source and target.
 
     :param graph: graph to add edges to
-    :param row: row with metainformation about source, target, relation, pubmed_id
+    :param relation: row value of column relation
+    :param source_uniprot_id: row value of column source
+    :param target_uniprot_id: row value of column target
+    :param pubmed_ids: row value of column pubmed_ids
     :return: None
     """
-    relation = row[RELATION]
-    source_uniprot_id = row[SOURCE]
-    target_uniprot_id = row[TARGET]
-
-    pubmed_ids = row[PUBMED_ID]
-
     source = pybel.dsl.Protein(
         namespace='uniprot',
         identifier=source_uniprot_id,
