@@ -21,6 +21,9 @@ DEFAULT_CONFIG_PATHS = [
     os.path.join(_USER_CONFIG_DIRECTORY, 'pybel', 'config.ini'),
 ]
 
+BIO2BEL_DIR = os.path.abspath(os.path.join(os.path.expanduser('~'), '.bio2bel'))
+BIOGRID_DIR = os.path.join(BIO2BEL_DIR, 'biogrid')
+BIOGRID_RESULTS_DIR = os.path.join(BIOGRID_DIR, 'results')
 
 class Config(EasyConfig):
     """Configuration for Bio2BEL."""

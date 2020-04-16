@@ -3,6 +3,7 @@
 """This script downloads and parses BioGRID data and maps the interaction types to BEL."""
 
 import logging
+import os
 from typing import Iterable, List
 
 import numpy as np
@@ -13,6 +14,8 @@ from tqdm import tqdm
 import pybel.dsl
 from bio2bel.utils import ensure_path
 from pybel import BELGraph
+
+from bio2bel.constants import BIOGRID_RESULTS_DIR
 
 
 SEP = '\t'
@@ -30,6 +33,8 @@ MODULE_NAME = 'biogrid'
 VERSION = '3.5.183'
 BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
 URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
+
+GENETIC_INTERACTIONS_PATH = os.path.join(BIOGRID_RESULTS_DIR, 'genetic_interactions.tsv')
 
 #: Relationship types in BioGRID that map to BEL relation 'increases'
 BIOGRID_INCREASES_ACTIONS = {
@@ -59,7 +64,7 @@ BIOGRID_COLUMN_MAPPER = {
     'Publication Identifiers': PUBMED_ID,
 }
 
-log = logging.getLogger(__name__)
+ logger = logging.getLogger(__name__)
 
 
 def _get_my_df() -> pd.DataFrame:
@@ -67,7 +72,7 @@ def _get_my_df() -> pd.DataFrame:
     path = ensure_path(prefix=MODULE_NAME, url=URL)[:-3] + 'txt'
     # TODO use original df
     # path = '/Users/sophiakrix/.bio2bel/biogrid/biogrid_sample.tsv'
-    log.info(path)
+    logger.info(path)
     return pd.read_csv(path, sep='\t', dtype=str)
 
 
@@ -176,9 +181,10 @@ def get_processed_biogrid() -> pd.DataFrame:
     # change uniprot/swiss-prot prefix to uniprot
     df = df.replace(r'^uniprot/swissprot:.*', r'uniprot:.*', regex=True)
 
+    # TODO: get working
     # expand dataframe if multiple uniprot ids exist
-    df = expand_df(df=df, column_name=ALT_SOURCE_ID)
-    df = expand_df(df=df, column_name=ALT_TARGET_ID)
+    # df = expand_df(df=df, column_name=ALT_SOURCE_ID)
+    # df = expand_df(df=df, column_name=ALT_TARGET_ID)
 
     # filter for relation
     df[RELATION] = filter_for_prefix_single(
@@ -264,11 +270,25 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
 
 def get_genetic_interactions():
     df = get_processed_biogrid()
-    #df_syn =
+    df_syn = df.loc[df[RELATION] == 'synthetic genetic interaction defined by inequality']
+    df_add = df.loc[df[RELATION] == 'additive genetic interaction defined by inequality']
+    df_sup = df.loc[df[RELATION] == 'suppressive genetic interaction defined by inequality']
+
+    frames = [df_syn, df_add, df_sup]
+
+    return pd.concat(frames)
+
+
+def get_genetic_interactions_pmid():
+    df = pd.read_csv(GENETIC_INTERACTIONS_PATH)
+    print(df.columns)
+    return set(df[PUBMED_ID].values)
 
 
 if __name__ == '__main__':
     # get_processed_biogrid()
-    df = get_processed_biogrid()
-    print(df.head())
-    print(df.loc[df[RELATION] == 'synthetic genetic interaction defined by inequality'])
+    # df = get_processed_biogrid()
+
+    # get_genetic_interactions().to_csv(GENETIC_INTERACTIONS_PATH)
+
+    print(get_genetic_interactions_pmid())
