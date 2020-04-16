@@ -198,24 +198,6 @@ def get_processed_biogrid() -> pd.DataFrame:
     # df = expand_df(df=df, column_name=ALT_SOURCE_ID)
     # df = expand_df(df=df, column_name=ALT_TARGET_ID)
 
-    # filter for relation
-    df[RELATION] = filter_for_prefix_single(
-        list_ids=df[RELATION],
-        rstrip=')',
-        lstrip='(',
-        separator='"',
-        prefix='(',
-    )
-
-    # filter for interaction detection method
-    df[INTERACTION_DETECTION_METHOD] = filter_for_prefix_single(
-        list_ids=df[INTERACTION_DETECTION_METHOD],
-        rstrip=')',
-        lstrip='(',
-        separator='"',
-        prefix='(',
-    )
-
     return df
 
 
