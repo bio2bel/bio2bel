@@ -11,6 +11,7 @@ from protmapper.uniprot_client import get_mnemonic
 from tqdm import tqdm
 
 import pybel.dsl
+from bio2bel.utils import ensure_path
 from pybel import BELGraph
 
 
@@ -63,9 +64,9 @@ log = logging.getLogger(__name__)
 
 def _get_my_df() -> pd.DataFrame:
     """Get the BioGrid dataframe."""
-    # path = ensure_path(prefix=MODULE_NAME, url=URL)[:-3] + 'txt'
+    path = ensure_path(prefix=MODULE_NAME, url=URL)[:-3] + 'txt'
     # TODO use original df
-    path = '/Users/sophiakrix/.bio2bel/biogrid/biogrid_sample.txt'
+    # path = '/Users/sophiakrix/.bio2bel/biogrid/biogrid_sample.tsv'
     log.info(path)
     return pd.read_csv(path, sep='\t', dtype=str)
 
@@ -129,16 +130,24 @@ def expand_df(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
     :param df: dataframe with multiple values in one column
     :return: dataframe with expanded values
     """
-    # identify columns with single values that do not neet to be expanded
+    # identify columns with single values that do not need to be expanded
     columns_to_keep = df.columns.to_list()
     columns_to_keep.remove(column_name)
 
     # create expanded df
     lens = [len(item) for item in df[column_name]]
-    df_to_keep = {column: np.repeat(df[column].values, lens) for column in columns_to_keep}
 
-    merged_df = {**df_to_keep, **{column_name: np.concatenate(df[column_name].values)}}
-    return pd.DataFrame(merged_df)
+    # create dictionary of columns and values (repeated)
+    df_to_keep = {column: np.repeat(a=df[column].values, repeats=lens) for column in columns_to_keep}
+    # flatten array of column with multiple values to 1d
+    array_flattened = np.array(df[column_name].values).flatten()
+    # expand array to 2d
+    array_expanded = array_flattened.reshape(len(df_to_keep[columns_to_keep[0]]), 1)
+    df_expanded = {column_name: array_expanded}
+
+    df_merged = {**df_to_keep, **df_expanded}
+
+    return pd.DataFrame.from_dict(data=df_merged, orient='index')
 
 
 def get_processed_biogrid() -> pd.DataFrame:
@@ -253,5 +262,13 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
             raise ValueError(f'Unhandled BioGrid relation: {relation}')
 
 
+def get_genetic_interactions():
+    df = get_processed_biogrid()
+    #df_syn =
+
+
 if __name__ == '__main__':
-    get_processed_biogrid()
+    # get_processed_biogrid()
+    df = get_processed_biogrid()
+    print(df.head())
+    print(df.loc[df[RELATION] == 'synthetic genetic interaction defined by inequality'])
