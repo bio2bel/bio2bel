@@ -198,6 +198,17 @@ def get_processed_biogrid() -> pd.DataFrame:
     # df = expand_df(df=df, column_name=ALT_SOURCE_ID)
     # df = expand_df(df=df, column_name=ALT_TARGET_ID)
 
+    # filter for relation
+    df[RELATION] = filter_for_prefix_single(
+        list_ids=df[RELATION],
+        rstrip=')',
+        lstrip='(',
+        separator='"',
+        prefix='(',
+    )
+
+
+
     return df
 
 
@@ -258,7 +269,7 @@ def _add_my_row(
                 target,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotation=int_detection_method,
+                annotations={"PSI-MI": int_detection_method},
             )
 
         # DECREASES
@@ -268,7 +279,7 @@ def _add_my_row(
                 target,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotation=int_detection_method,
+                annotations={"PSI-MI": int_detection_method},
             )
 
         # ASSOCIATION
@@ -278,7 +289,7 @@ def _add_my_row(
                 target,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotation=int_detection_method,
+                annotations={"PSI-MI": int_detection_method},
             )
 
         # BINDS
@@ -288,7 +299,7 @@ def _add_my_row(
                 target,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotation=int_detection_method,
+                annotations={"PSI-MI": int_detection_method},
             )
         # no specified relation
         else:
