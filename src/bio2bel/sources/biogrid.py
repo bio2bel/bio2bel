@@ -8,9 +8,10 @@ python -m bio2bel.sources.biogrid
 """
 
 import logging
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 import pandas as pd
+import pyobo.sources.biogrid
 from pyobo.identifier_utils import normalize_curie
 from tqdm import tqdm
 
@@ -65,12 +66,59 @@ BIOGRID_BINDS_ACTIONS = {
     'psi-mi:"MI:0407"(direct interaction)',
 }
 
+biogrid_ncbigene_mapping = pyobo.sources.biogrid.get_ncbigene_mapping()
+
+#: biogrid id to ncbigene id
+INTERACTOR_BIOGRID_REMAPPING = {
+    '4349295': None,  # https://www.yeastgenome.org/locus/S000006792
+    '4349491': None,  # http://www.candidagenome.org/cgi-bin/locus.pl?locus=CAF0007452
+    '4349337': None,  # https://www.yeastgenome.org/locus/S000006962
+    '4349775': None,  # http://www.candidagenome.org/cgi-bin/locus.pl?locus=CAL0000184983
+    '4349716': None,  # http://www.candidagenome.org/cgi-bin/locus.pl?locus=CAL0000193047
+    '4349853': None,  # http://www.candidagenome.org/cgi-bin/locus.pl?locus=CAL0006683
+    '4383869': None,  # SARS-CoV2 protein ORF3B, not on uniprot or entrez
+    '4383875': None,  # SARS-CoV2 protein ORF9C, not on uniprot or entrez
+}
+
+#: uniprot id to ncbigene id
+INTERACTOR_UNIPROT_REMAPPING = {
+    # FIXME
+    'P0DTC1': None,  # SARS-CoV2 protein https://swissmodel.expasy.org/repository/uniprot/P0DTC1
+    # TODO checkme
+    'P0DTD2': '1489679',  # SARS-CoV2 protein https://swissmodel.expasy.org/repository/uniprot/P0DTD2
+}
 
 
-def _process_iteractor(s: str) -> str:
-    if not s.startswith('entrez gene/locuslink:'):
-        raise ValueError(f'weird formatted interactor: {s}')
-    return s[len('entrez gene/locuslink:'):]
+def _process_iteractor(s: str) -> Optional[str]:
+    prefix, identifier = normalize_curie(s)
+    if prefix is None:
+        logger.warning('could not parse %s', s)
+        return
+
+    if prefix == 'ncbigene':
+        return identifier
+    elif prefix == 'biogrid':
+        if identifier in biogrid_ncbigene_mapping:
+            return biogrid_ncbigene_mapping[identifier]
+        if identifier in INTERACTOR_BIOGRID_REMAPPING:
+            remapped = INTERACTOR_BIOGRID_REMAPPING[identifier]
+            if not remapped:
+                logger.debug('tried but failed curation on %s', s)
+            return remapped
+        else:
+            logger.warning('need to curate: %s', s)
+            return
+    elif prefix == 'uniprot':
+        if identifier in INTERACTOR_UNIPROT_REMAPPING:
+            remapped = INTERACTOR_UNIPROT_REMAPPING[identifier]
+            if not remapped:
+                logger.debug('tried but failed curation on %s', s)
+            return remapped
+        else:
+            logger.warning('need to curate: %s', s)
+            return
+    else:
+        logger.warning('unhandled interactor: %s (%s:%s)', s, prefix, identifier)
 
 
 def _process_xrefs(s: str) -> List[Tuple[str, str]]:
@@ -119,11 +167,16 @@ def get_bel() -> BELGraph:
     df = get_processed_biogrid()
     graph = BELGraph(name=MODULE_NAME)
     for _, row in tqdm(df.iterrows(), total=len(df.index), desc=f'mapping {MODULE_NAME}'):
+        source_ncbigene_id = row['#ID Interactor A']
+        target_ncbigene_id = row['ID Interactor B']
+        if pd.isna(source_ncbigene_id) or pd.isna(target_ncbigene_id):
+            continue
+
         _add_my_row(
             graph,
             relation=row['Interaction Types'],
-            source_ncbigene_id=row['#ID Interactor A'],
-            target_ncbigene_id=row['ID Interactor B'],
+            source_ncbigene_id=source_ncbigene_id,
+            target_ncbigene_id=target_ncbigene_id,
             pubmed_ids=row['Publication Identifiers'],
             int_detection_method=row['Interaction Detection Method'],
             source_database=row['Source Database'],
@@ -199,4 +252,5 @@ if __name__ == '__main__':
     _graph = get_bel()
     _graph.summarize()
     import os
+
     pybel.dump(_graph, os.path.expanduser('~/Desktop/biogrid.bel.nodelink.json'))
