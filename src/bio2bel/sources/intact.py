@@ -16,13 +16,14 @@ from bio2bel.utils import ensure_path
 logger = logging.getLogger(__name__)
 
 COLUMNS = [
-    '#ID(s) interactor A',
-    'ID(s) interactor B',
-    'Interaction detection method(s)',
-    'Interaction type(s)',
-    'Source database(s)',
-    'Confidence value(s)',
-]
+        '#ID(s) interactor A',
+        'ID(s) interactor B',
+        'Interaction type(s)',
+        'Publication Identifier(s)',
+        'Interaction detection method(s)',
+        'Source database(s)',
+        'Confidence value(s)',
+    ]
 
 #: Relationship types in IntAct that map to BEL relation 'increases'
 INTACT_INCREASES_ACTIONS = {
@@ -173,8 +174,20 @@ def get_bel() -> BELGraph:
     """
     df = get_processed_intact_df()
     graph = BELGraph(name=MODULE_NAME, version=VERSION)
-    for _, row in tqdm(df.iterrows(), total=len(df.index), desc=f'mapping {MODULE_NAME}'):
-        _add_my_row(graph, row)
+    it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'mapping {MODULE_NAME}', unit_scale=True)
+    for source_uniprot_id, target_uniprot_id, relation, pubmed_id, detection_method, source_db, confidence in it:
+        if pd.isna(source_uniprot_id) or pd.isna(target_uniprot_id):
+            continue
+        _add_my_row(
+            graph,
+            relation=relation,
+            source_uniprot_id=source_uniprot_id,
+            target_uniprot_id=target_uniprot_id,
+            pubmed_id=pubmed_id,
+            int_detection_method=detection_method,
+            source_database=source_db,
+            confidence=confidence,
+        )
     return graph
 
 
