@@ -143,6 +143,15 @@ def _iter_process_xrefs(s: str) -> Iterable[Tuple[str, str]]:
         if prefix is not None:
             yield prefix, identifier
 
+COLUMNS = [
+    '#ID Interactor A',
+    'ID Interactor B',
+    'Interaction Types',
+    'Publication Identifiers',
+    'Interaction Detection Method',
+    'Source Database',
+    'Confidence Values',
+]
 
 def get_processed_biogrid() -> pd.DataFrame:
     """Load BioGRID file, filter, and rename columns and return a dataframe.
@@ -150,13 +159,18 @@ def get_processed_biogrid() -> pd.DataFrame:
     :return: dataframe of preprocessed BioGRID data
     """
     path = ensure_path(prefix=MODULE_NAME, url=URL)
-    df = pd.read_csv(path, sep='\t', dtype=str)
+    logger.info('reading BioGRID from %s', path)
+    df = pd.read_csv(path, sep='\t', dtype=str, usecols=COLUMNS)
 
+    logger.info('mapping interactors')
     df['#ID Interactor A'] = df['#ID Interactor A'].map(_process_interactor)
     df['ID Interactor B'] = df['ID Interactor B'].map(_process_interactor)
-    df['Alt IDs Interactor A'] = df['Alt IDs Interactor A'].map(_process_xrefs)
-    df['Alt IDs Interactor B'] = df['Alt IDs Interactor B'].map(_process_xrefs)
 
+    # logger.info('mapping alternate identifiers')
+    # df['Alt IDs Interactor A'] = df['Alt IDs Interactor A'].map(_process_xrefs)
+    # df['Alt IDs Interactor B'] = df['Alt IDs Interactor B'].map(_process_xrefs)
+
+    logger.info('mapping provenance')
     # FIXME clean up pubmed identifiers, split for multiple
 
     return df
@@ -166,21 +180,19 @@ def get_bel() -> BELGraph:
     """Get a BEL graph for BioGRID."""
     df = get_processed_biogrid()
     graph = BELGraph(name=MODULE_NAME)
-    for _, row in tqdm(df.iterrows(), total=len(df.index), desc=f'mapping {MODULE_NAME}'):
-        source_ncbigene_id = row['#ID Interactor A']
-        target_ncbigene_id = row['ID Interactor B']
+    it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'mapping {MODULE_NAME}', unit_scale=True)
+    for source_ncbigene_id, target_ncbigene_id, relation, pmids, detection_method, source_db, confidence in it:
         if pd.isna(source_ncbigene_id) or pd.isna(target_ncbigene_id):
             continue
-
         _add_my_row(
             graph,
-            relation=row['Interaction Types'],
+            relation=relation,
             source_ncbigene_id=source_ncbigene_id,
             target_ncbigene_id=target_ncbigene_id,
-            pubmed_ids=row['Publication Identifiers'],
-            int_detection_method=row['Interaction Detection Method'],
-            source_database=row['Source Database'],
-            confidence=row['Confidence Values'],
+            pubmed_ids=pmids,
+            int_detection_method=detection_method,
+            source_database=source_db,
+            confidence=confidence,
         )
     return graph
 
@@ -249,6 +261,7 @@ def _add_my_row(
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     _graph = get_bel()
     _graph.summarize()
     import os
