@@ -157,7 +157,7 @@ def get_processed_intact_df() -> pd.DataFrame:
     df = df[df['ID(s) interactor B'] != '-']
 
     # filter for uniprot ids
-    df = df[df[SOURCE].str.contains("uniprot")]
+    df = df[df['#ID(s) interactor A'].str.contains("uniprot")]
 
     # filter for pubmed
     logger.info('mapping provenance')
@@ -237,7 +237,7 @@ def _add_my_row(
                 annotations=annotations.copy(),
                 subject_modifier=pybel.dsl.activity(),
             )
-            continue
+
         # isomerase reaction
         elif relation in {'isomerase reaction', 'isomerization  reaction'}:
             target_mod = target.with_variants(
@@ -256,7 +256,7 @@ def _add_my_row(
                 annotations=annotations.copy(),
                 subject_modifier=pybel.dsl.activity(),
             )
-            continue
+
         # proline isomerase reaction
         elif relation == 'proline isomerization  reaction':
             target_mod = target.with_variants(
@@ -275,7 +275,7 @@ def _add_my_row(
                 annotations=annotations.copy(),
                 subject_modifier=pybel.dsl.activity(),
             )
-            continue
+
         # protein amidation
         elif relation == 'amidation reaction':
             target_mod = target.with_variants(
@@ -320,7 +320,7 @@ def _add_my_row(
                 annotations=annotations.copy(),
                 subject_modifier=pybel.dsl.activity(),
             )
-            continue
+
         # aminoacylation reaction (tRNA-ligase activity)
         elif relation == 'aminoacylation reaction':
             target_mod = target.with_variants(
@@ -339,7 +339,7 @@ def _add_my_row(
                 annotations=annotations.copy(),
                 object_modifier=pybel.dsl.activity(),
             )
-            continue
+
         # 'gtpase reaction'
         elif relation == 'gtpase reaction':
             target_mod = target.with_variants(
@@ -358,7 +358,7 @@ def _add_my_row(
                 annotations=annotations.copy(),
                 object_modifier=pybel.dsl.activity(),
             )
-            continue
+
         # 'atpase reaction'
         elif relation == 'atpase reaction':
             target_mod = target.with_variants(
@@ -377,7 +377,7 @@ def _add_my_row(
                 annotations=annotations.copy(),
                 object_modifier=pybel.dsl.activity(),
             )
-            continue
+
         # dna strand elongation
         elif relation == 'dna strand elongation':
             target_mod = pybel.dsl.GeneModification(
@@ -393,7 +393,7 @@ def _add_my_row(
                 annotations=annotations.copy(),
                 object_modifier=pybel.dsl.activity(),
             )
-            continue
+
         # take mapping from relation to abbreviation of reaction
         # protein modification
         elif relation in PROTEIN_INCREASES_MOD_DICT:
@@ -409,7 +409,7 @@ def _add_my_row(
                 evidence=EVIDENCE,
                 annotations=annotations.copy(),
             )
-            continue
+
         else:
             raise ValueError(f"The relation {relation} is not in INCREASE relations.")
 
@@ -445,7 +445,7 @@ def _add_my_row(
                 evidence=EVIDENCE,
                 annotations=annotations.copy(),
             )
-            continue
+
 
         #: Reaction monitoring the cleavage (hydrolysis) or a lipid molecule
         elif relation == 'lipid cleavage':
@@ -483,7 +483,7 @@ def _add_my_row(
                 annotations=annotations.copy(),
                 object_modifier=pybel.dsl.activity(),
             )
-            continue
+
 
         # deformylation reaction
         elif relation == 'deformylation reaction':
@@ -511,7 +511,7 @@ def _add_my_row(
                 annotations=annotations.copy(),
                 object_modifier=pybel.dsl.activity(),
             )
-            continue
+
         # protein decarboxylation
         elif relation == 'decarboxylation reaction':
             target_mod = target.with_variants(
@@ -583,7 +583,7 @@ def _add_my_row(
 
     # reactions to omit
     elif relation in INTACT_OMIT_INTERACTIONS:
-        continue
+         logger.info(f"The relation {relation} will not be added.")
 
     # no specified relation
     else:
