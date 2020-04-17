@@ -128,7 +128,7 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
     'psi-mi:"MI:0557"(adp ribosylation reaction)': ProteinModification('ADPRib'),
     'psi-mi:"MI:0567"(neddylation reaction)': ProteinModification('Nedd'),
     'psi-mi:"MI:0210"(hydroxylation reaction)': ProteinModification('Hy'),
-    'psi-mi:"MI:0945"(oxidoreductase activity electron transfer reaction)': ProteinModification('Red')
+    'psi-mi:"MI:0945"(oxidoreductase activity electron transfer reaction)': ProteinModification('Red'),
     # FIXME this is not right. What does an isomerase actually do?
     'psi-mi:"MI:1250"(isomerase reaction)': ProteinModification(
         name='isomerase activity',
