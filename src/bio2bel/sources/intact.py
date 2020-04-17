@@ -15,72 +15,72 @@ from bio2bel.utils import ensure_path
 
 #: Relationship types in IntAct that map to BEL relation 'increases'
 INTACT_INCREASES_ACTIONS = {
-    'phosphorylation reaction',
-    'sumoylation reaction',
-    'methylation reaction',
-    'transglutamination reaction',
-    'ubiquitination reaction',
-    'acetylation reaction',
-    'adp ribosylation reaction',
-    'neddylation reaction',
-    'hydroxylation reaction',
-    'phosphotransfer reaction',
-    'glycosylation reaction',
-    'palmitoylation reaction',
-    'oxidoreductase activity electron transfer reaction',
-    'amidation reaction',
-    'dna strand elongation',
-    'isomerase reaction',
-    'isomerization reaction',
+    'psi-mi:"MI:1143"(aminoacylation reaction)',
+    'psi-mi:"MI:0214"(myristoylation reaction)',
     'proline isomerization reaction',
-    'sulfurtransfer reaction',
-    'ampylation reaction',
-    'aminoacylation reaction',
-    'myristoylation reaction',
-    'lipid addition',
-    'gtpase reaction',
-    'atpase reaction',
+    'psi-mi:"MI:0211"(lipid addition)',
+    'isomerization reaction',
+    'psi-mi:"MI:0213"(methylation reaction)',
+    'psi-mi:"MI:0217"(phosphorylation reaction)',
+    'psi-mi:"MI:0882"(atpase reaction)',
+    'psi-mi:"MI:1250"(isomerase reaction)',
+    'psi-mi:"MI:0210"(hydroxylation reaction)',
+    'psi-mi:"MI:0883"(gtpase reaction)',
+    'psi-mi:"MI:0557"(adp ribosylation reaction)',
+    'psi-mi:"MI:0193"(amidation reaction)',
+    'psi-mi:"MI:1327"(sulfurtransfer reaction)',
+    'psi-mi:"MI:0567"(neddylation reaction)',
+    'psi-mi:"MI:0556"(transglutamination reaction)',
+    'psi-mi:"MI:0220"(ubiquitination reaction)',
+    'psi-mi:"MI:0559"(glycosylation reaction)',
+    'psi-mi:"MI:0192"(acetylation reaction)',
+    'psi-mi:"MI:0216"(palmitoylation reaction)',
+    'psi-mi:"MI:0945"(oxidoreductase activity electron transfer reaction)',
+    'psi-mi:"MI:0701"(dna strand elongation)',
+    'psi-mi:"MI:0844"(phosphotransfer reaction)',
+    'psi-mi:"MI:1148"(ampylation reaction)',
+    'psi-mi:"MI:0566"(sumoylation reaction)',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
 INTACT_DECREASES_ACTIONS = {
     # decreases
-    'deubiquitination reaction',
-    'protein cleavage',
-    'cleavage reaction',
-    'deacetylation reaction',
-    'lipoprotein cleavage reaction',
-    'dna cleavage',
-    'rna cleavage',
-    'dephosphorylation reaction',
-    'deformylation reaction',
-    'demethylation reaction',
-    'deneddylation reaction',
-    'lipid cleavage',
-    'deamidation reaction',
-    'decarboxylation reaction',
-    'deamination reaction',
+    'psi-mi:"MI:0902"(rna cleavage)',
+    'psi-mi:"MI:0572"(dna cleavage)',
+    'psi-mi:"MI:0199"(deformylation reaction)',
+    'psi-mi:"MI:2280"(deamidation reaction)',
+    'psi-mi:"MI:0203"(dephosphorylation reaction)',
+    'psi-mi:"MI:0212"(lipoprotein cleavage reaction)',
+    'psi-mi:"MI:0570"(protein cleavage)',
+    'psi-mi:"MI:0204"(deubiquitination reaction)',
+    'psi-mi:"MI:0871"(demethylation reaction)',
+    'psi-mi:"MI:0985"(deamination reaction)',
+    'psi-mi:"MI:1355"(lipid cleavage)',
+    'psi-mi:"MI:0569"(deneddylation reaction)',
+    'psi-mi:"MI:1140"(decarboxylation reaction)',
+    'psi-mi:"MI:0194"(cleavage reaction)',
+    'psi-mi:"MI:0197"(deacetylation reaction)',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'association'
 INTACT_ASSOCIATION_ACTIONS = {
-    'physical association',
-    'association',
-    'colocalization',
-    'enzymatic reaction',
-    'self interaction',
-    'putative self interaction',
+    'psi-mi:"MI:1127"(putative self interaction)',
+    'psi-mi:"MI:0914"(association)',
+    'psi-mi:"MI:1126"(self interaction)',
+    'psi-mi:"MI:0915"(physical association)',
+    'psi-mi:"MI:0414"(enzymatic reaction)',
+    'psi-mi:"MI:0403"(colocalization)',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'regulates'
 INTACT_REGULATES_ACTIONS = {
-    'direct interaction',
+    'psi-mi:"MI:0407"(direct interaction)',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'hasComponent'
 INTACT_BINDS_ACTIONS = {
-    'covalent binding',
-    'disulfide bond',
+    'psi-mi:"MI:0195"(covalent binding)',
+    'psi-mi:"MI:0408"(disulfide bond)',
 }
 
 PROTEIN_INCREASES_MOD_DICT = {
@@ -640,5 +640,27 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                 f"The relation {relation} between {source} and {target} is not in the specified relations.")
 
 
+def generate_psi_mi():
+    df = _get_my_df()
+    interaction_types = set(df['Interaction type(s)'])
+    detection_methods = set(df['Interaction detection method(s)'])
+
+    for s in [
+        INTACT_REGULATES_ACTIONS,
+        INTACT_INCREASES_ACTIONS,
+        INTACT_BINDS_ACTIONS,
+        INTACT_ASSOCIATION_ACTIONS,
+        INTACT_DECREASES_ACTIONS,
+    ]:
+        for interaction in s:
+            for psi_interaction in interaction_types:
+                if interaction in psi_interaction:
+                    if psi_interaction[psi_interaction.find(interaction) - 1] == '(':
+                        s.remove(interaction)
+                        s.add(psi_interaction)
+        yield s
+
+
 if __name__ == '__main__':
-    get_bel().summarize()
+    # get_bel().summarize()
+    print(list(generate_psi_mi()))
