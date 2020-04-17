@@ -66,11 +66,6 @@ BIOGRID_BINDS_ACTIONS = {
 }
 
 
-def _get_my_df() -> pd.DataFrame:
-    """Get the BioGrid dataframe."""
-    path = ensure_path(prefix=MODULE_NAME, url=URL)
-    return pd.read_csv(path, sep='\t', dtype=str)
-
 
 def _process_iteractor(s: str) -> str:
     if not s.startswith('entrez gene/locuslink:'):
@@ -102,25 +97,25 @@ def _iter_process_xrefs(s: str) -> Iterable[Tuple[str, str]]:
 
 
 def get_processed_biogrid() -> pd.DataFrame:
-    """Load BioGRDID file, filter and rename columns and return a dataframe.
+    """Load BioGRID file, filter, and rename columns and return a dataframe.
 
     :return: dataframe of preprocessed BioGRID data
     """
-    df = _get_my_df()
+    path = ensure_path(prefix=MODULE_NAME, url=URL)
+    df = pd.read_csv(path, sep='\t', dtype=str)
 
     df['#ID Interactor A'] = df['#ID Interactor A'].map(_process_iteractor)
     df['ID Interactor B'] = df['ID Interactor B'].map(_process_iteractor)
     df['Alt IDs Interactor A'] = df['Alt IDs Interactor A'].map(_process_xrefs)
     df['Alt IDs Interactor B'] = df['Alt IDs Interactor B'].map(_process_xrefs)
 
+    # FIXME clean up pubmed identifiers, split for multiple
+
     return df
 
 
 def get_bel() -> BELGraph:
-    """Get a BEL graph for IntAct.
-
-    :return: BEL graph
-    """
+    """Get a BEL graph for BioGRID."""
     df = get_processed_biogrid()
     graph = BELGraph(name=MODULE_NAME)
     for _, row in tqdm(df.iterrows(), total=len(df.index), desc=f'mapping {MODULE_NAME}'):
@@ -147,7 +142,7 @@ def _add_my_row(
     source_database: str,
     confidence: str,
 ) -> None:  # noqa:C901
-    """Add for every pubmed ID an edge with information about relationship type, source and target.
+    """Add an edge with information about relationship type, source, and target for every PubMed ID.
 
     :param graph: graph to add edges to
     :param relation: row value of column relation
@@ -201,4 +196,7 @@ def _add_my_row(
 
 
 if __name__ == '__main__':
-    get_bel().summarize()
+    _graph = get_bel()
+    _graph.summarize()
+    import os
+    pybel.dump(_graph, os.path.expanduser('~/Desktop/biogrid.bel.nodelink.json'))
