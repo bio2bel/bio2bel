@@ -17,9 +17,8 @@ from bio2bel.utils import ensure_path
 INTACT_INCREASES_ACTIONS = {
     'psi-mi:"MI:1143"(aminoacylation reaction)',
     'psi-mi:"MI:0214"(myristoylation reaction)',
-    'proline isomerization reaction',
+    'psi-mi:"MI:1237"(proline isomerization reaction)',
     'psi-mi:"MI:0211"(lipid addition)',
-    'isomerization reaction',
     'psi-mi:"MI:0213"(methylation reaction)',
     'psi-mi:"MI:0217"(phosphorylation reaction)',
     'psi-mi:"MI:0882"(atpase reaction)',
@@ -84,31 +83,31 @@ INTACT_BINDS_ACTIONS = {
 }
 
 PROTEIN_INCREASES_MOD_DICT = {
-    'phosphorylation reaction': 'Ph',
-    'sumoylation reaction': 'Sumo',
-    'methylation reaction': 'Me',
-    'transglutamination reaction': 'Gln',
-    'ubiquitination reaction': 'Ub',
-    'acetylation reaction': 'Ac',
-    'adp ribosylation reaction': 'ADPRib',
-    'neddylation reaction': 'Nedd',
-    'hydroxylation reaction': 'Hy',
     'phosphotransfer reaction': 'Ph',
     'glycosylation reaction': 'Glyco',
     'palmitoylation reaction': 'Palm',
     'sulfurtransfer reaction': 'Sulf',
+    'psi-mi:"MI:0217"(phosphorylation reaction)': 'Ph',
+    'psi-mi:"MI:0566"(sumoylation reaction)': 'Sumo',
+    'psi-mi:"MI:0213"(methylation reaction)': 'Me',
+    'psi-mi:"MI:0556"(transglutamination reaction)': 'Gln',
+    'psi-mi:"MI:0220"(ubiquitination reaction)': 'Ub',
+    'psi-mi:"MI:0192"(acetylation reaction)': 'Ac',
+    'psi-mi:"MI:0557"(adp ribosylation reaction)': 'ADPRib',
+    'psi-mi:"MI:0567"(neddylation reaction)': 'Nedd',
+    'psi-mi:"MI:0210"(hydroxylation reaction)': 'Hy',
 }
 
 PROTEIN_DECREASES_MOD_DICT = {
-    'deubiquitination reaction': 'Ub',
     'deacetylation reaction': 'Ac',
-    'dephosphorylation reaction': 'Ph',
-    'deneddylation reaction': 'Nedd',
-    'demethylation reaction': 'Me',
+     'psi-mi:"MI:0204"(deubiquitination reaction)': 'Ub',
+     'psi-mi:"MI:0203"(dephosphorylation reaction)': 'Ph',
+     'psi-mi:"MI:0569"(deneddylation reaction)': 'Nedd',
+     'psi-mi:"MI:0871"(demethylation reaction)': 'Me',
 }
 
 INTACT_OMIT_INTERACTIONS = {
-    'predicted interaction',
+    'psi-mi:"MI:1110"(predicted interaction)',
 }
 
 EVIDENCE = 'From IntAct'
@@ -447,11 +446,19 @@ def _add_my_row(graph: BELGraph, row) -> None:  # noqa:C901
                 continue
             # dna strand elongation
             elif relation == 'dna strand elongation':
-                target_mod = pybel.dsl.Gene(
+                target_mod = pybel.dsl.GeneModification(
                     name='DNA strand elongation',
                     namespace='GO',
                     identifier='0022616',
                 )
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    object_modifier=pybel.dsl.activity(),
+                )
+                continue
             # take mapping from relation to abbreviation of reaction
             # protein modification
             elif relation in PROTEIN_INCREASES_MOD_DICT:
@@ -646,21 +653,19 @@ def generate_psi_mi():
     detection_methods = set(df['Interaction detection method(s)'])
 
     for s in [
-        INTACT_REGULATES_ACTIONS,
-        INTACT_INCREASES_ACTIONS,
-        INTACT_BINDS_ACTIONS,
-        INTACT_ASSOCIATION_ACTIONS,
-        INTACT_DECREASES_ACTIONS,
+        PROTEIN_DECREASES_MOD_DICT,
+        PROTEIN_INCREASES_MOD_DICT
     ]:
-        for interaction in s:
+        for interaction, abbreviation in s.items():
             for psi_interaction in interaction_types:
                 if interaction in psi_interaction:
                     if psi_interaction[psi_interaction.find(interaction) - 1] == '(':
-                        s.remove(interaction)
-                        s.add(psi_interaction)
+                        s[psi_interaction] = s.pop(interaction)
         yield s
 
 
 if __name__ == '__main__':
     # get_bel().summarize()
     print(list(generate_psi_mi()))
+    #df = _get_my_df()
+    #print(df.loc[436001, :])
