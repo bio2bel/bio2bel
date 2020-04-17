@@ -16,14 +16,14 @@ from bio2bel.utils import ensure_path
 logger = logging.getLogger(__name__)
 
 COLUMNS = [
-        '#ID(s) interactor A',
-        'ID(s) interactor B',
-        'Interaction type(s)',
-        'Publication Identifier(s)',
-        'Interaction detection method(s)',
-        'Source database(s)',
-        'Confidence value(s)',
-    ]
+    '#ID(s) interactor A',
+    'ID(s) interactor B',
+    'Interaction type(s)',
+    'Publication Identifier(s)',
+    'Interaction detection method(s)',
+    'Source database(s)',
+    'Confidence value(s)',
+]
 
 #: Relationship types in IntAct that map to BEL relation 'increases'
 INTACT_INCREASES_ACTIONS = {
@@ -95,10 +95,10 @@ INTACT_BINDS_ACTIONS = {
 }
 
 PROTEIN_INCREASES_MOD_DICT = {
-    'phosphotransfer reaction': 'Ph',
-    'glycosylation reaction': 'Glyco',
-    'palmitoylation reaction': 'Palm',
-    'sulfurtransfer reaction': 'Sulf',
+    'psi-mi:"MI:0844"(phosphotransfer reaction)': 'Ph',
+    'psi-mi:"MI:0559"(glycosylation reaction)': 'Glyco',
+    'psi-mi:"MI:0216"(palmitoylation reaction)': 'Palm',
+    'psi-mi:"MI:1327"(sulfurtransfer reaction)': 'Sulf',
     'psi-mi:"MI:0217"(phosphorylation reaction)': 'Ph',
     'psi-mi:"MI:0566"(sumoylation reaction)': 'Sumo',
     'psi-mi:"MI:0213"(methylation reaction)': 'Me',
@@ -111,7 +111,7 @@ PROTEIN_INCREASES_MOD_DICT = {
 }
 
 PROTEIN_DECREASES_MOD_DICT = {
-    'deacetylation reaction': 'Ac',
+    'psi-mi:"MI:0197"(deacetylation reaction)': 'Ac',
     'psi-mi:"MI:0204"(deubiquitination reaction)': 'Ub',
     'psi-mi:"MI:0203"(dephosphorylation reaction)': 'Ph',
     'psi-mi:"MI:0569"(deneddylation reaction)': 'Nedd',
@@ -133,11 +133,15 @@ UNIPROTKB = 'uniprotkb'
 
 
 def _process_pmid(s: str) -> str:
-    """Filter for pubmed ids."""
+    """Filter for pubmed ids.
+
+    :param s: string to be filtered for pubmed ids
+    :return: pumbed id
+    """
     for id in s.split('|'):
         id = id.strip()
-    if id.startswith('pubmed:'):
-        return id
+        if id.startswith('pubmed:'):
+            return id
 
 
 def get_processed_intact_df() -> pd.DataFrame:
@@ -162,7 +166,7 @@ def get_processed_intact_df() -> pd.DataFrame:
 
     # filter for pubmed
     logger.info('mapping provenance')
-    df['Publication Identifiers'] = df['Publication Identifiers'].map(_process_pmid)
+    df['Publication Identifier(s)'] = df['Publication Identifier(s)'].map(_process_pmid)
 
     return df
 
@@ -233,246 +237,392 @@ def _add_my_row(
     )
 
     # INCREASE
+    if pubmed_id is not None:
 
-    if relation in INTACT_INCREASES_ACTIONS:
+        if relation in INTACT_INCREASES_ACTIONS:
 
-        # oxidoreductase activity
-        if relation == 'oxidoreductase activity electron transfer reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification('Red'),
-            )
+            # oxidoreductase activity
+            if relation == 'psi-mi:"MI:0945"(oxidoreductase activity electron transfer reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification('Red'),
+                )
 
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-                subject_modifier=pybel.dsl.activity(),
-            )
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                    subject_modifier=pybel.dsl.activity(),
+                )
 
-        # isomerase reaction
-        elif relation in {'isomerase reaction', 'isomerization  reaction'}:
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='isomerase activity',
+            # isomerase reaction
+            elif relation == 'psi-mi:"MI:1250"(isomerase reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='isomerase activity',
+                        namespace='GO',
+                        identifier='0016853',
+                    ),
+                )
+
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                    subject_modifier=pybel.dsl.activity(),
+                )
+
+            # proline isomerase reaction
+            elif relation == 'psi-mi:"MI:1237"(proline isomerization reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein peptidyl-prolyl isomerization',
+                        namespace='GO',
+                        identifier='0000413',
+                    ),
+                )
+
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                    subject_modifier=pybel.dsl.activity(),
+                )
+
+            # protein amidation
+            elif relation == 'psi-mi:"MI:0193"(amidation reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein amidation',
+                        namespace='GO',
+                        identifier='0018032',
+                    ),
+                )
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                )
+            # ampylation reaction
+            elif relation == 'psi-mi:"MI:1148"(ampylation reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein adenylylation',
+                        namespace='GO',
+                        identifier='0018117',
+                    ),
+                )
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                )
+            # myristoylation reaction
+            elif relation == 'psi-mi:"MI:0214"(myristoylation reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein myristoylation',
+                        namespace='GO',
+                        identifier='0018377',
+                    ),
+                )
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                )
+            # lipid addition
+            elif relation == 'psi-mi:"MI:0211"(lipid addition)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='lipid binding',
+                        namespace='GO',
+                        identifier='0008289',
+                    ),
+                )
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                    subject_modifier=pybel.dsl.activity(),
+                )
+
+            # aminoacylation reaction (tRNA-ligase activity)
+            elif relation == 'psi-mi:"MI:1143"(aminoacylation reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='tRNA aminoacylation',
+                        namespace='GO',
+                        identifier='0043039',
+                    ),
+                )
+
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                    object_modifier=pybel.dsl.activity(),
+                )
+
+            # 'gtpase reaction'
+            elif relation == 'psi-mi:"MI:0883"(gtpase reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='GTPase activity',
+                        namespace='GO',
+                        identifier='0003924',
+                    ),
+                )
+
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                    object_modifier=pybel.dsl.activity(),
+                )
+
+            # 'atpase reaction'
+            elif relation == 'psi-mi:"MI:0882"(atpase reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='ATPase activity',
+                        namespace='GO',
+                        identifier='0016887',
+                    ),
+                )
+
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                    object_modifier=pybel.dsl.activity(),
+                )
+
+            # dna strand elongation
+            elif relation == 'psi-mi:"MI:0701"(dna strand elongation)':
+                target_mod = pybel.dsl.GeneModification(
+                    name='DNA strand elongation',
                     namespace='GO',
-                    identifier='0016853',
-                ),
-            )
+                    identifier='0022616',
+                )
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                    object_modifier=pybel.dsl.activity(),
+                )
 
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-                subject_modifier=pybel.dsl.activity(),
-            )
+            # take mapping from relation to abbreviation of reaction
+            # protein modification
+            elif relation in PROTEIN_INCREASES_MOD_DICT:
+                abbreviation = PROTEIN_INCREASES_MOD_DICT[relation]
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(abbreviation),
+                )
 
-        # proline isomerase reaction
-        elif relation == 'proline isomerization  reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='protein peptidyl-prolyl isomerization',
-                    namespace='GO',
-                    identifier='0000413',
-                ),
-            )
+                graph.add_increases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                )
 
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-                subject_modifier=pybel.dsl.activity(),
-            )
+            else:
+                raise ValueError(f"The relation {relation} is not in INCREASE relations.")
 
-        # protein amidation
-        elif relation == 'amidation reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='protein amidation',
-                    namespace='GO',
-                    identifier='0018032',
-                ),
-            )
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-            )
-        # ampylation reaction
-        elif relation == 'ampylation reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='protein adenylylation',
-                    namespace='GO',
-                    identifier='0018117',
-                ),
-            )
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-            )
-        # myristoylation reaction
-        elif relation == 'myristoylation reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='protein myristoylation',
-                    namespace='GO',
-                    identifier='0018377',
-                ),
-            )
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-            )
-        # lipid addition
-        elif relation == 'lipid addition':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='lipid binding',
-                    namespace='GO',
-                    identifier='0008289',
-                ),
-            )
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-                subject_modifier=pybel.dsl.activity(),
-            )
+        # DECREASES
+        elif relation in INTACT_DECREASES_ACTIONS:
 
-        # aminoacylation reaction (tRNA-ligase activity)
-        elif relation == 'aminoacylation reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='tRNA aminoacylation',
-                    namespace='GO',
-                    identifier='0043039',
-                ),
-            )
+            #: dna cleavage: Covalent bond breakage of a DNA molecule leading to the formation of smaller fragments
+            if relation == 'psi-mi:"MI:0572"(dna cleavage)':
+                target_mod = pybel.dsl.Gene(
+                    namespace='uniprot',
+                    identifier=source_uniprot_id,
+                    name=get_mnemonic(source_uniprot_id),
+                )
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                )
+            #: rna cleavage: Any process by which an RNA molecule is cleaved at specific sites or in a regulated manner
+            elif relation == 'psi-mi:"MI:0902"(rna cleavage)':
+                target_mod = pybel.dsl.Rna(
+                    namespace='uniprot',
+                    identifier=source_uniprot_id,
+                    name=get_mnemonic(source_uniprot_id),
+                )
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                )
 
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-                object_modifier=pybel.dsl.activity(),
-            )
+            # cleavage
+            elif relation in {
+                #: Covalent bond breakage in a molecule leading to the formation of smaller molecules
+                'psi-mi:"MI:0194"(cleavage reaction)',
+                #: Covalent modification of a polypeptide occuring during its maturation or its proteolytic degradation
+                'psi-mi:"MI:0570"(protein cleavage)',
+            }:
+                graph.add_decreases(
+                    source,
+                    target,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                )
 
-        # 'gtpase reaction'
-        elif relation == 'gtpase reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='GTPase activity',
-                    namespace='GO',
-                    identifier='0003924',
-                ),
-            )
+            #: Reaction monitoring the cleavage (hydrolysis) or a lipid molecule
+            elif relation == 'psi-mi:"MI:1355"(lipid cleavage)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='lipid catabolic process',
+                        namespace='GO',
+                        identifier='0016042',
+                    ),
+                )
 
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-                object_modifier=pybel.dsl.activity(),
-            )
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                    object_modifier=pybel.dsl.activity(),
+                )
 
-        # 'atpase reaction'
-        elif relation == 'atpase reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='ATPase activity',
-                    namespace='GO',
-                    identifier='0016887',
-                ),
-            )
+            #: 'lipoprotein cleavage reaction': Cleavage of a lipid group covalently bound to a protein residue
+            elif relation == 'psi-mi:"MI:0212"(lipoprotein cleavage reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='lipoprotein modification',
+                        namespace='GO',
+                        identifier='0042160',
+                    ),
+                )
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                    object_modifier=pybel.dsl.activity(),
+                )
 
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-                object_modifier=pybel.dsl.activity(),
-            )
+            # deformylation reaction
+            elif relation == 'psi-mi:"MI:0199"(deformylation reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein formylation',
+                        namespace='GO',
+                        identifier='0018256',
+                    ),
+                )
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                )
+            # protein deamidation
+            elif relation == 'psi-mi:"MI:2280"(deamidation reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein amidation',
+                        namespace='GO',
+                        identifier='0018032',
+                    ),
+                )
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                    object_modifier=pybel.dsl.activity(),
+                )
 
-        # dna strand elongation
-        elif relation == 'dna strand elongation':
-            target_mod = pybel.dsl.GeneModification(
-                name='DNA strand elongation',
-                namespace='GO',
-                identifier='0022616',
-            )
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-                object_modifier=pybel.dsl.activity(),
-            )
+            # protein decarboxylation
+            elif relation == 'psi-mi:"MI:1140"(decarboxylation reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='protein carboxylation',
+                        namespace='GO',
+                        identifier='0018214',
+                    ),
+                )
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                )
 
-        # take mapping from relation to abbreviation of reaction
-        # protein modification
-        elif relation in PROTEIN_INCREASES_MOD_DICT:
-            abbreviation = PROTEIN_INCREASES_MOD_DICT[relation]
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(abbreviation),
-            )
+            # protein deamination
+            elif relation == 'psi-mi:"MI:0985"(deamination reaction)':
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(
+                        name='amino acid binding',
+                        namespace='GO',
+                        identifier='0016597',
+                    ),
+                )
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                )
+            # protein modification
+            elif relation in PROTEIN_DECREASES_MOD_DICT.keys():
+                abbreviation = PROTEIN_DECREASES_MOD_DICT[relation]
+                target_mod = target.with_variants(
+                    pybel.dsl.ProteinModification(abbreviation),
+                )
+                graph.add_decreases(
+                    source,
+                    target_mod,
+                    citation=pubmed_id,
+                    evidence=EVIDENCE,
+                    annotations=annotations.copy(),
+                )
+            else:
+                raise ValueError(f"The relation {relation} is not in DECREASE relations.")
 
-            graph.add_increases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-            )
+        # ASSOCIATION:
+        elif relation in INTACT_ASSOCIATION_ACTIONS:
 
-        else:
-            raise ValueError(f"The relation {relation} is not in INCREASE relations.")
-
-    # DECREASES
-    elif relation in INTACT_DECREASES_ACTIONS:
-
-        #: dna cleavage: Covalent bond breakage of a DNA molecule leading to the formation of smaller fragments
-        if relation == 'dna cleavage':
-            target_mod = pybel.dsl.Gene(
-                namespace='uniprot',
-                identifier=source_uniprot_id,
-                name=get_mnemonic(source_uniprot_id),
-            )
-        #: rna cleavage: Any process by which an RNA molecule is cleaved at specific sites or in a regulated manner
-        elif relation == 'rna cleavage':
-            target_mod = pybel.dsl.Rna(
-                namespace='uniprot',
-                identifier=source_uniprot_id,
-                name=get_mnemonic(source_uniprot_id),
-            )
-
-        # cleavage
-        elif relation in {
-            #: Covalent bond breakage in a molecule leading to the formation of smaller molecules
-            'cleavage reaction',
-            #: Covalent modification of a polypeptide occuring during its maturation or its proteolytic degradation
-            'protein cleavage',
-        }:
-            graph.add_decreases(
+            graph.add_association(
                 source,
                 target,
                 citation=pubmed_id,
@@ -480,149 +630,36 @@ def _add_my_row(
                 annotations=annotations.copy(),
             )
 
+        # REGULATES:
+        elif relation in INTACT_REGULATES_ACTIONS:
 
-        #: Reaction monitoring the cleavage (hydrolysis) or a lipid molecule
-        elif relation == 'lipid cleavage':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='lipid catabolic process',
-                    namespace='GO',
-                    identifier='0016042',
-                ),
-            )
-
-            graph.add_decreases(
+            graph.add_regulates(
                 source,
-                target_mod,
+                target,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
                 annotations=annotations.copy(),
-                object_modifier=pybel.dsl.activity(),
             )
 
-        #: 'lipoprotein cleavage reaction': Cleavage of a lipid group covalently bound to a protein residue
-        elif relation == 'lipoprotein cleavage reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='lipoprotein modification',
-                    namespace='GO',
-                    identifier='0042160',
-                ),
-            )
-            graph.add_decreases(
+        # BINDS
+        elif relation in INTACT_BINDS_ACTIONS:
+
+            graph.add_binds(
                 source,
-                target_mod,
+                target,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
                 annotations=annotations.copy(),
-                object_modifier=pybel.dsl.activity(),
             )
 
+        # reactions to omit
+        elif relation in INTACT_OMIT_INTERACTIONS:
+            logger.info(f"The relation {relation} will not be added.")
 
-        # deformylation reaction
-        elif relation == 'deformylation reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='protein formylation',
-                    namespace='GO',
-                    identifier='0018256',
-                ),
-            )
-        # protein deamidation
-        elif relation == 'deamidation reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='protein amidation',
-                    namespace='GO',
-                    identifier='0018032',
-                ),
-            )
-            graph.add_decreases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-                object_modifier=pybel.dsl.activity(),
-            )
-
-        # protein decarboxylation
-        elif relation == 'decarboxylation reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='protein carboxylation',
-                    namespace='GO',
-                    identifier='0018214',
-                ),
-            )
-
-        # protein deamination
-        elif relation == 'deamination reaction':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='amino acid binding',
-                    namespace='GO',
-                    identifier='0016597',
-                ),
-            )
-        # protein modification
-        elif relation in PROTEIN_DECREASES_MOD_DICT.keys():
-            abbreviation = PROTEIN_DECREASES_MOD_DICT[relation]
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(abbreviation),
-            )
+        # no specified relation
         else:
-            raise ValueError(f"The relation {relation} is not in DECREASE relations.")
-
-        graph.add_decreases(
-            source,
-            target_mod,
-            citation=pubmed_id,
-            evidence=EVIDENCE,
-            annotations=annotations.copy(),
-        )
-
-    # ASSOCIATION:
-    elif relation in INTACT_ASSOCIATION_ACTIONS:
-
-        graph.add_association(
-            source,
-            target,
-            citation=pubmed_id,
-            evidence=EVIDENCE,
-            annotations=annotations.copy(),
-        )
-
-    # REGULATES:
-    elif relation in INTACT_REGULATES_ACTIONS:
-
-        graph.add_regulates(
-            source,
-            target,
-            citation=pubmed_id,
-            evidence=EVIDENCE,
-            annotations=annotations.copy(),
-        )
-
-    # BINDS
-    elif relation in INTACT_BINDS_ACTIONS:
-
-        graph.add_binds(
-            source,
-            target,
-            citation=pubmed_id,
-            evidence=EVIDENCE,
-            annotations=annotations.copy(),
-        )
-
-    # reactions to omit
-    elif relation in INTACT_OMIT_INTERACTIONS:
-         logger.info(f"The relation {relation} will not be added.")
-
-    # no specified relation
-    else:
-        raise ValueError(
-            f"The relation {relation} between {source} and {target} is not in the specified relations.")
+            raise ValueError(
+                f"The relation {relation} between {source} and {target} is not in the specified relations.")
 
 
 if __name__ == '__main__':
