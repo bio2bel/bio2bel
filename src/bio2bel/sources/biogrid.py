@@ -188,7 +188,7 @@ def get_processed_biogrid() -> pd.DataFrame:
 def get_bel() -> BELGraph:
     """Get a BEL graph for BioGRID."""
     df = get_processed_biogrid()
-    graph = BELGraph(name=MODULE_NAME, version=VERSION)
+    graph = BELGraph(name='BioGRID', version=VERSION)
     it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'mapping {MODULE_NAME}', unit_scale=True)
     for source_ncbigene_id, target_ncbigene_id, relation, pubmed_id, detection_method, source_db, confidence in it:
         if pd.isna(source_ncbigene_id) or pd.isna(target_ncbigene_id):
