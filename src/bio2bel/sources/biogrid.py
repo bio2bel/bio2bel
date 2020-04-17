@@ -1,31 +1,29 @@
 # -*- coding: utf-8 -*-
 
-"""This script downloads and parses BioGRID data and maps the interaction types to BEL."""
+"""This script downloads and parses BioGRID data and maps the interaction types to BEL.
+
+To run this script, install Bio2BEL and then do:
+
+python -m bio2bel.sources.biogrid
+"""
 
 import logging
-import os
+from typing import Iterable, List, Tuple
 
-import numpy as np
 import pandas as pd
-import pybel.dsl
-from protmapper.uniprot_client import get_mnemonic
-from pybel import BELGraph
+from pyobo.identifier_utils import normalize_curie
 from tqdm import tqdm
-from typing import Iterable, List
 
-from bio2bel.constants import BIOGRID_RESULTS_DIR
-from bio2bel.utils import ensure_path
+import pybel.dsl
+from pybel import BELGraph
+from ..utils import ensure_path
 
-SEP = '\t'
-BIOGRID = 'biogrid'
-SOURCE = 'source'
-TARGET = 'target'
-ALT_SOURCE_ID = 'alt_source_id'
-ALT_TARGET_ID = 'alt_target_id'
-RELATION = 'relation'
-PUBMED_ID = 'pubmed_id'
-INTERACTION_DETECTION_METHOD = 'Interaction Detection Method'
-UNIPROT = 'uniprot'
+__all__ = [
+    'get_bel',
+]
+
+logger = logging.getLogger(__name__)
+
 EVIDENCE = 'From BioGRID'
 MODULE_NAME = 'biogrid'
 
@@ -33,137 +31,74 @@ VERSION = '3.5.183'
 BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
 URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
 
-GENETIC_INTERACTIONS_PATH = os.path.join(BIOGRID_RESULTS_DIR, 'genetic_interactions.tsv')
+"""All of these can be extracted from the original file with the following
+
+cat BIOGRID-ALL-3.5.183.mitab.txt | cut -f 12 | sort | uniq -c
+
+Note that column 12 is the interaction column. You could also do
+
+gzcat BIOGRID-ALL-3.5.183.mitab.zip | cut -f 12 | sort | uniq -c
+
+becuase the zip file only contains that one file
+"""
 
 #: Relationship types in BioGRID that map to BEL relation 'increases'
-BIOGRID_INCREASES_ACTIONS = {
-    'synthetic genetic interaction defined by inequality',
-    'additive genetic interaction defined by inequality',
-}
-
-#: Relationship types in BioGRID that map to BEL relation 'decreases'
-BIOGRID_DECREASES_ACTIONS = {
-    'suppressive genetic interaction defined by inequality',
+BIOGRID_GENE_ASSOCIATION = {
+    'psi-mi:"MI:0794"(synthetic genetic interaction defined by inequality)',
+    'psi-mi:"MI:0799"(additive genetic interaction defined by inequality)',
+    'psi-mi:"MI:0796"(suppressive genetic interaction defined by inequality)',
 }
 
 #: Relationship types in BioGRID that map to BEL relation 'association'
 BIOGRID_ASSOCIATION_ACTIONS = {
-    'direct interaction',
-    'colocalization',
-    'association',
+    'psi-mi:"MI:0403"(colocalization)',
+    'psi-mi:"MI:0914"(association)',
+    # Look on OLS: https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0915
+    # They're in a complex together, but not necessarily touching. This is
+    # really dumb to put in a binary association database. Check ComplexPortal
+    # or other higher granularity sources for more information
+    'psi-mi:"MI:0915"(physical association)',
 }
 
 BIOGRID_BINDS_ACTIONS = {
-    'physical association',
+    # https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0407
+    'psi-mi:"MI:0407"(direct interaction)',
 }
-
-BIOGRID_COLUMN_MAPPER = {
-    '#ID Interactor A': SOURCE,
-    'ID Interactor B': TARGET,
-    'Alt IDs Interactor A': ALT_SOURCE_ID,
-    'Alt IDs Interactor B': ALT_TARGET_ID,
-    'Interaction Types': RELATION,
-    'Publication Identifiers': PUBMED_ID,
-}
-
-logger = logging.getLogger(__name__)
 
 
 def _get_my_df() -> pd.DataFrame:
     """Get the BioGrid dataframe."""
-    path = ensure_path(prefix=MODULE_NAME, url=URL)[:-3] + 'txt'
-    # TODO use original df
-    # path = '/Users/sophiakrix/.bio2bel/biogrid/biogrid_sample.tsv'
-    logger.info(path)
+    path = ensure_path(prefix=MODULE_NAME, url=URL)
     return pd.read_csv(path, sep='\t', dtype=str)
 
 
-def filter_for_prefix_single(
-        list_ids: Iterable[str],
-        prefix: str,
-        rstrip: str = ' ',
-        lstrip: str = ' ',
-        separator: str = '|',
-) -> List[List[str]]:
-    """Split the Iterable by the separator.
+def _process_iteractor(s: str) -> str:
+    if not s.startswith('entrez gene/locuslink:'):
+        raise ValueError(f'weird formatted interactor: {s}')
+    return s[len('entrez gene/locuslink:'):]
 
-    :param separator: separator between ids
-    :param prefix: prefix to filter for (e.g. 'pubmed')
-    :param rstrip: characters to strip from split value from left
-    :param lstrip: characters to strip from split value from right
-    :param list_ids: list of identifiers
-    :return: filtered list of ids
+
+def _process_xrefs(s: str) -> List[Tuple[str, str]]:
+    return list(_iter_process_xrefs(s))
+
+
+def _iter_process_xrefs(s: str) -> Iterable[Tuple[str, str]]:
+    """Take a string with pipe-delimited curies and split/normalize them.
+
+    Compact Uniform Identfiers (CURIE) examples:
+    - hgnc:12345
+    - ncbigene:12345
+    - uniprot:P12345
+    - ec-code:1.2.3.15
+
+    Goal:
+    make hgnc:1234|ncbigene:1245|uniprot...:12345" into a list of tuples
     """
-    final_list = []
-    for ids in list_ids:
-        id_list = ids.split(separator)
-        flag = False
-        for i in id_list:
-            if i.startswith(prefix):
-                final_list.append(i.lstrip(lstrip).rstrip(rstrip))
-                flag = True
-        if not flag:
-            final_list.append('nan')
-    return final_list
-
-
-def filter_for_prefix_multi(
-        list_ids: Iterable[str],
-        prefix: str,
-        separator: str = '|',
-) -> List[List[str]]:
-    """Split the Iterable by the separator.
-
-    :param separator: separator between ids
-    :param prefix: prefix to filter for (e.g. 'pubmed')
-    :param list_ids: list of identifiers
-    :return: filtered list of lists of ids
-    """
-    final_list = []
-    for ids in list_ids:
-        id_list = ids.split(separator)
-        flag = False
-        row_list = []
-        for i in id_list:
-            if i.startswith(prefix):
-                row_list.append(i)
-                flag = True
-        # if no matching value with prefix is found, append 'nan' as individual value
-        if not flag:
-            final_list.append('nan')
-        # if at least one value is found, append list
-        if len(row_list) > 0:
-            final_list.append(row_list)
-    return final_list
-
-
-def expand_df(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
-    """Add row with same content to dataframe if there are multiple values in one column.
-
-    The specified column must contain an Iterable.
-
-    :param column_name: name of column with multiple values to be simplified
-    :param df: dataframe with multiple values in one column
-    :return: dataframe with expanded values
-    """
-    # identify columns with single values that do not need to be expanded
-    columns_to_keep = df.columns.to_list()
-    columns_to_keep.remove(column_name)
-
-    # create expanded df
-    lens = [len(item) for item in df[column_name]]
-
-    # create dictionary of columns and values (repeated)
-    df_to_keep = {column: np.repeat(a=df[column].values, repeats=lens) for column in columns_to_keep}
-    # flatten array of column with multiple values to 1d
-    array_flattened = np.array(df[column_name].values).flatten()
-    # expand array to 2d
-    array_expanded = array_flattened.reshape(len(df_to_keep[columns_to_keep[0]]), 1)
-    df_expanded = {column_name: array_expanded}
-
-    df_merged = {**df_to_keep, **df_expanded}
-
-    return pd.DataFrame.from_dict(data=df_merged, orient='index')
+    for curie in s.split('|'):
+        curie = curie.strip()
+        prefix, identifier = normalize_curie(curie)
+        if prefix is not None:
+            yield prefix, identifier
 
 
 def get_processed_biogrid() -> pd.DataFrame:
@@ -172,42 +107,11 @@ def get_processed_biogrid() -> pd.DataFrame:
     :return: dataframe of preprocessed BioGRID data
     """
     df = _get_my_df()
-    # rename columns
-    df = df.rename(columns=BIOGRID_COLUMN_MAPPER)
 
-    # take relevant columns for source, target, alternative ids, relation and PubMed ID
-    df = df[[SOURCE, TARGET, ALT_SOURCE_ID, ALT_TARGET_ID, RELATION, PUBMED_ID, INTERACTION_DETECTION_METHOD]]
-
-    # filter for uniprot
-    for column in [SOURCE, TARGET]:
-        df[column] = filter_for_prefix_single(list_ids=df[column], prefix=UNIPROT)
-
-    # also in alternative ids
-    for column in [ALT_SOURCE_ID, ALT_TARGET_ID]:
-        df[column] = filter_for_prefix_multi(list_ids=df[column], prefix=UNIPROT)
-
-    # drop rows if no uniprot id
-    for column, alt_column in zip([SOURCE, TARGET], [ALT_SOURCE_ID, ALT_TARGET_ID]):
-        df = df.dropna(subset=[column, alt_column], how='all', inplace=True)
-
-    # change uniprot/swiss-prot prefix to uniprot
-    df = df.replace(r'^uniprot/swissprot:.*', r'uniprot:.*', regex=True)
-
-    # TODO: get working
-    # expand dataframe if multiple uniprot ids exist
-    # df = expand_df(df=df, column_name=ALT_SOURCE_ID)
-    # df = expand_df(df=df, column_name=ALT_TARGET_ID)
-
-    # filter for relation
-    df[RELATION] = filter_for_prefix_single(
-        list_ids=df[RELATION],
-        rstrip=')',
-        lstrip='(',
-        separator='"',
-        prefix='(',
-    )
-
-
+    df['#ID Interactor A'] = df['#ID Interactor A'].map(_process_iteractor)
+    df['ID Interactor B'] = df['ID Interactor B'].map(_process_iteractor)
+    df['Alt IDs Interactor A'] = df['Alt IDs Interactor A'].map(_process_xrefs)
+    df['Alt IDs Interactor B'] = df['Alt IDs Interactor B'].map(_process_xrefs)
 
     return df
 
@@ -218,115 +122,83 @@ def get_bel() -> BELGraph:
     :return: BEL graph
     """
     df = get_processed_biogrid()
-    graph = BELGraph(name=BIOGRID)
-    for _, row in tqdm(df.iterrows(), total=len(df.index), desc=f'mapping {BIOGRID}'):
+    graph = BELGraph(name=MODULE_NAME)
+    for _, row in tqdm(df.iterrows(), total=len(df.index), desc=f'mapping {MODULE_NAME}'):
         _add_my_row(
             graph,
-            relation=row[RELATION],
-            source_uniprot_id=row[SOURCE],
-            target_uniprot_id=row[TARGET],
-            pubmed_ids=row[PUBMED_ID],
-            int_detection_method=row[INTERACTION_DETECTION_METHOD],
+            relation=row['Interaction Types'],
+            source_ncbigene_id=row['#ID Interactor A'],
+            target_ncbigene_id=row['ID Interactor B'],
+            pubmed_ids=row['Publication Identifiers'],
+            int_detection_method=row['Interaction Detection Method'],
+            source_database=row['Source Database'],
+            confidence=row['Confidence Values'],
         )
     return graph
 
 
 def _add_my_row(
-        graph: BELGraph,
-        relation: str,
-        source_uniprot_id: str,
-        target_uniprot_id: str,
-        pubmed_ids: str,
-        int_detection_method: str,
+    graph: BELGraph,
+    relation: str,
+    source_ncbigene_id: str,
+    target_ncbigene_id: str,
+    pubmed_ids: str,
+    int_detection_method: str,
+    source_database: str,
+    confidence: str,
 ) -> None:  # noqa:C901
     """Add for every pubmed ID an edge with information about relationship type, source and target.
 
     :param graph: graph to add edges to
     :param relation: row value of column relation
-    :param source_uniprot_id: row value of column source
-    :param target_uniprot_id: row value of column target
+    :param source_ncbigene_id: row value of column source
+    :param target_ncbigene_id: row value of column target
     :param pubmed_ids: row value of column pubmed_ids
     :param int_detection_method: row value of column interaction detection method
-    :return: None
     """
-    source = pybel.dsl.Protein(
-        namespace='uniprot',
-        identifier=source_uniprot_id,
-        name=get_mnemonic(source_uniprot_id),
-    )
-    target = pybel.dsl.Protein(
-        namespace='uniprot',
-        identifier=target_uniprot_id,
-        name=get_mnemonic(target_uniprot_id),
-    )
+    annotations = {
+        'psi-mi-iteraction': int_detection_method,
+        'biogrid-source': source_database,
+        'biogrid-confidence': confidence,
+    }
 
     for pubmed_id in pubmed_ids:
-
-        # INCREASES
-        if relation in BIOGRID_INCREASES_ACTIONS:
-            graph.add_increases(
-                source,
-                target,
+        if relation in BIOGRID_GENE_ASSOCIATION:
+            graph.add_association(
+                pybel.dsl.Gene(namespace='ncbigene', identifier=source_ncbigene_id),
+                pybel.dsl.Gene(namespace='ncbigene', identifier=target_ncbigene_id),
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations={"PSI-MI": int_detection_method},
+                annotations={
+                    'interaction type': relation,
+                    **annotations,
+                },
             )
-
-        # DECREASES
-        elif relation in BIOGRID_DECREASES_ACTIONS:
-            graph.add_decreases(
-                source,
-                target,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations={"PSI-MI": int_detection_method},
-            )
-
-        # ASSOCIATION
         elif relation in BIOGRID_ASSOCIATION_ACTIONS:
             graph.add_association(
-                source,
-                target,
+                pybel.dsl.Protein(namespace='ncbigene', identifier=source_ncbigene_id),
+                pybel.dsl.Protein(namespace='ncbigene', identifier=target_ncbigene_id),
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations={"PSI-MI": int_detection_method},
+                annotations={
+                    'interaction type': relation,
+                    **annotations,
+                },
             )
-
-        # BINDS
         elif relation in BIOGRID_BINDS_ACTIONS:
             graph.add_binds(
-                source,
-                target,
+                pybel.dsl.Protein(namespace='ncbigene', identifier=source_ncbigene_id),
+                pybel.dsl.Protein(namespace='ncbigene', identifier=target_ncbigene_id),
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations={"PSI-MI": int_detection_method},
+                annotations={
+                    'interaction type': relation,
+                    **annotations,
+                },
             )
-        # no specified relation
         else:
             raise ValueError(f'Unhandled BioGrid relation: {relation}')
 
 
-def get_genetic_interactions():
-    df = get_processed_biogrid()
-    df_syn = df.loc[df[RELATION] == 'synthetic genetic interaction defined by inequality']
-    df_add = df.loc[df[RELATION] == 'additive genetic interaction defined by inequality']
-    df_sup = df.loc[df[RELATION] == 'suppressive genetic interaction defined by inequality']
-
-    frames = [df_syn, df_add, df_sup]
-
-    return pd.concat(frames)
-
-
-def get_genetic_interactions_pmid():
-    df = pd.read_csv(GENETIC_INTERACTIONS_PATH)
-    print(df.columns)
-    return set(df[PUBMED_ID].values)
-
-
 if __name__ == '__main__':
-    # get_processed_biogrid()
-    # df = get_processed_biogrid()
-
-    # get_genetic_interactions().to_csv(GENETIC_INTERACTIONS_PATH)
-
-    print(get_genetic_interactions_pmid())
+    get_bel().summarize()
