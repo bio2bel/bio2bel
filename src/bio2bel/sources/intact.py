@@ -285,6 +285,13 @@ def _add_my_row(
                     identifier='0018032',
                 ),
             )
+            graph.add_increases(
+                source,
+                target_mod,
+                citation=pubmed_id,
+                evidence=EVIDENCE,
+                annotations=annotations.copy(),
+            )
         # ampylation reaction
         elif relation == 'ampylation reaction':
             target_mod = target.with_variants(
@@ -294,6 +301,13 @@ def _add_my_row(
                     identifier='0018117',
                 ),
             )
+            graph.add_increases(
+                source,
+                target_mod,
+                citation=pubmed_id,
+                evidence=EVIDENCE,
+                annotations=annotations.copy(),
+            )
         # myristoylation reaction
         elif relation == 'myristoylation reaction':
             target_mod = target.with_variants(
@@ -302,6 +316,13 @@ def _add_my_row(
                     namespace='GO',
                     identifier='0018377',
                 ),
+            )
+            graph.add_increases(
+                source,
+                target_mod,
+                citation=pubmed_id,
+                evidence=EVIDENCE,
+                annotations=annotations.copy(),
             )
         # lipid addition
         elif relation == 'lipid addition':
@@ -592,4 +613,4 @@ def _add_my_row(
 
 
 if __name__ == '__main__':
-    # get_bel().summarize()
+    get_bel().summarize()
