@@ -69,7 +69,7 @@ BIOGRID_BINDS_ACTIONS = {
 biogrid_ncbigene_mapping = pyobo.sources.biogrid.get_ncbigene_mapping()
 
 #: biogrid id to ncbigene id
-INTERACTOR_BIOGRID_REMAPPING = {
+BIOGRID_NCBIGENE_REMAPPING = {
     '4349295': None,  # https://www.yeastgenome.org/locus/S000006792
     '4349491': None,  # http://www.candidagenome.org/cgi-bin/locus.pl?locus=CAF0007452
     '4349337': None,  # https://www.yeastgenome.org/locus/S000006962
@@ -81,7 +81,7 @@ INTERACTOR_BIOGRID_REMAPPING = {
 }
 
 #: uniprot id to ncbigene id
-INTERACTOR_UNIPROT_REMAPPING = {
+UNIPROT_NCBIGENE_REMAPPING = {
     # FIXME
     'P0DTC1': None,  # SARS-CoV2 protein https://swissmodel.expasy.org/repository/uniprot/P0DTC1
     # TODO checkme
@@ -89,7 +89,7 @@ INTERACTOR_UNIPROT_REMAPPING = {
 }
 
 
-def _process_iteractor(s: str) -> Optional[str]:
+def _process_interactor(s: str) -> Optional[str]:
     prefix, identifier = normalize_curie(s)
     if prefix is None:
         logger.warning('could not parse %s', s)
@@ -100,8 +100,8 @@ def _process_iteractor(s: str) -> Optional[str]:
     elif prefix == 'biogrid':
         if identifier in biogrid_ncbigene_mapping:
             return biogrid_ncbigene_mapping[identifier]
-        if identifier in INTERACTOR_BIOGRID_REMAPPING:
-            remapped = INTERACTOR_BIOGRID_REMAPPING[identifier]
+        if identifier in BIOGRID_NCBIGENE_REMAPPING:
+            remapped = BIOGRID_NCBIGENE_REMAPPING[identifier]
             if not remapped:
                 logger.debug('tried but failed curation on %s', s)
             return remapped
@@ -109,8 +109,8 @@ def _process_iteractor(s: str) -> Optional[str]:
             logger.warning('need to curate: %s', s)
             return
     elif prefix == 'uniprot':
-        if identifier in INTERACTOR_UNIPROT_REMAPPING:
-            remapped = INTERACTOR_UNIPROT_REMAPPING[identifier]
+        if identifier in UNIPROT_NCBIGENE_REMAPPING:
+            remapped = UNIPROT_NCBIGENE_REMAPPING[identifier]
             if not remapped:
                 logger.debug('tried but failed curation on %s', s)
             return remapped
@@ -152,8 +152,8 @@ def get_processed_biogrid() -> pd.DataFrame:
     path = ensure_path(prefix=MODULE_NAME, url=URL)
     df = pd.read_csv(path, sep='\t', dtype=str)
 
-    df['#ID Interactor A'] = df['#ID Interactor A'].map(_process_iteractor)
-    df['ID Interactor B'] = df['ID Interactor B'].map(_process_iteractor)
+    df['#ID Interactor A'] = df['#ID Interactor A'].map(_process_interactor)
+    df['ID Interactor B'] = df['ID Interactor B'].map(_process_interactor)
     df['Alt IDs Interactor A'] = df['Alt IDs Interactor A'].map(_process_xrefs)
     df['Alt IDs Interactor B'] = df['Alt IDs Interactor B'].map(_process_xrefs)
 
