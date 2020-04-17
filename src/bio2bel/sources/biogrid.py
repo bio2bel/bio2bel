@@ -143,6 +143,14 @@ def _iter_process_xrefs(s: str) -> Iterable[Tuple[str, str]]:
         if prefix is not None:
             yield prefix, identifier
 
+
+def _process_pmid(s: str) -> str:
+    """Process provenance column."""
+    if not s.startswith('pubmed:'):
+        raise ValueError(f'Non pubmed: {s}')
+    return s[len('pubmed:')]
+
+
 COLUMNS = [
     '#ID Interactor A',
     'ID Interactor B',
@@ -153,6 +161,7 @@ COLUMNS = [
     'Confidence Values',
 ]
 
+
 def get_processed_biogrid() -> pd.DataFrame:
     """Load BioGRID file, filter, and rename columns and return a dataframe.
 
@@ -162,6 +171,9 @@ def get_processed_biogrid() -> pd.DataFrame:
     logger.info('reading BioGRID from %s', path)
     df = pd.read_csv(path, sep='\t', dtype=str, usecols=COLUMNS)
 
+    logger.info('mapping provenance')
+    df['Publication Identifiers'] = df['Publication Identifiers'].map(_process_pmid)
+
     logger.info('mapping interactors')
     df['#ID Interactor A'] = df['#ID Interactor A'].map(_process_interactor)
     df['ID Interactor B'] = df['ID Interactor B'].map(_process_interactor)
@@ -169,9 +181,6 @@ def get_processed_biogrid() -> pd.DataFrame:
     # logger.info('mapping alternate identifiers')
     # df['Alt IDs Interactor A'] = df['Alt IDs Interactor A'].map(_process_xrefs)
     # df['Alt IDs Interactor B'] = df['Alt IDs Interactor B'].map(_process_xrefs)
-
-    logger.info('mapping provenance')
-    # FIXME clean up pubmed identifiers, split for multiple
 
     return df
 
@@ -181,7 +190,7 @@ def get_bel() -> BELGraph:
     df = get_processed_biogrid()
     graph = BELGraph(name=MODULE_NAME)
     it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'mapping {MODULE_NAME}', unit_scale=True)
-    for source_ncbigene_id, target_ncbigene_id, relation, pmids, detection_method, source_db, confidence in it:
+    for source_ncbigene_id, target_ncbigene_id, relation, pubmed_id, detection_method, source_db, confidence in it:
         if pd.isna(source_ncbigene_id) or pd.isna(target_ncbigene_id):
             continue
         _add_my_row(
@@ -189,7 +198,7 @@ def get_bel() -> BELGraph:
             relation=relation,
             source_ncbigene_id=source_ncbigene_id,
             target_ncbigene_id=target_ncbigene_id,
-            pubmed_ids=pmids,
+            pubmed_id=pubmed_id,
             int_detection_method=detection_method,
             source_database=source_db,
             confidence=confidence,
@@ -202,7 +211,7 @@ def _add_my_row(
     relation: str,
     source_ncbigene_id: str,
     target_ncbigene_id: str,
-    pubmed_ids: str,
+    pubmed_id: str,
     int_detection_method: str,
     source_database: str,
     confidence: str,
@@ -213,51 +222,42 @@ def _add_my_row(
     :param relation: row value of column relation
     :param source_ncbigene_id: row value of column source
     :param target_ncbigene_id: row value of column target
-    :param pubmed_ids: row value of column pubmed_ids
+    :param pubmed_id: row value of column pubmed_id
     :param int_detection_method: row value of column interaction detection method
     """
     annotations = {
-        'psi-mi-iteraction': int_detection_method,
+        'psi-mi': relation,
+        'biogrid-detection': int_detection_method,
         'biogrid-source': source_database,
         'biogrid-confidence': confidence,
     }
 
-    for pubmed_id in pubmed_ids:
-        if relation in BIOGRID_GENE_ASSOCIATION:
-            graph.add_association(
-                pybel.dsl.Gene(namespace='ncbigene', identifier=source_ncbigene_id),
-                pybel.dsl.Gene(namespace='ncbigene', identifier=target_ncbigene_id),
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations={
-                    'interaction type': relation,
-                    **annotations,
-                },
-            )
-        elif relation in BIOGRID_ASSOCIATION_ACTIONS:
-            graph.add_association(
-                pybel.dsl.Protein(namespace='ncbigene', identifier=source_ncbigene_id),
-                pybel.dsl.Protein(namespace='ncbigene', identifier=target_ncbigene_id),
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations={
-                    'interaction type': relation,
-                    **annotations,
-                },
-            )
-        elif relation in BIOGRID_BINDS_ACTIONS:
-            graph.add_binds(
-                pybel.dsl.Protein(namespace='ncbigene', identifier=source_ncbigene_id),
-                pybel.dsl.Protein(namespace='ncbigene', identifier=target_ncbigene_id),
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations={
-                    'interaction type': relation,
-                    **annotations,
-                },
-            )
-        else:
-            raise ValueError(f'Unhandled BioGrid relation: {relation}')
+    if relation in BIOGRID_GENE_ASSOCIATION:
+        graph.add_association(
+            pybel.dsl.Gene(namespace='ncbigene', identifier=source_ncbigene_id),
+            pybel.dsl.Gene(namespace='ncbigene', identifier=target_ncbigene_id),
+            citation=pubmed_id,
+            evidence=EVIDENCE,
+            annotations=annotations.copy(),
+        )
+    elif relation in BIOGRID_ASSOCIATION_ACTIONS:
+        graph.add_association(
+            pybel.dsl.Protein(namespace='ncbigene', identifier=source_ncbigene_id),
+            pybel.dsl.Protein(namespace='ncbigene', identifier=target_ncbigene_id),
+            citation=pubmed_id,
+            evidence=EVIDENCE,
+            annotations=annotations.copy(),
+        )
+    elif relation in BIOGRID_BINDS_ACTIONS:
+        graph.add_binds(
+            pybel.dsl.Protein(namespace='ncbigene', identifier=source_ncbigene_id),
+            pybel.dsl.Protein(namespace='ncbigene', identifier=target_ncbigene_id),
+            citation=pubmed_id,
+            evidence=EVIDENCE,
+            annotations=annotations.copy(),
+        )
+    else:
+        raise ValueError(f'Unhandled BioGrid relation: {relation}')
 
 
 if __name__ == '__main__':
