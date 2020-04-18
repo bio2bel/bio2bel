@@ -476,7 +476,7 @@ def _add_my_row(
         elif relation == 'psi-mi:"MI:0985"(deamination reaction)':
             target_mod = target.with_variants(
                 pybel.dsl.ProteinModification(
-                    name='amino acid binding', # FIXME amino acid is not the same as amination
+                    name='amino acid binding',  # FIXME amino acid is not the same as amination
                     namespace='GO',
                     identifier='0016597',
                 ),
