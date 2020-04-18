@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-"""This script downloads and parses IntAct data and maps the interaction types to BEL."""
+"""This script downloads and parses IntAct data and maps the interaction types to BEL.
+
+Run with ``python -m bio2bel.sources.intact``
+"""
 
 import logging
 from typing import Mapping
@@ -11,9 +14,9 @@ from protmapper.uniprot_client import get_mnemonic
 from tqdm import tqdm
 
 import pybel.dsl
-from bio2bel.utils import ensure_path
 from pybel import BELGraph
 from pybel.dsl import GeneModification, ProteinModification
+from ..utils import ensure_path
 
 logger = logging.getLogger(__name__)
 
