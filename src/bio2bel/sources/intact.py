@@ -223,10 +223,6 @@ def get_processed_intact_df() -> pd.DataFrame:
         with zip_file.open('intact.txt') as file:
             df = pd.read_csv(file, sep='\t', usecols=COLUMNS)
 
-    # FIXME use the `usecols=COLUMNS` kwarg in pd.read_csv above, then you don't need this
-    # take relevant columns for source, target, relation and PubMed ID
-    df = df[COLUMNS]
-
     # FIXME use `na_values` keyword in pd.read_csv, then you can filter directly for nones (will save memory)
     # drop nan value rows for interactor B
     df = df[df['ID(s) interactor B'] != '-']
