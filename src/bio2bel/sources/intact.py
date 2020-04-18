@@ -235,6 +235,9 @@ def get_processed_intact_df() -> pd.DataFrame:
     logger.info('mapping provenance')
     df['Publication Identifier(s)'] = df['Publication Identifier(s)'].map(_process_pmid)
 
+    # Omit certain interaction types
+    df = df[~df['Interaction type(s)'].isin(INTACT_OMIT_INTERACTIONS)]
+
     return df
 
 
@@ -245,8 +248,6 @@ def get_bel() -> BELGraph:
     it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'mapping {MODULE_NAME}', unit_scale=True)
     for source_uniprot_id, target_uniprot_id, relation, pubmed_id, detection_method, source_db, confidence in it:
         if pd.isna(source_uniprot_id) or pd.isna(target_uniprot_id):
-            continue
-        if relation in INTACT_OMIT_INTERACTIONS:
             continue
         _add_my_row(
             graph,
