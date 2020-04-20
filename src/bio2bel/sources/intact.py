@@ -6,10 +6,12 @@ Run with ``python -m bio2bel.sources.intact``
 """
 
 import logging
-from typing import Mapping
+from collections import Counter
+from typing import Mapping, Optional, Tuple
 from zipfile import ZipFile
 
 import pandas as pd
+import pyobo.xrefdb.sources.intact
 from protmapper.uniprot_client import get_mnemonic
 from tqdm import tqdm
 
@@ -179,7 +181,7 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         name='ATPase activity',
         namespace='GO',
         identifier='0016887',
-    )
+    ),
 }
 
 PROTEIN_DECREASES_MOD_DICT: Mapping[str, ProteinModification] = {
@@ -207,12 +209,57 @@ def _process_pmid(s: str) -> str:
     """Filter for pubmed ids.
 
     :param s: string to be filtered for pubmed ids
-    :return: pumbed id
+    :return: PubMed id
     """
-    for id in s.split('|'):
-        id = id.strip()
-        if id.startswith('pubmed:'):
-            return id
+    for identifier in s.split('|'):
+        identifier = identifier.strip()
+        if identifier.startswith('pubmed:'):
+            return identifier
+
+
+intact_complexportal_mapping = pyobo.xrefdb.sources.intact.get_complexportal_mapping()
+intact_reactome_mapping = pyobo.xrefdb.sources.intact.get_reactome_mapping()
+
+_unhandled = Counter()
+
+
+def _process_interactor(s: str) -> Optional[Tuple[str, str]]:
+    if s.startswith('uniprotkb:'):
+        return 'uniprot', s[len('uniprotkb:'):]
+    if s.startswith('chebi:"CHEBI:'):
+        return 'chebi', s[len('chebi:"CHEBI:'):-1]
+    if s.startswith('intact:'):
+        prefix, identifier = 'intact', s[len('intact:'):]
+
+        if identifier in intact_complexportal_mapping:
+            return 'complexportal', intact_complexportal_mapping[identifier]
+        elif identifier in intact_reactome_mapping:
+            return 'reactome', intact_reactome_mapping[identifier]
+        else:
+            _unhandled[prefix] += 1
+            logger.warning('could not find complexportal/reactome mapping for %s:%s', prefix, identifier)
+            return
+
+    """
+    Counter({'chebi': 9534,
+         'ensembl': 3156,
+         'refseq': 444,
+         'ensemblgenomes': 439,
+         'ddbj/embl/genbank': 204,
+         'wwpdb': 163,
+         'matrixdb': 102,
+         'reactome': 87,
+         'intenz': 43,
+         'signor': 15,
+         'chembl target': 11,
+         'dip': 4,
+         'entrezgene/locuslink': 2,
+         'protein ontology': 2,
+         'emdb': 2})
+    """
+    _unhandled[s.split(':')[0]] += 1
+    logger.warning('unhandled identifier: %s', s)
+    return
 
 
 def get_processed_intact_df() -> pd.DataFrame:
@@ -221,22 +268,19 @@ def get_processed_intact_df() -> pd.DataFrame:
     logger.info('reading IntAct from %s', path)
     with ZipFile(path) as zip_file:
         with zip_file.open('intact.txt') as file:
-            df = pd.read_csv(file, sep='\t', usecols=COLUMNS)
+            df = pd.read_csv(file, sep='\t', usecols=COLUMNS, na_values={'-'})
 
-    # FIXME use `na_values` keyword in pd.read_csv, then you can filter directly for nones (will save memory)
-    # drop nan value rows for interactor B
-    df = df[df['ID(s) interactor B'] != '-']
+    df.dropna(inplace=True)
 
-    # FIXME do all contain uniprot? how can we be sure about this
-    # filter for uniprot ids
-    df = df[df['#ID(s) interactor A'].str.contains("uniprot")]
+    # Omit certain interaction types
+    df = df[~df['Interaction type(s)'].isin(INTACT_OMIT_INTERACTIONS)]
+
+    df['#ID(s) interactor A'] = df['#ID(s) interactor A'].map(_process_interactor)
+    df['ID(s) interactor B'] = df['ID(s) interactor B'].map(_process_interactor)
 
     # filter for pubmed
     logger.info('mapping provenance')
     df['Publication Identifier(s)'] = df['Publication Identifier(s)'].map(_process_pmid)
-
-    # Omit certain interaction types
-    df = df[~df['Interaction type(s)'].isin(INTACT_OMIT_INTERACTIONS)]
 
     return df
 
@@ -328,7 +372,7 @@ def _add_my_row(
                     namespace='GO',
                     identifier='0022616',
                 ),
-            ]
+            ],
         )
         graph.add_increases(
             source,
