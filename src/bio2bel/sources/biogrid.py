@@ -9,7 +9,6 @@ python -m bio2bel.sources.biogrid
 
 import logging
 from typing import Iterable, List, Optional, Tuple
-
 import pandas as pd
 import pyobo.sources.biogrid
 from pyobo.identifier_utils import normalize_curie

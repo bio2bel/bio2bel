@@ -16,7 +16,7 @@ from protmapper.uniprot_client import get_mnemonic
 from tqdm import tqdm
 
 import pybel.dsl
-from bio2bel.utils import ensure_path
+from ..utils import ensure_path
 from pybel import BELGraph
 from pybel.dsl import GeneModification, ProteinModification
 
@@ -135,7 +135,7 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
     'psi-mi:"MI:0210"(hydroxylation reaction)': ProteinModification('Hy'),
     'psi-mi:"MI:0945"(oxidoreductase activity electron transfer reaction)': ProteinModification('Red'),
 
-    # modified
+
     'psi-mi:"MI:1250"(isomerase reaction)': ProteinModification('Iso'),
 
     'psi-mi:"MI:1237"(proline isomerization reaction)': ProteinModification(
@@ -158,7 +158,7 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         namespace='GO',
         identifier='0018377',
     ),
-    # modified
+
     'psi-mi:"MI:0211"(lipid addition)': ProteinModification(
         name='protein lipidation',
         namespace='GO',
@@ -181,7 +181,7 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         namespace='GO',
         identifier='0016887',
     ),
-    # modified
+
     # protein deamination
     'psi-mi:"MI:0985"(deamination reaction)': ProteinModification(
         name='protein deamination',
@@ -572,4 +572,10 @@ def _add_my_row(
 
 
 if __name__ == '__main__':
-    get_bel().summarize()
+    logging.basicConfig(level=logging.INFO)
+    _graph = get_bel()
+    _graph.summarize()
+    import os
+
+    pybel.dump(_graph, os.path.expanduser('~/Desktop/intact.bel.nodelink.json'))
+
