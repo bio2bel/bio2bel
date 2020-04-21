@@ -519,9 +519,9 @@ def _add_my_row(
         elif relation == 'psi-mi:"MI:0985"(deamination reaction)':
             target_mod = target.with_variants(
                 pybel.dsl.ProteinModification(
-                    name='protein deamination',
+                    name='amine binding',
                     namespace='GO',
-                    identifier='0018277',
+                    identifier='0043176',
                 ),
             )
             graph.add_decreases(
