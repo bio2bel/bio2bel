@@ -182,13 +182,6 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         identifier='0016887',
     ),
 
-    # protein deamination
-    'psi-mi:"MI:0985"(deamination reaction)': ProteinModification(
-        name='protein deamination',
-        namespace='GO',
-        identifier='0018277',
-    ),
-
 }
 
 PROTEIN_DECREASES_MOD_DICT: Mapping[str, ProteinModification] = {
@@ -522,7 +515,22 @@ def _add_my_row(
                 evidence=EVIDENCE,
                 annotations=annotations.copy(),
             )
-
+        # protein deamination:
+        elif relation == 'psi-mi:"MI:0985"(deamination reaction)':
+            target_mod = target.with_variants(
+                pybel.dsl.ProteinModification(
+                    name='protein deamination',
+                    namespace='GO',
+                    identifier='0018277',
+                ),
+            )
+            graph.add_decreases(
+                source,
+                target_mod,
+                citation=pubmed_id,
+                evidence=EVIDENCE,
+                annotations=annotations.copy(),
+            )
         # protein modification
         elif relation in PROTEIN_DECREASES_MOD_DICT:
             target_mod = target.with_variants(PROTEIN_DECREASES_MOD_DICT[relation])
