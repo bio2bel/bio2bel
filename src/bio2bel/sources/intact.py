@@ -18,7 +18,7 @@ from tqdm import tqdm
 import pybel.dsl
 from pybel import BELGraph
 from pybel.dsl import GeneModification, ProteinModification
-from ..utils import ensure_path
+from bio2bel.utils import ensure_path
 
 logger = logging.getLogger(__name__)
 
@@ -134,12 +134,10 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
     'psi-mi:"MI:0567"(neddylation reaction)': ProteinModification('Nedd'),
     'psi-mi:"MI:0210"(hydroxylation reaction)': ProteinModification('Hy'),
     'psi-mi:"MI:0945"(oxidoreductase activity electron transfer reaction)': ProteinModification('Red'),
-    # FIXME this is not right. What does an isomerase actually do?
-    'psi-mi:"MI:1250"(isomerase reaction)': ProteinModification(
-        name='isomerase activity',
-        namespace='GO',
-        identifier='0016853',
-    ),
+
+    # modified
+    'psi-mi:"MI:1250"(isomerase reaction)': ProteinModification('Iso'),
+
     'psi-mi:"MI:1237"(proline isomerization reaction)': ProteinModification(
         name='protein peptidyl-prolyl isomerization',
         namespace='GO',
@@ -160,28 +158,37 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         namespace='GO',
         identifier='0018377',
     ),
+    # modified
     'psi-mi:"MI:0211"(lipid addition)': ProteinModification(
-        name='lipid binding',
+        name='protein lipidation',
         namespace='GO',
-        identifier='0008289',
+        identifier='0006497',
     ),
     'psi-mi:"MI:1143"(aminoacylation reaction)': ProteinModification(
         name='tRNA aminoacylation',
         namespace='GO',
         identifier='0043039',
     ),
-    # FIXME this is not right. What does a GTPase actually do to its target?
+
     'psi-mi:"MI:0883"(gtpase reaction)': ProteinModification(
         name='GTPase activity',
         namespace='GO',
         identifier='0003924',
     ),
-    # FIXME this is not right.
+
     'psi-mi:"MI:0882"(atpase reaction)': ProteinModification(
         name='ATPase activity',
         namespace='GO',
         identifier='0016887',
     ),
+    # modified
+    # protein deamination
+    'psi-mi:"MI:0985"(deamination reaction)': ProteinModification(
+        name='protein deamination',
+        namespace='GO',
+        identifier='0018277',
+    ),
+
 }
 
 PROTEIN_DECREASES_MOD_DICT: Mapping[str, ProteinModification] = {
@@ -338,7 +345,7 @@ def _add_my_row(
     }
     # map double spaces to single spaces in relation string
     relation = ' '.join(relation.split())  # FIXME how often does this happen? can you tweet Intact with the number?
-
+    # I only found it in 'psi-mi:"MI:1237"(proline isomerization reaction)', nowhere else
     source = pybel.dsl.Protein(
         namespace='uniprot',
         identifier=source_uniprot_id,
@@ -516,22 +523,6 @@ def _add_my_row(
                 annotations=annotations.copy(),
             )
 
-        # protein deamination
-        elif relation == 'psi-mi:"MI:0985"(deamination reaction)':
-            target_mod = target.with_variants(
-                pybel.dsl.ProteinModification(
-                    name='amino acid binding',  # FIXME amino acid is not the same as amination
-                    namespace='GO',
-                    identifier='0016597',
-                ),
-            )
-            graph.add_decreases(
-                source,
-                target_mod,
-                citation=pubmed_id,
-                evidence=EVIDENCE,
-                annotations=annotations.copy(),
-            )
         # protein modification
         elif relation in PROTEIN_DECREASES_MOD_DICT:
             target_mod = target.with_variants(PROTEIN_DECREASES_MOD_DICT[relation])
@@ -581,4 +572,7 @@ def _add_my_row(
 
 
 if __name__ == '__main__':
-    get_bel().summarize()
+    # get_bel().summarize()
+    df = get_processed_intact_df()
+    print(df[df['Interaction type(s)']=='psi-mi:"MI:0883"(gtpase reaction)'][[ '#ID(s) interactor A', 'ID(s) interactor B', 'Publication Identifier(s)']])
+
