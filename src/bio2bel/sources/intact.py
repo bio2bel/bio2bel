@@ -16,9 +16,9 @@ from protmapper.uniprot_client import get_mnemonic
 from tqdm import tqdm
 
 import pybel.dsl
+from bio2bel.utils import ensure_path
 from pybel import BELGraph
 from pybel.dsl import GeneModification, ProteinModification
-from bio2bel.utils import ensure_path
 
 logger = logging.getLogger(__name__)
 
@@ -572,7 +572,4 @@ def _add_my_row(
 
 
 if __name__ == '__main__':
-    # get_bel().summarize()
-    df = get_processed_intact_df()
-    print(df[df['Interaction type(s)']=='psi-mi:"MI:0883"(gtpase reaction)'][[ '#ID(s) interactor A', 'ID(s) interactor B', 'Publication Identifier(s)']])
-
+    get_bel().summarize()
