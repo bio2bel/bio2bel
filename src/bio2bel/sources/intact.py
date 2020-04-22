@@ -205,16 +205,33 @@ URL = f'ftp://ftp.ebi.ac.uk/pub/databases/intact/{VERSION}/psimitab/intact.zip'
 UNIPROTKB = 'uniprotkb'
 
 
-def _process_pmid(s: str) -> str:
+def _process_pmid(s: str = '|', prefix: str = 'pubmed:') -> str:
     """Filter for pubmed ids.
 
     :param s: string to be filtered for pubmed ids
     :return: PubMed id
     """
-    for identifier in s.split('|'):
+    for identifier in s.split(s):
         identifier = identifier.strip()
-        if identifier.startswith('pubmed:'):
+        if identifier.startswith(prefix):
             return identifier
+
+
+def _process_score(s: str = '|', prefix: str = 'intact-miscore:') -> str or None:
+    """Filter for pubmed ids.
+
+    :param s: string to be filtered for pubmed ids
+    :return: PubMed id
+    """
+    flag = False
+    if s:
+        for identifier in s.split(s):
+            identifier = identifier.strip()
+            if identifier.startswith(prefix):
+                flag = True
+                return identifier
+    if not flag:
+            return None
 
 
 intact_complexportal_mapping = pyobo.xrefdb.sources.intact.get_complexportal_mapping()
@@ -282,6 +299,9 @@ def get_processed_intact_df() -> pd.DataFrame:
     logger.info('mapping provenance')
     df['Publication Identifier(s)'] = df['Publication Identifier(s)'].map(_process_pmid)
 
+    # filter for intact-miscore
+    df['Confidence value(s)'] = df['Publication Identifier(s)'].map(_process_score)
+
     return df
 
 
@@ -293,6 +313,7 @@ def get_bel() -> BELGraph:
     for source_uniprot_id, target_uniprot_id, relation, pubmed_id, detection_method, source_db, confidence in it:
         if pd.isna(source_uniprot_id) or pd.isna(target_uniprot_id):
             continue
+
         _add_my_row(
             graph,
             relation=relation,
@@ -329,7 +350,7 @@ def _add_my_row(
     """
     if pubmed_id is None:
         return
-
+    print(confidence)
     annotations = {
         'psi-mi': relation,
         'intact-detection': int_detection_method,
@@ -341,13 +362,13 @@ def _add_my_row(
     # I only found it in 'psi-mi:"MI:1237"(proline isomerization reaction)', nowhere else
     source = pybel.dsl.Protein(
         namespace='uniprot',
-        identifier=source_uniprot_id,
-        name=get_mnemonic(source_uniprot_id),
+        identifier=source_uniprot_id[1],
+        name=get_mnemonic(source_uniprot_id[1]),
     )
     target = pybel.dsl.Protein(
         namespace='uniprot',
-        identifier=target_uniprot_id,
-        name=get_mnemonic(target_uniprot_id),
+        identifier=target_uniprot_id[1],
+        name=get_mnemonic(target_uniprot_id[1]),
     )
 
     if relation in PROTEIN_INCREASES_MOD_DICT:
