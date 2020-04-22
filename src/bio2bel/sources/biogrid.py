@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 import pybel.dsl
 from pybel import BELGraph
-from ..utils import ensure_path
+from bio2bel.utils import ensure_path
 
 __all__ = [
     'get_bel',

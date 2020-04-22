@@ -16,7 +16,7 @@ from protmapper.uniprot_client import get_mnemonic
 from tqdm import tqdm
 
 import pybel.dsl
-from ..utils import ensure_path
+from bio2bel.utils import ensure_path
 from pybel import BELGraph
 from pybel.dsl import GeneModification, ProteinModification
 
@@ -102,11 +102,7 @@ INTACT_BINDS_ACTIONS = {
 }
 
 SUBJECT_ACTIVITIES = {
-    'psi-mi:"MI:1250"(isomerase reaction)': pybel.dsl.activity(
-        name='isomerase activity',
-        namespace='GO',
-        identifier='0016853',
-    ),
+
     'psi-mi:"MI:0883"(gtpase reaction)': pybel.dsl.activity(
         name='GTPase activity',
         namespace='GO',
@@ -136,7 +132,11 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
     'psi-mi:"MI:0945"(oxidoreductase activity electron transfer reaction)': ProteinModification('Red'),
 
 
-    'psi-mi:"MI:1250"(isomerase reaction)': ProteinModification('Iso'),
+    'psi-mi:"MI:1250"(isomerase reaction)': ProteinModification(
+        name='isomerization',
+        namespace='MOP',
+        identifier='0000789',
+    ),
 
     'psi-mi:"MI:1237"(proline isomerization reaction)': ProteinModification(
         name='protein peptidyl-prolyl isomerization',
