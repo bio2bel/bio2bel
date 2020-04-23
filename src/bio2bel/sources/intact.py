@@ -51,9 +51,13 @@ from protmapper.uniprot_client import get_mnemonic
 from tqdm import tqdm
 
 import pybel.dsl
-from bio2bel.utils import ensure_path
 from pybel import BELGraph
 from pybel.dsl import GeneModification, ProteinModification
+from ..utils import ensure_path
+
+__all__ = [
+    'get_bel',
+]
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +141,6 @@ INTACT_BINDS_ACTIONS = {
 }
 
 SUBJECT_ACTIVITIES = {
-
     'psi-mi:"MI:0883"(gtpase reaction)': pybel.dsl.activity(
         name='GTPase activity',
         namespace='GO',
@@ -165,14 +168,11 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
     'psi-mi:"MI:0567"(neddylation reaction)': ProteinModification('Nedd'),
     'psi-mi:"MI:0210"(hydroxylation reaction)': ProteinModification('Hy'),
     'psi-mi:"MI:0945"(oxidoreductase activity electron transfer reaction)': ProteinModification('Red'),
-
-
     'psi-mi:"MI:1250"(isomerase reaction)': ProteinModification(
         name='isomerization',
         namespace='MOP',
         identifier='0000789',
     ),
-
     'psi-mi:"MI:1237"(proline isomerization reaction)': ProteinModification(
         name='protein peptidyl-prolyl isomerization',
         namespace='GO',
@@ -193,7 +193,6 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         namespace='GO',
         identifier='0018377',
     ),
-
     'psi-mi:"MI:0211"(lipid addition)': ProteinModification(
         name='protein lipidation',
         namespace='GO',
@@ -204,7 +203,6 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         namespace='GO',
         identifier='0043039',
     ),
-
     'psi-mi:"MI:0883"(gtpase reaction)': ProteinModification(
         name='GTPase activity',
         namespace='GO',
@@ -216,7 +214,6 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         namespace='GO',
         identifier='0016887',
     ),
-
 }
 
 PROTEIN_DECREASES_MOD_DICT: Mapping[str, ProteinModification] = {
@@ -236,8 +233,6 @@ EVIDENCE = 'From IntAct'
 MODULE_NAME = 'intact'
 VERSION = '2020-03-31'
 URL = f'ftp://ftp.ebi.ac.uk/pub/databases/intact/{VERSION}/psimitab/intact.zip'
-
-UNIPROTKB = 'uniprotkb'
 
 
 def _process_pmid(s: str = '|', prefix: str = 'pubmed:') -> str:
@@ -349,7 +344,7 @@ def get_bel() -> BELGraph:
         if pd.isna(source_uniprot_id) or pd.isna(target_uniprot_id):
             continue
 
-        _add_my_row(
+        _add_row(
             graph,
             relation=relation,
             source_uniprot_id=source_uniprot_id,
@@ -362,7 +357,7 @@ def get_bel() -> BELGraph:
     return graph
 
 
-def _add_my_row(
+def _add_row(
     graph: BELGraph,
     relation: str,
     source_uniprot_id: str,
@@ -636,10 +631,4 @@ def _add_my_row(
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    _graph = get_bel()
-    _graph.summarize()
-    import os
-
-    pybel.dump(_graph, os.path.expanduser('~/Desktop/intact.bel.nodelink.json'))
-
+    get_bel().summarize()

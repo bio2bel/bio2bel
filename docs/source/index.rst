@@ -9,6 +9,7 @@ Table of Contents
 
    introduction
    repositories
+   sources
    tutorial
    reproducibility
    cli

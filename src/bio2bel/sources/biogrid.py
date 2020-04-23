@@ -2,11 +2,9 @@
 
 """This script downloads and parses BioGRID data and maps the interaction types to BEL.
 
-To run this script, install Bio2BEL and then do:
+Run this script ``python -m bio2bel.sources.biogrid``
 
-python -m bio2bel.sources.biogrid
-
-The interaction information contained in BioGRID can be catagorized into protein interactions, genetic interactions,
+The interaction information contained in BioGRID can be categorized into protein interactions, genetic interactions,
 chemical associations and post translational modifications. BioGRID includes information from major model organism and
 humans in the database.
 The file downloaded from BioGRID is a zip archive containing a single file formatted in PSI MITAB level 2.5 compatible
@@ -18,6 +16,7 @@ protein associations and binding interactions.
 
 import logging
 from typing import Iterable, List, Optional, Tuple
+
 import pandas as pd
 import pyobo.sources.biogrid
 from pyobo.identifier_utils import normalize_curie
@@ -25,7 +24,7 @@ from tqdm import tqdm
 
 import pybel.dsl
 from pybel import BELGraph
-from bio2bel.utils import ensure_path
+from ..utils import ensure_path
 
 __all__ = [
     'get_bel',
