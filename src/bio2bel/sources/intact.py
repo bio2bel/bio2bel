@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-"""This script downloads and parses IntAct data and maps the interaction types to BEL.
+"""Download and convert IntAct to BEL.
 
 Run with ``python -m bio2bel.sources.intact``
 
-IntAct is a interaction database with information about interacting proteins, their relation and the experiment by which
-this interaction was found. Among the interactions that are documented in IntAct are protein modifications, associations,
-direct interactions, binding interactions and cleavage reactions.
+IntAct is a interaction database with information about interacting proteins, their relation, and the experiments
+in which these interactions were found. Among the interactions that are documented in IntAct are protein modifications,
+associations, direct interactions, binding interactions and cleavage reactions.
 These interactions were grouped according to their biological interpretation and mapped to the corresponding BEL relation.
 The interactions in IntAct had a higher granularity than the interactions in BioGRID. Especially with respect to the
 protein modifications, exact terms specified the relations between the proteins here. Although many protein modifications
@@ -208,7 +208,6 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         namespace='GO',
         identifier='0003924',
     ),
-
     'psi-mi:"MI:0882"(atpase reaction)': ProteinModification(
         name='ATPase activity',
         namespace='GO',

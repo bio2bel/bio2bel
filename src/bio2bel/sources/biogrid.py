@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-"""This script downloads and parses BioGRID data and maps the interaction types to BEL.
+"""Download and convert BioGRID to BEL.
 
-Run this script ``python -m bio2bel.sources.biogrid``
+Run this script with ``python -m bio2bel.sources.biogrid``
 
 The interaction information contained in BioGRID can be categorized into protein interactions, genetic interactions,
-chemical associations and post translational modifications. BioGRID includes information from major model organism and
-humans in the database.
+chemical associations, and post-translational modifications. BioGRID includes information from major model organisms
+and humans.
 The file downloaded from BioGRID is a zip archive containing a single file formatted in PSI MITAB level 2.5 compatible
 Tab Delimited Text file format containing all interaction and associated annotation data.
 The interaction types in BioGRID were in the PSI-MI (Proteomics Standards Initiative - Molecular Interactions Controlled
