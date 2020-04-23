@@ -3,6 +3,41 @@
 """This script downloads and parses IntAct data and maps the interaction types to BEL.
 
 Run with ``python -m bio2bel.sources.intact``
+
+IntAct is a interaction database with information about interacting proteins, their relation and the experiment by which
+this interaction was found. Among the interactions that are documented in IntAct are protein modifications, associations,
+direct interactions, binding interactions and cleavage reactions.
+These interactions were grouped according to their biological interpretation and mapped to the corresponding BEL relation.
+The interactions in IntAct had a higher granularity than the interactions in BioGRID. Especially with respect to the
+protein modifications, exact terms specified the relations between the proteins here. Although many protein modifications
+hat corresponding terms in BEL, there were some interaction types in IntAct that could not be mapped directly. Therefore,
+other vocabularies like the Gene Ontology (GO) or the Molecular Process Ontology (MOP) were used to find corresponding
+interaction terms. These terms were then annotated with the name, namespace and identifier. For negative protein
+modifications in which a group is split from the protein like ´decarboxylation reaction´, the positive term ´carboxylation´
+is taken and a interaction describing the decrease of the target is taken.
+In the case of GTPase reaction and ATPase reaction, the notion of the source protein taking on the ability to catalyze
+a GTP or ATP hydrolysis had to  be mentioned. Therefore, pybel.dsl.activity() was added as the subject_modifier of the
+source protein.
+A very special case was that of the DNA strand elongation. Here, the target was a gene and to capture the notion of the
+DNA strand elogation process, the corresponding GO term was added as a ´GeneModification´. In the case of DNA or RNA
+cleavage, the target was set as the entity of ´pybel.dsl.Gene´or ´pybel.dsl.Rna´.
+For the relation ´isomerase reaction´ there was no corresponding term in BEL denoting this process. Therefore,
+the molecular process ´isomerization´ from the MOP was used and annotated.
+
+As IntAct and BioGRID are both interaction databases, the general code from biogrid.py could be taken as an inital
+approach. Due to the higher granularity of IntACt concerning the interaction types, many modifications and special
+cases as mentioned above had to be further investigated and were applied case-sensitive.
+
+Moreover, a very interesting type of information in IntAct is the negative interaction data which means that a target
+would not be activated by the source. This type of relations could also be mapped to negative BEL.
+
+Complexes are also used in IntAct and documented with an internal IntAct ID. These complexes were not taken into
+account in this script here.
+
+
+# TODO: entity types/identifiers that were not normalized to uniprot
+
+#TODO: summary
 """
 
 import logging
