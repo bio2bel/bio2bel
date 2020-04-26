@@ -71,7 +71,7 @@ def get_hgnc_ids(graph: BELGraph) -> Set[str]:
 
 def get_bel() -> BELGraph:
     """Get the entirety of TFregulons as BEL."""
-    graph = BELGraph()
+    graph = BELGraph(name='TFRegulons')
     df = _get_df()
     _add_rows(df, graph)
     return graph
