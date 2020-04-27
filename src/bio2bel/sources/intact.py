@@ -4,35 +4,21 @@
 
 Run with ``python -m bio2bel.sources.intact``
 
-IntAct is a interaction database with information about interacting proteins, their relation, and the experiments
-in which these interactions were found. Among the interactions that are documented in IntAct are protein modifications,
-associations, direct interactions, binding interactions and cleavage reactions.
-These interactions were grouped according to their biological interpretation and mapped to the corresponding BEL relation.
-The interactions in IntAct had a higher granularity than the interactions in BioGRID. Especially with respect to the
-protein modifications, exact terms specified the relations between the proteins here. Although many protein modifications
-hat corresponding terms in BEL, there were some interaction types in IntAct that could not be mapped directly. Therefore,
-other vocabularies like the Gene Ontology (GO) or the Molecular Process Ontology (MOP) were used to find corresponding
-interaction terms. These terms were then annotated with the name, namespace and identifier. For negative protein
-modifications in which a group is split from the protein like ´decarboxylation reaction´, the positive term ´carboxylation´
-is taken and a interaction describing the decrease of the target is taken.
-In the case of GTPase reaction and ATPase reaction, the notion of the source protein taking on the ability to catalyze
-a GTP or ATP hydrolysis had to  be mentioned. Therefore, pybel.dsl.activity() was added as the subject_modifier of the
-source protein.
-A very special case was that of the DNA strand elongation. Here, the target was a gene and to capture the notion of the
-DNA strand elogation process, the corresponding GO term was added as a ´GeneModification´. In the case of DNA or RNA
-cleavage, the target was set as the entity of ´pybel.dsl.Gene´or ´pybel.dsl.Rna´.
-For the relation ´isomerase reaction´ there was no corresponding term in BEL denoting this process. Therefore,
-the molecular process ´isomerization´ from the MOP was used and annotated.
 
-As IntAct and BioGRID are both interaction databases, the general code from biogrid.py could be taken as an inital
-approach. Due to the higher granularity of IntACt concerning the interaction types, many modifications and special
-cases as mentioned above had to be further investigated and were applied case-sensitive.
+`IntAct <https://www.ebi.ac.uk/intact/>`_ is a interaction database with information about interacting proteins, their relation, and the experiments, in which these interactions were found.
+Among the interactions that are documented in IntAct are protein modifications, associations, direct interactions, binding interactions and cleavage reactions.
+These interactions were grouped according to their biological interpretation and mapped to the corresponding BEL relation. The interactions in IntAct had a higher granularity than the interactions in BioGRID. Due to the default BEL namespace of protein modifications :data:`pybel.language.pmod_namespace`, the post-translational protein modification can be identified very accurately. For example, the glycosylation of a protein can be described in BEL by :data:`pybel.dsl.ProteinModification('Glyco').  Although many protein modifications had corresponding terms in BEL, there were some interaction types in IntAct that could not be mapped directly, like 'gtpase reaction' or 'aminoacylation reaction'.
+Therefore, other vocabularies like the 'Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the `Molecular Process Ontology (MOP) <https://www.ebi.ac.uk/ols/ontologies/mop>`_ were used to find corresponding interaction terms. These terms were then annotated with the name, namespace and identifier.
+For negative protein modifications in which a group is split from the protein like decarboxylation reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1140>`_, the positive term ``rotein carboxylation <https://www.ebi.ac.uk/QuickGO/term/GO:0018214>`_ is taken and a interaction describing the decrease of the target is taken.
+In the case of `gtpase reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0883>`_ and `atpase reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0882>`_, the notion of the source protein taking on the ability to catalyze a GTP or ATP hydrolysis had to  be mentioned. Therefore, :func:`pybel.dsl.activity` was added as the subject_modifier of the source protein.
+A very special case was that of the `dna strand elongation <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0701>`` . Here, the target was a gene and to capture the notion of the DNA strand elogation process, the corresponding GO term was added as a :data:`pybel.dsl.GeneModification. In the case of DNA or RNA cleavage, the target was set as the entity of :data:`pybel.dsl.Gene`or :data:`pybel.dsl.Rna`.
+For the relation `isomerase reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1250>`_ there was no corresponding term in BEL denoting this process. Therefore, the molecular process `isomerization <https://www.ebi.ac.uk/ols/ontologies/mop/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMOP_0000789>`_ from the `MOP >https://www.ebi.ac.uk/ols/ontologies/mop>`_ was used and annotated.
 
-Moreover, a very interesting type of information in IntAct is the negative interaction data which means that a target
-would not be activated by the source. This type of relations could also be mapped to negative BEL.
+As IntAct and BioGRID are both interaction databases, the general code from biogrid.py could be taken as an inital approach. Due to the higher granularity of IntACt concerning the interaction types, many modifications and special cases as mentioned above had to be further investigated and were applied case-sensitive.
 
-Complexes are also used in IntAct and documented with an internal IntAct ID. These complexes were not taken into
-account in this script here.
+Moreover, a very interesting type of information in IntAct is the negative interaction data which means that a target would not be activated by the source. This type of relations could also be mapped to negative BEL. In Machine Learning Tasks like link prediction in graphs these negative edges could be used as negative samples to enhance the prediction quality of the model.
+
+Complexes are also used in IntAct and documented with an internal IntAct ID. These complexes were not taken into account in this script here.
 
 
 # TODO: entity types/identifiers that were not normalized to uniprot
@@ -237,7 +223,7 @@ URL = f'ftp://ftp.ebi.ac.uk/pub/databases/intact/{VERSION}/psimitab/intact.zip'
 def _process_pmid(s: str = '|', prefix: str = 'pubmed:') -> str:
     """Filter for pubmed ids.
 
-    :param s: string to be filtered for pubmed ids
+    :param s: separator between pubmed ids
     :return: PubMed id
     """
     for identifier in s.split(s):
@@ -379,25 +365,28 @@ def _add_row(
     """
     if pubmed_id is None:
         return
-    print(confidence)
     annotations = {
         'psi-mi': relation,
         'intact-detection': int_detection_method,
         'intact-source': source_database,
         'intact-confidence': confidence,
     }
+    # split source_uniprot_id into prefix 'uniprot' and identifier number
+    source_prefix, source_id = source_uniprot_id
+    target_prefic, target_id = target_uniprot_id
     # map double spaces to single spaces in relation string
     relation = ' '.join(relation.split())  # FIXME how often does this happen? can you tweet Intact with the number?
     # I only found it in 'psi-mi:"MI:1237"(proline isomerization reaction)', nowhere else
+
     source = pybel.dsl.Protein(
-        namespace='uniprot',
-        identifier=source_uniprot_id[1],
-        name=get_mnemonic(source_uniprot_id[1]),
+        namespace=source_prefix,
+        identifier=source_id,
+        name=get_mnemonic(source_id),
     )
     target = pybel.dsl.Protein(
-        namespace='uniprot',
-        identifier=target_uniprot_id[1],
-        name=get_mnemonic(target_uniprot_id[1]),
+        namespace=source_prefix,
+        identifier=target_id,
+        name=get_mnemonic(target_id),
     )
 
     if relation in PROTEIN_INCREASES_MOD_DICT:
