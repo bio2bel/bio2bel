@@ -60,17 +60,18 @@ in this script here.
 
 import logging
 from collections import Counter
+from functools import lru_cache
+from typing import Mapping, Optional, Tuple
 from zipfile import ZipFile
 
 import pandas as pd
-import pybel.dsl
 import pyobo.xrefdb.sources.intact
 from protmapper.uniprot_client import get_mnemonic
+from tqdm import tqdm
+
+import pybel.dsl
 from pybel import BELGraph
 from pybel.dsl import GeneModification, ProteinModification
-from tqdm import tqdm
-from typing import Mapping, Optional, Tuple
-
 from ..utils import ensure_path
 
 __all__ = [
@@ -283,8 +284,23 @@ def _process_score(s: str, sep: str = '|', prefix: str = 'intact-miscore:') -> s
         return None
 
 
-intact_complexportal_mapping = pyobo.xrefdb.sources.intact.get_complexportal_mapping()
-intact_reactome_mapping = pyobo.xrefdb.sources.intact.get_reactome_mapping()
+@lru_cache()
+def _get_complexportal_mapping():
+    return pyobo.xrefdb.sources.intact.get_complexportal_mapping()
+
+
+def _map_complexportal(identifier):
+    return _get_complexportal_mapping().get(identifier)
+
+
+@lru_cache()
+def _get_reactome_mapping():
+    return pyobo.xrefdb.sources.intact.get_reactome_mapping()
+
+
+def _map_reactome(identifier):
+    return _get_reactome_mapping().get(identifier)
+
 
 _unhandled = Counter()
 
@@ -294,17 +310,22 @@ def _process_interactor(s: str) -> Optional[Tuple[str, str]]:
         return 'uniprot', s[len('uniprotkb:'):]
     if s.startswith('chebi:"CHEBI:'):
         return 'chebi', s[len('chebi:"CHEBI:'):-1]
+    if s.startswith('chembl target:'):
+        return 'chembl.target', s[len('chembl target:'):-1]
     if s.startswith('intact:'):
         prefix, identifier = 'intact', s[len('intact:'):]
 
-        if identifier in intact_complexportal_mapping:
-            return 'complexportal', intact_complexportal_mapping[identifier]
-        elif identifier in intact_reactome_mapping:
-            return 'reactome', intact_reactome_mapping[identifier]
-        else:
-            _unhandled[prefix] += 1
-            logger.warning('could not find complexportal/reactome mapping for %s:%s', prefix, identifier)
-            return
+        complexportal_identifier = _map_complexportal(identifier)
+        if complexportal_identifier is not None:
+            return 'complexportal', complexportal_identifier
+
+        reactome_identifier = _map_reactome(identifier)
+        if reactome_identifier is not None:
+            return 'reactome', reactome_identifier
+
+        _unhandled[prefix] += 1
+        logger.debug('could not find complexportal/reactome mapping for %s:%s', prefix, identifier)
+        return prefix, identifier
 
     """
     Counter({'chebi': 9534,
@@ -344,13 +365,15 @@ def get_processed_intact_df() -> pd.DataFrame:
     df['#ID(s) interactor A'] = df['#ID(s) interactor A'].map(_process_interactor)
     df['ID(s) interactor B'] = df['ID(s) interactor B'].map(_process_interactor)
 
+    logger.info('Unmapped terms: %s', _unhandled)
+
     # filter for pubmed
     logger.info('mapping provenance')
     df['Publication Identifier(s)'] = df['Publication Identifier(s)'].map(_process_pmid)
 
     # filter for intact-miscore
     df['Confidence value(s)'] = df['Publication Identifier(s)'].map(_process_score)
-    logger.info(df.head(), df.shape)
+
     return df
 
 
