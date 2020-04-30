@@ -254,10 +254,10 @@ URL = f'ftp://ftp.ebi.ac.uk/pub/databases/intact/{VERSION}/psimitab/intact.zip'
 
 
 def _process_pmid(s: str, sep: str = '|', prefix: str = 'pubmed:') -> str:
-    """Filter for pubmed ids.
+    """Filter for PubMed ids.
 
-    :param s: string of pubmed ids
-    :param sep: separator between pubmed ids
+    :param s: string of PubMed ids
+    :param sep: separator between PubMed ids
     :return: PubMed id
     """
     for identifier in s.split(sep):
@@ -273,15 +273,13 @@ def _process_score(s: str, sep: str = '|', prefix: str = 'intact-miscore:') -> s
     :param s: string to be filtered for scores ids
     :return: score
     """
-    flag = False
-    if s:
-        for identifier in s.split(sep):
-            identifier = identifier.strip()
-            if identifier.startswith(prefix):
-                flag = True
-                return identifier
-    if not flag:
+    if not s:
         return None
+    for identifier in s.split(sep):
+        identifier = identifier.strip()
+        if identifier.startswith(prefix):
+            flag = True
+            return identifier
 
 
 @lru_cache()
@@ -367,12 +365,16 @@ def get_processed_intact_df() -> pd.DataFrame:
 
     logger.info('Unmapped terms: %s', _unhandled)
 
-    # filter for pubmed
+    # filter for PubMed
     logger.info('mapping provenance')
     df['Publication Identifier(s)'] = df['Publication Identifier(s)'].map(_process_pmid)
 
     # filter for intact-miscore
     df['Confidence value(s)'] = df['Publication Identifier(s)'].map(_process_score)
+
+    # drop entries from intact with 'EBI-' identifier
+    df = df[~df['#ID(s) interactor A'].astype(str).str.contains('EBI-')]
+    df = df[~df['ID(s) interactor B'].astype(str).str.contains('EBI-')]
 
     return df
 
@@ -409,19 +411,20 @@ def _add_row(
         source_database: str,
         confidence: str,
 ) -> None:  # noqa:C901
-    """Add for every pubmed ID an edge with information about relationship type, source and target.
+    """Add for every PubMed ID an edge with information about relationship type, source and target.
 
     :param graph: graph to add edges to
     :param relation: row value of column relation
     :param source_uniprot_id: row value of column source
     :param target_uniprot_id: row value of column target
-    :param pubmed_id: row value of column pubmed_id
+    :param pubmed_id: row value of column PubMed_id
     :param int_detection_method: row value of column interaction detection method
     :param confidence: row value of confidence score column
     :return: None
     """
     if pubmed_id is None:
         return
+
     annotations = {
         'psi-mi': relation,
         'intact-detection': int_detection_method,
@@ -431,19 +434,30 @@ def _add_row(
     # split source_uniprot_id into prefix 'uniprot' and identifier number
     source_prefix, source_id = source_uniprot_id
     target_prefix, target_id = target_uniprot_id
+
     # map double spaces to single spaces in relation string
     relation = ' '.join(relation.split())  # FIXME how often does this happen? can you tweet Intact with the number?
     # I only found it in 'psi-mi:"MI:1237"(proline isomerization reaction)', nowhere else
+    logger.info(source_prefix, source_id)
+    if source_prefix == 'uniprot':
+        source_name = get_mnemonic(source_id)
+    else:
+        source_name = None
+
+    if target_prefix == 'uniprot':
+        target_name = get_mnemonic(target_id)
+    else:
+        target_name = None
 
     source = pybel.dsl.Protein(
         namespace=source_prefix,
         identifier=source_id,
-        name=get_mnemonic(source_id),
+        name=source_name,
     )
     target = pybel.dsl.Protein(
         namespace=target_prefix,
         identifier=target_id,
-        name=get_mnemonic(target_id),
+        name=target_name,
     )
 
     if relation in PROTEIN_INCREASES_MOD_DICT:
@@ -461,7 +475,7 @@ def _add_row(
         target_mod = pybel.dsl.Gene(
             namespace=target_prefix,
             identifier=target_uniprot_id,
-            name=get_mnemonic(target_uniprot_id),
+            name=target_name,
             variants=[
                 GeneModification(
                     name='DNA strand elongation',
@@ -485,7 +499,7 @@ def _add_row(
             target_mod = pybel.dsl.Gene(
                 namespace=target_prefix,
                 identifier=source_uniprot_id,
-                name=get_mnemonic(source_uniprot_id),
+                name=target_name,
             )
             graph.add_decreases(
                 source,
@@ -499,7 +513,7 @@ def _add_row(
             target_mod = pybel.dsl.Rna(
                 namespace=target_prefix,
                 identifier=source_uniprot_id,
-                name=get_mnemonic(source_uniprot_id),
+                name=target_name,
             )
             graph.add_decreases(
                 source,
