@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Utilities for BioKEEN."""
+"""Automation of installation and execution of Bio2BEL packages."""
 
 import importlib
 import logging
@@ -10,14 +10,11 @@ import types
 from contextlib import redirect_stdout
 from typing import Any, Mapping, Optional, Tuple
 
-import numpy as np
-
 from pybel import BELGraph, from_nodelink_gz, to_nodelink_gz, to_tsv
 from .manager.bel_manager import BELManagerMixin
 from .utils import get_data_dir
 
 __all__ = [
-    'ensure_triples',
     'ensure_tsv',
     'ensure_graph',
     'ensure_bio2bel_installation',
@@ -30,21 +27,16 @@ _SPECIAL_CASES = {
 logger = logging.getLogger(__name__)
 
 
-def ensure_triples(module_name: str) -> np.ndarray:
-    """Load a Bio2BEL repository.
+def ensure_tsv(name: str, *, manager_kwargs: Optional[Mapping[str, Any]] = None) -> str:
+    """Generate/save a TSV from the Bio2BEL package using :func:`pybel.to_tsv` and return its path.
 
-    :param module_name: The name of the bio2bel repository (with no prefix)
+    The resulting file is cached within the bio2bel package's data directory. If it already exists, the path
+    is directly returned with no other code being run.
+
+    :param name: The name of the Bio2BEL package
+    :param manager_kwargs: Optional mapping to give as keyword arguments to the manager upon instantiation.
+    :return: The path to the TSV file generated (inside the Bio2BEL directory) or
     """
-    path = ensure_tsv(module_name)
-    return np.loadtxt(
-        fname=path,
-        dtype=str,
-        delimiter='\t',
-    )
-
-
-def ensure_tsv(name: str, *, manager_kwargs: Optional[Mapping[str, Any]] = None):
-    """Ensure that the Bio2BEL repository has been cached as a TSV export."""
     directory = get_data_dir(name)
     path = os.path.join(directory, f'{name}.bel.tsv')
     if os.path.exists(path):
@@ -55,7 +47,13 @@ def ensure_tsv(name: str, *, manager_kwargs: Optional[Mapping[str, Any]] = None)
 
 
 def ensure_graph(name: str, *, manager_kwargs: Optional[Mapping[str, Any]] = None) -> BELGraph:
-    """Get the BEL graph for a given Bio2BEL package."""
+    """Generate, cache, and return the BEL graph for a given Bio2BEL package.
+
+    If it has already been cached, it is loaded directly.
+
+    :param name: The name of the Bio2BEL package
+    :param manager_kwargs: Optional mapping to give as keyword arguments to the manager upon instantiation.
+    """
     directory = get_data_dir(name)
     path = os.path.join(directory, f'{name}.bel.nodelink.json.gz')
     if os.path.exists(path):
@@ -72,7 +70,11 @@ def ensure_graph(name: str, *, manager_kwargs: Optional[Mapping[str, Any]] = Non
 
 
 def ensure_bio2bel_installation(name: str) -> Tuple[bool, types.ModuleType]:
-    """Import a package, or install it."""
+    """Import a Bio2BEL package, or install it.
+
+    :return: If the package was already installed
+    :return: A module object representing the Bio2BEL package
+    """
     package = _SPECIAL_CASES.get(name, f'bio2bel_{name}')
 
     try:
