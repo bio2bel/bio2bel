@@ -15,6 +15,7 @@ protein associations and binding interactions.
 """
 
 import logging
+from functools import lru_cache
 from typing import Iterable, List, Optional, Tuple
 
 import pandas as pd
@@ -73,7 +74,15 @@ BIOGRID_BINDS_ACTIONS = {
     'psi-mi:"MI:0407"(direct interaction)',
 }
 
-biogrid_ncbigene_mapping = pyobo.sources.biogrid.get_ncbigene_mapping()
+
+@lru_cache()
+def _get_ncbigene_mapping():
+    return pyobo.sources.biogrid.get_ncbigene_mapping()
+
+
+def _map_ncbigene(identifier):
+    return _get_ncbigene_mapping().get(identifier)
+
 
 #: biogrid id to ncbigene id
 BIOGRID_NCBIGENE_REMAPPING = {
@@ -105,9 +114,10 @@ def _process_interactor(s: str) -> Optional[str]:
     if prefix == 'ncbigene':
         return identifier
     elif prefix == 'biogrid':
-        if identifier in biogrid_ncbigene_mapping:
-            return biogrid_ncbigene_mapping[identifier]
-        if identifier in BIOGRID_NCBIGENE_REMAPPING:
+        ncbigene_identifier = _map_ncbigene(identifier)
+        if ncbigene_identifier is not None:
+            return ncbigene_identifier
+        elif identifier in BIOGRID_NCBIGENE_REMAPPING:
             remapped = BIOGRID_NCBIGENE_REMAPPING[identifier]
             if not remapped:
                 logger.debug('tried but failed curation on %s', s)

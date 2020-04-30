@@ -28,6 +28,7 @@ Complexes are also used in IntAct and documented with an internal IntAct ID. The
 
 import logging
 from collections import Counter
+from functools import lru_cache
 from typing import Mapping, Optional, Tuple
 from zipfile import ZipFile
 
@@ -249,8 +250,23 @@ def _process_score(s: str = '|', prefix: str = 'intact-miscore:') -> str or None
         return None
 
 
-intact_complexportal_mapping = pyobo.xrefdb.sources.intact.get_complexportal_mapping()
-intact_reactome_mapping = pyobo.xrefdb.sources.intact.get_reactome_mapping()
+@lru_cache()
+def _get_complexportal_mapping():
+    return pyobo.xrefdb.sources.intact.get_complexportal_mapping()
+
+
+def _map_complexportal(identifier):
+    return _get_complexportal_mapping().get(identifier)
+
+
+@lru_cache()
+def _get_reactome_mapping():
+    return pyobo.xrefdb.sources.intact.get_reactome_mapping()
+
+
+def _map_reactome(identifier):
+    return _get_reactome_mapping().get(identifier)
+
 
 _unhandled = Counter()
 
@@ -263,14 +279,17 @@ def _process_interactor(s: str) -> Optional[Tuple[str, str]]:
     if s.startswith('intact:'):
         prefix, identifier = 'intact', s[len('intact:'):]
 
-        if identifier in intact_complexportal_mapping:
-            return 'complexportal', intact_complexportal_mapping[identifier]
-        elif identifier in intact_reactome_mapping:
-            return 'reactome', intact_reactome_mapping[identifier]
-        else:
-            _unhandled[prefix] += 1
-            logger.warning('could not find complexportal/reactome mapping for %s:%s', prefix, identifier)
-            return
+        complexportal_identifier = _map_complexportal(identifier)
+        if complexportal_identifier is not None:
+            return 'complexportal', complexportal_identifier
+
+        reactome_identifier = _map_reactome(identifier)
+        if reactome_identifier is not None:
+            return 'reactome', reactome_identifier
+
+        _unhandled[prefix] += 1
+        logger.debug('could not find complexportal/reactome mapping for %s:%s', prefix, identifier)
+        return prefix, identifier
 
     """
     Counter({'chebi': 9534,
