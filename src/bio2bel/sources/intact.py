@@ -331,6 +331,8 @@ def get_processed_intact_df() -> pd.DataFrame:
     df['#ID(s) interactor A'] = df['#ID(s) interactor A'].map(_process_interactor)
     df['ID(s) interactor B'] = df['ID(s) interactor B'].map(_process_interactor)
 
+    logger.info('Unmapped terms: %s', _unhandled)
+
     # filter for pubmed
     logger.info('mapping provenance')
     df['Publication Identifier(s)'] = df['Publication Identifier(s)'].map(_process_pmid)
