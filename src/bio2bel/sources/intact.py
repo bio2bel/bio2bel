@@ -246,7 +246,7 @@ def _process_score(s: str = '|', prefix: str = 'intact-miscore:') -> str or None
                 flag = True
                 return identifier
     if not flag:
-            return None
+        return None
 
 
 intact_complexportal_mapping = pyobo.xrefdb.sources.intact.get_complexportal_mapping()
