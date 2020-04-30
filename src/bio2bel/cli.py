@@ -346,7 +346,7 @@ def actions(connection):
 @click.argument('name')
 def install(name):
     """Install the Bio2BEL package."""
-    from .automate import ensure_bio2bel_installation
+    from .io.automate import ensure_bio2bel_installation
     installed, m = ensure_bio2bel_installation(name)
     if installed:
         click.secho(f'{m.__name__} is already installed', fg='green')

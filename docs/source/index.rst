@@ -12,6 +12,7 @@ Table of Contents
    sources
    tutorial
    reproducibility
+   io
    cli
 
 .. toctree::
