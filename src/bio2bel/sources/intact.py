@@ -276,6 +276,8 @@ def _process_interactor(s: str) -> Optional[Tuple[str, str]]:
         return 'uniprot', s[len('uniprotkb:'):]
     if s.startswith('chebi:"CHEBI:'):
         return 'chebi', s[len('chebi:"CHEBI:'):-1]
+    if s.startswith('chembl target:'):
+        return 'chembl.target', s[len('chembl target:'):-1]
     if s.startswith('intact:'):
         prefix, identifier = 'intact', s[len('intact:'):]
 
