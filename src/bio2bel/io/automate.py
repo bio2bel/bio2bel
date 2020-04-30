@@ -11,8 +11,8 @@ from contextlib import redirect_stdout
 from typing import Any, Mapping, Optional, Tuple
 
 from pybel import BELGraph, from_nodelink_gz, to_nodelink_gz, to_tsv
-from .manager.bel_manager import BELManagerMixin
-from .utils import get_data_dir
+from ..manager.bel_manager import BELManagerMixin
+from ..utils import get_data_dir
 
 __all__ = [
     'ensure_tsv',

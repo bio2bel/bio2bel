@@ -11,8 +11,7 @@ Table of Contents
    repositories
    tutorial
    reproducibility
-   automate
-   pykeen
+   io
    cli
 
 .. toctree::
