@@ -365,6 +365,9 @@ def get_processed_intact_df() -> pd.DataFrame:
 
     logger.info('Unmapped terms: %s', _unhandled)
 
+    # remove any rows that weren't mapped by _process_interactor
+    df = df[df['#ID(s) interactor A'].notna() & df['ID(s) interactor B'].notna()]
+
     # filter for PubMed
     logger.info('mapping provenance')
     df['Publication Identifier(s)'] = df['Publication Identifier(s)'].map(_process_pmid)
@@ -384,15 +387,22 @@ def get_bel() -> BELGraph:
     df = get_processed_intact_df()
     graph = BELGraph(name=MODULE_NAME, version=VERSION)
     it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'mapping {MODULE_NAME}', unit_scale=True)
-    for source_uniprot_id, target_uniprot_id, relation, pubmed_id, detection_method, source_db, confidence in it:
-        if pd.isna(source_uniprot_id) or pd.isna(target_uniprot_id):
-            continue
-
+    for (
+        (source_prefix, source_id),
+        (target_prefix, target_id),
+        relation,
+        pubmed_id,
+        detection_method,
+        source_db,
+        confidence,
+    ) in it:
         _add_row(
             graph,
             relation=relation,
-            source_uniprot_id=source_uniprot_id,
-            target_uniprot_id=target_uniprot_id,
+            source_prefix=source_prefix,
+            source_id=source_id,
+            target_prefix=target_prefix,
+            target_id=target_id,
             pubmed_id=pubmed_id,
             int_detection_method=detection_method,
             source_database=source_db,
@@ -402,14 +412,16 @@ def get_bel() -> BELGraph:
 
 
 def _add_row(
-        graph: BELGraph,
-        relation: str,
-        source_uniprot_id: str,
-        target_uniprot_id: str,
-        pubmed_id: str,
-        int_detection_method: str,
-        source_database: str,
-        confidence: str,
+    graph: BELGraph,
+    relation: str,
+    source_prefix: str,
+    source_id: str,
+    target_prefix: str,
+    target_id: str,
+    pubmed_id: str,
+    int_detection_method: str,
+    source_database: str,
+    confidence: str,
 ) -> None:  # noqa:C901
     """Add for every PubMed ID an edge with information about relationship type, source and target.
 
@@ -431,9 +443,6 @@ def _add_row(
         'intact-source': source_database,
         'intact-confidence': confidence,
     }
-    # split source_uniprot_id into prefix 'uniprot' and identifier number
-    source_prefix, source_id = source_uniprot_id
-    target_prefix, target_id = target_uniprot_id
 
     # map double spaces to single spaces in relation string
     relation = ' '.join(relation.split())  # FIXME how often does this happen? can you tweet Intact with the number?
