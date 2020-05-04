@@ -256,7 +256,7 @@ def _add_my_row(
             pybel.dsl.Gene(namespace='ncbigene', identifier=target_ncbigene_id),
             citation=pubmed_id,
             evidence=EVIDENCE,
-            annotations=annotations.copy(),
+            annotations=annotations,
         )
     elif relation in BIOGRID_ASSOCIATION_ACTIONS:
         graph.add_association(
@@ -264,7 +264,7 @@ def _add_my_row(
             pybel.dsl.Protein(namespace='ncbigene', identifier=target_ncbigene_id),
             citation=pubmed_id,
             evidence=EVIDENCE,
-            annotations=annotations.copy(),
+            annotations=annotations,
         )
     elif relation in BIOGRID_BINDS_ACTIONS:
         graph.add_binds(
@@ -272,7 +272,7 @@ def _add_my_row(
             pybel.dsl.Protein(namespace='ncbigene', identifier=target_ncbigene_id),
             citation=pubmed_id,
             evidence=EVIDENCE,
-            annotations=annotations.copy(),
+            annotations=annotations,
         )
     else:
         raise ValueError(f'Unhandled BioGrid relation: {relation}')
