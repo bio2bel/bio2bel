@@ -528,7 +528,7 @@ def _add_row(
                 target_mod,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations=annotations.copy(),
+                annotations=annotations,
             )
 
         # cleavage
