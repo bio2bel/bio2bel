@@ -690,4 +690,5 @@ def _add_row(
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     get_bel().summarize()
