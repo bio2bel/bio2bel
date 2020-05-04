@@ -13,6 +13,22 @@ interaction and associated annotation data.
 The interaction types in BioGRID were in the `PSI-MI <https://psicquic.github.io/MITAB25Format.html>`_
 (Proteomics Standards Initiative - Molecular Interactions Controlled Vocabulary) format and were mapped to BEL
 relations. The final mapped relations in BEL included gene associations, protein associations and binding interactions.
+
++------------+----------+
+| Key        | Value    |
++============+==========+
+| Version    | v3.5.183 |
++------------+----------+
+| Nodes      | 293030   |
++------------+----------+
+| Edges      | 3127695  |
++------------+----------+
+| Citations  | 9        |
++------------+----------+
+| Components | 1225     |
++------------+----------+
+| Density:   | 3.64E-05 |
++------------+----------+
 """
 
 import logging
