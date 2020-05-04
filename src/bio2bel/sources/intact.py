@@ -447,7 +447,6 @@ def _add_row(
     # map double spaces to single spaces in relation string
     relation = ' '.join(relation.split())  # FIXME how often does this happen? can you tweet Intact with the number?
     # I only found it in 'psi-mi:"MI:1237"(proline isomerization reaction)', nowhere else
-    logger.info(source_prefix, source_id)
     if source_prefix == 'uniprot':
         source_name = get_mnemonic(source_id)
     else:
