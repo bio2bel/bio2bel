@@ -466,7 +466,7 @@ def _add_row(
             target.with_variants(PROTEIN_INCREASES_MOD_DICT[relation]),
             citation=pubmed_id,
             evidence=EVIDENCE,
-            annotations=annotations.copy(),
+            annotations=annotations,
             subject_modifier=SUBJECT_ACTIVITIES.get(relation),
         )
 
@@ -489,7 +489,7 @@ def _add_row(
             target_mod,
             citation=pubmed_id,
             evidence=EVIDENCE,
-            annotations=annotations.copy(),
+            annotations=annotations,
         )
 
     # DECREASES
@@ -506,7 +506,7 @@ def _add_row(
                 target_mod,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations=annotations.copy(),
+                annotations=annotations,
             )
         #: rna cleavage: Any process by which an RNA molecule is cleaved at specific sites or in a regulated manner
         elif relation == 'psi-mi:"MI:0902"(rna cleavage)':
@@ -535,7 +535,7 @@ def _add_row(
                 target,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations=annotations.copy(),
+                annotations=annotations,
             )
 
         #: Reaction monitoring the cleavage (hydrolysis) or a lipid molecule
@@ -553,7 +553,7 @@ def _add_row(
                 target_mod,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations=annotations.copy(),
+                annotations=annotations,
                 object_modifier=pybel.dsl.activity(),
             )
 
@@ -571,7 +571,7 @@ def _add_row(
                 target_mod,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations=annotations.copy(),
+                annotations=annotations,
                 object_modifier=pybel.dsl.activity(),
             )
 
@@ -589,7 +589,7 @@ def _add_row(
                 target_mod,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations=annotations.copy(),
+                annotations=annotations,
             )
         # protein deamidation
         elif relation == 'psi-mi:"MI:2280"(deamidation reaction)':
@@ -605,7 +605,7 @@ def _add_row(
                 target_mod,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations=annotations.copy(),
+                annotations=annotations,
                 object_modifier=pybel.dsl.activity(),
             )
 
@@ -623,7 +623,7 @@ def _add_row(
                 target_mod,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations=annotations.copy(),
+                annotations=annotations,
             )
         # protein deamination:
         elif relation == 'psi-mi:"MI:0985"(deamination reaction)':
@@ -639,7 +639,7 @@ def _add_row(
                 target_mod,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations=annotations.copy(),
+                annotations=annotations,
             )
         # protein modification
         elif relation in PROTEIN_DECREASES_MOD_DICT:
@@ -649,7 +649,7 @@ def _add_row(
                 target_mod,
                 citation=pubmed_id,
                 evidence=EVIDENCE,
-                annotations=annotations.copy(),
+                annotations=annotations,
             )
         else:
             raise ValueError(f"The relation {relation} is not in DECREASE relations.")
@@ -661,7 +661,7 @@ def _add_row(
             target,
             citation=pubmed_id,
             evidence=EVIDENCE,
-            annotations=annotations.copy(),
+            annotations=annotations,
         )
 
     # REGULATES:
@@ -671,7 +671,7 @@ def _add_row(
             target,
             citation=pubmed_id,
             evidence=EVIDENCE,
-            annotations=annotations.copy(),
+            annotations=annotations,
         )
 
     # BINDS
@@ -681,7 +681,7 @@ def _add_row(
             target,
             citation=pubmed_id,
             evidence=EVIDENCE,
-            annotations=annotations.copy(),
+            annotations=annotations,
         )
 
     # no specified relation
