@@ -31,7 +31,7 @@ A very special case was that of the `dna strand elongation
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0701>`_ .
 
 Here, the target was a gene and to capture the notion of the DNA strand elogation process, the corresponding GO term
-was added as a :data:`pybel.dsl.GeneModification. In the case of DNA or RNA cleavage, the target was set as the entity
+was added as a :data:`pybel.dsl.GeneModification`. In the case of DNA or RNA cleavage, the target was set as the entity
 of :data:`pybel.dsl.Gene`or :data:`pybel.dsl.Rna`.
 For the relation `isomerase reaction
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1250>`_
