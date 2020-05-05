@@ -4,23 +4,6 @@
 
 Run with ``python -m bio2bel.sources.intact``
 
-+------------+----------+
-| Key        | Value    |
-+============+==========+
-| Version    | v3.5.183 |
-+------------+----------+
-| Nodes      | 100115   |
-+------------+----------+
-| Edges      | 1294252  |
-+------------+----------+
-| Citations  | 20568    |
-+------------+----------+
-| Components | 3119     |
-+------------+----------+
-| Density:   | 1.29E-04 |
-+------------+----------+
-
-
 `IntAct <https://www.ebi.ac.uk/intact/>`_ is a interaction database with information about interacting proteins,
 their relation, and the experiments, in which these interactions were found.
 Among the interactions that are documented in IntAct are protein modifications, associations, direct interactions,
@@ -32,12 +15,12 @@ can be identified very accurately. For example, the glycosylation of a protein c
 :data:`pybel.dsl.ProteinModification('Glyco').  Although many protein modifications had corresponding terms in BEL,
 there were some interaction types in IntAct that could not be mapped directly, like 'gtpase reaction' or
 'aminoacylation reaction'.
-Therefore, other vocabularies like the 'Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
+Therefore, other vocabularies like the Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
 `Molecular Process Ontology (MOP) <https://www.ebi.ac.uk/ols/ontologies/mop>`_ were used to find corresponding
 interaction terms. These terms were then annotated with the name, namespace and identifier.
-For negative protein modifications in which a group is split from the protein like decarboxylation reaction
+For negative protein modifications in which a group is split from the protein like `decarboxylation reaction
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1140>`_,
-the positive term ``rotein carboxylation <https://www.ebi.ac.uk/QuickGO/term/GO:0018214>`_ is taken and a interaction
+the positive term `protein carboxylation <https://www.ebi.ac.uk/QuickGO/term/GO:0018214>`_ is taken and a interaction
 describing the decrease of the target is taken.
 In the case of `gtpase reaction
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0883>`_ and
@@ -54,7 +37,7 @@ For the relation `isomerase reaction
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1250>`_
 there was no corresponding term in BEL denoting this process. Therefore, the molecular process `isomerization
 <https://www.ebi.ac.uk/ols/ontologies/mop/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMOP_0000789>`_ from the
-`MOP >https://www.ebi.ac.uk/ols/ontologies/mop>`_ was used and annotated.
+`MOP <https://www.ebi.ac.uk/ols/ontologies/mop>`_ was used and annotated.
 
 As IntAct and BioGRID are both interaction databases, the general code from biogrid.py could be taken as an inital
 approach. Due to the higher granularity of IntACt concerning the interaction types, many modifications and special
@@ -68,8 +51,22 @@ quality of the model.
 Complexes are also used in IntAct and documented with an internal IntAct ID. These complexes were not taken into account
 in this script here.
 
++------------+------------+
+| Key        | Value      |
++============+============+
+| Version    | v2020-03-31|
++------------+------------+
+| Nodes      | 100115     |
++------------+------------+
+| Edges      | 1294252    |
++------------+------------+
+| Citations  | 20568      |
++------------+------------+
+| Components | 3119       |
++------------+------------+
+| Density:   | 1.29E-04   |
++------------+------------+
 
-#TODO: summary
 """
 
 import logging
