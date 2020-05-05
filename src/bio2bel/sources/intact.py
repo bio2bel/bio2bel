@@ -4,6 +4,16 @@
 
 Run with ``python -m bio2bel.sources.intact``
 
+intact v2020-03-31
+Number of Nodes: 100115
+Number of Edges: 1294252
+Number of Citations: 20568
+Number of Authors: 0
+Network Density: 1.29E-04
+Number of Components: 3119
+Number of Warnings: 0
+
+
 
 `IntAct <https://www.ebi.ac.uk/intact/>`_ is a interaction database with information about interacting proteins,
 their relation, and the experiments, in which these interactions were found.
@@ -173,6 +183,7 @@ SUBJECT_ACTIVITIES = {
         name='phospholipase activity',
         namespace='GO',
         identifier='0004620',
+    )
 }
 
 PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
@@ -239,6 +250,7 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         name='phospholipase activity',
         namespace='GO',
         identifier='0004620',
+    )
 }
 
 PROTEIN_DECREASES_MOD_DICT: Mapping[str, ProteinModification] = {
