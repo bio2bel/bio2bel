@@ -4,15 +4,21 @@
 
 Run with ``python -m bio2bel.sources.intact``
 
-intact v2020-03-31
-Number of Nodes: 100115
-Number of Edges: 1294252
-Number of Citations: 20568
-Number of Authors: 0
-Network Density: 1.29E-04
-Number of Components: 3119
-Number of Warnings: 0
-
++------------+----------+
+| Key        | Value    |
++============+==========+
+| Version    | v3.5.183 |
++------------+----------+
+| Nodes      | 100115   |
++------------+----------+
+| Edges      | 1294252  |
++------------+----------+
+| Citations  | 20568    |
++------------+----------+
+| Components | 3119     |
++------------+----------+
+| Density:   | 1.29E-04 |
++------------+----------+
 
 
 `IntAct <https://www.ebi.ac.uk/intact/>`_ is a interaction database with information about interacting proteins,
