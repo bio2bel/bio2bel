@@ -293,13 +293,13 @@ def bel():
     """Manage BEL."""
 
 
-@bel.command()  # noqa: F811
+@bel.command()
 @connection_option
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 @click.option('-d', '--directory', type=click.Path(file_okay=False, dir_okay=True), default=os.getcwd(),
               help='output directory')
 @click.option('--force', is_flag=True, help='Force overwrite if already exported')
-def write(connection, skip, directory, force):
+def write(connection, skip, directory, force):  # noqa: F811
     """Write all as BEL."""
     os.makedirs(directory, exist_ok=True)
     from .manager.bel_manager import BELManagerMixin
