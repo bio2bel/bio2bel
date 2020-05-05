@@ -3,11 +3,12 @@
 """PID Importer."""
 
 import logging
+from functools import lru_cache
 from itertools import product
 from typing import Iterable, Tuple
 
 from protmapper.uniprot_client import get_gene_name
-from pyobo import get_filtered_xrefs, get_id_name_mapping, get_name_id_mapping
+from pyobo import get_filtered_xrefs, get_name, get_name_id_mapping
 from pyobo.ndex_utils import CX, iterate_aspect
 from pyobo.sources.pid import get_obo, iter_networks
 from pyobo.struct.typedef import pathway_has_part
@@ -29,9 +30,24 @@ DIRECTORY = get_data_dir(MODULE_NAME)
 
 URL = 'https://github.com/NCIP/pathway-interaction-database/raw/master/download/NCI-Pathway-Info.xlsx'
 
-chebi_id_to_name = get_id_name_mapping('chebi')
-hgnc_name_to_id = get_name_id_mapping('hgnc')
-hgnc_id_to_entrez_id = get_filtered_xrefs('hgnc', 'ncbigene')
+
+@lru_cache()
+def _get_hgnc_name_id_mapping():
+    return get_name_id_mapping('hgnc')
+
+
+def _get_hgnc_id_from_name(name):
+    return _get_hgnc_name_id_mapping().get(name)
+
+
+@lru_cache()
+def _get_hgnc_entrez_mapping():
+    return get_filtered_xrefs('hgnc', 'ncbigene')
+
+
+def _map_hgnc_to_entrez(hgnc_id):
+    return _get_hgnc_name_id_mapping().get(hgnc_id)
+
 
 relation_to_adder = {
     'controls-state-change-of': BELGraph.add_regulates,
@@ -114,7 +130,7 @@ def get_graph_from_cx(network_uuid: str, cx: CX) -> BELGraph:  # noqa: C901
                     logger.warning(f'unhandled member for node: {node_id} -> {member}')
                     continue
                 member_name = member[len('hgnc.symbol:'):]
-                member_identifier = hgnc_name_to_id.get(member_name)
+                member_identifier = _get_hgnc_id_from_name(member_name)
                 if member_identifier is None:
                     logger.warning(f'unhandled member for node: {node_id} -> {member}')
                     continue
@@ -133,15 +149,15 @@ def get_graph_from_cx(network_uuid: str, cx: CX) -> BELGraph:  # noqa: C901
             # nodes.write(f'unhandled cas:{identifier}')
             continue  # not sure what to do with this
         elif prefix == 'CHEBI':
-            name = chebi_id_to_name[identifier]
+            name = get_name('chebi', identifier)
             id_to_dsl[node_id] = [pybel.dsl.Abundance(namespace='chebi', identifier=identifier, name=name)]
         elif prefix == 'uniprot':
             name = node['n']
-            if name not in hgnc_name_to_id:
+            hgnc_id = _get_hgnc_id_from_name(name)
+            if hgnc_id:
                 name = get_gene_name(identifier)
                 if name is None:
                     logger.warning('could not map uniprot to name')
-            identifier = hgnc_name_to_id.get(name)
             if identifier is None:
                 logger.warning(f'could not map HGNC symbol {name}')
                 continue
@@ -262,7 +278,7 @@ class Manager(CompathManager):
 
         x = {
             reference.identifier: Protein(
-                entrez_id=hgnc_id_to_entrez_id.get(reference.identifier),
+                entrez_id=_map_hgnc_to_entrez(reference.identifier),
                 hgnc_id=reference.identifier,
                 hgnc_symbol=reference.name,
             )
