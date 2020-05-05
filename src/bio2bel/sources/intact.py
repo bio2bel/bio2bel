@@ -53,8 +53,6 @@ Complexes are also used in IntAct and documented with an internal IntAct ID. The
 in this script here.
 
 
-# TODO: entity types/identifiers that were not normalized to uniprot
-
 #TODO: summary
 """
 
@@ -116,6 +114,7 @@ INTACT_INCREASES_ACTIONS = {
     'psi-mi:"MI:0844"(phosphotransfer reaction)',
     'psi-mi:"MI:1148"(ampylation reaction)',
     'psi-mi:"MI:0566"(sumoylation reaction)',
+    'psi-mi:"MI:1146"(phospholipase reaction)',
 }
 
 #: Relationship types in IntAct that map to BEL relation 'decreases'
@@ -170,6 +169,10 @@ SUBJECT_ACTIVITIES = {
         namespace='GO',
         identifier='0016887',
     ),
+    'psi-mi:"MI:1146"(phospholipase reaction)': pybel.dsl.activity(
+        name='phospholipase activity',
+        namespace='GO',
+        identifier='0004620',
 }
 
 PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
@@ -232,6 +235,10 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         namespace='GO',
         identifier='0016887',
     ),
+    'psi-mi:"MI:1146"(phospholipase reaction)': ProteinModification(
+        name='phospholipase activity',
+        namespace='GO',
+        identifier='0004620',
 }
 
 PROTEIN_DECREASES_MOD_DICT: Mapping[str, ProteinModification] = {
@@ -373,7 +380,7 @@ def get_processed_intact_df() -> pd.DataFrame:
     df['Publication Identifier(s)'] = df['Publication Identifier(s)'].map(_process_pmid)
 
     # filter for intact-miscore
-    df['Confidence value(s)'] = df['Publication Identifier(s)'].map(_process_score)
+    df['Confidence value(s)'] = df['Confidence value(s)'].map(_process_score)
 
     # drop entries from intact with 'EBI-' identifier
     df = df[~df['#ID(s) interactor A'].astype(str).str.contains('EBI-')]
@@ -425,10 +432,13 @@ def _add_row(
 ) -> None:  # noqa:C901
     """Add for every PubMed ID an edge with information about relationship type, source and target.
 
+    :param source_database: row value of column source_database
     :param graph: graph to add edges to
     :param relation: row value of column relation
-    :param source_uniprot_id: row value of column source
-    :param target_uniprot_id: row value of column target
+    :param source_prefix: row value of source prefix
+    :param source_id: row value of source id
+    :param target_prefix: row value of target prefix
+    :param target_id: row value of target id
     :param pubmed_id: row value of column PubMed_id
     :param int_detection_method: row value of column interaction detection method
     :param confidence: row value of confidence score column
@@ -445,8 +455,8 @@ def _add_row(
     }
 
     # map double spaces to single spaces in relation string
-    relation = ' '.join(relation.split())  # FIXME how often does this happen? can you tweet Intact with the number?
-    # I only found it in 'psi-mi:"MI:1237"(proline isomerization reaction)', nowhere else
+    relation = ' '.join(relation.split())
+
     if source_prefix == 'uniprot':
         source_name = get_mnemonic(source_id)
     else:
@@ -482,7 +492,7 @@ def _add_row(
     elif relation == 'psi-mi:"MI:0701"(dna strand elongation)':
         target_mod = pybel.dsl.Gene(
             namespace=target_prefix,
-            identifier=target_uniprot_id,
+            identifier=target_id,
             name=target_name,
             variants=[
                 GeneModification(
@@ -506,7 +516,7 @@ def _add_row(
         if relation == 'psi-mi:"MI:0572"(dna cleavage)':
             target_mod = pybel.dsl.Gene(
                 namespace=target_prefix,
-                identifier=source_uniprot_id,
+                identifier=source_id,
                 name=target_name,
             )
             graph.add_decreases(
@@ -520,7 +530,7 @@ def _add_row(
         elif relation == 'psi-mi:"MI:0902"(rna cleavage)':
             target_mod = pybel.dsl.Rna(
                 namespace=target_prefix,
-                identifier=source_uniprot_id,
+                identifier=source_id,
                 name=target_name,
             )
             graph.add_decreases(
