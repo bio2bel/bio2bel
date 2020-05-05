@@ -12,7 +12,7 @@ These interactions were grouped according to their biological interpretation and
 relation. The interactions in IntAct had a higher granularity than the interactions in BioGRID. Due to the default BEL
 namespace of protein modifications :data:`pybel.language.pmod_namespace`, the post-translational protein modification
 can be identified very accurately. For example, the glycosylation of a protein can be described in BEL by
-:data:`pybel.dsl.ProteinModification('Glyco').  Although many protein modifications had corresponding terms in BEL,
+:data:`pybel.dsl.ProteinModification('Glyco')`.  Although many protein modifications had corresponding terms in BEL,
 there were some interaction types in IntAct that could not be mapped directly, like 'gtpase reaction' or
 'aminoacylation reaction'.
 Therefore, other vocabularies like the Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
@@ -31,7 +31,7 @@ A very special case was that of the `dna strand elongation
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0701>`_ .
 
 Here, the target was a gene and to capture the notion of the DNA strand elogation process, the corresponding GO term
-was added as a :data:`pybel.dsl.GeneModification`. In the case of DNA or RNA cleavage, the target was set as the entity
+was added as a :data:`pybel.dsl.GeneModification. In the case of DNA or RNA cleavage, the target was set as the entity
 of :data:`pybel.dsl.Gene`or :data:`pybel.dsl.Rna`.
 For the relation `isomerase reaction
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1250>`_
