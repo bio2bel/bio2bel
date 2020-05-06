@@ -4,7 +4,7 @@
 
 Run with ``python -m bio2bel.sources.intact``
 
-`IntAct <https://www.ebi.ac.uk/intact/>`_ is a interaction database with information about interacting proteins,
+`IntACt <https://www.ebi.ac.uk/intact/>`_ is a interaction database with information about interacting proteins,
 their relation, and the experiments, in which these interactions were found.
 Among the interactions that are documented in IntAct are protein modifications, associations, direct interactions,
 binding interactions and cleavage reactions.
@@ -12,10 +12,10 @@ These interactions were grouped according to their biological interpretation and
 relation. The interactions in IntAct had a higher granularity than the interactions in BioGRID. Due to the default BEL
 namespace of protein modifications :data:`pybel.language.pmod_namespace`, the post-translational protein modification
 can be identified very accurately. For example, the glycosylation of a protein can be described in BEL by
-:data:`pybel.dsl.ProteinModification('Glyco').  Although many protein modifications had corresponding terms in BEL,
-there were some interaction types in IntAct that could not be mapped directly, like 'gtpase reaction' or
+:code:`pybel.dsl.ProteinModification('Glyco').  Although many protein modifications had corresponding terms in BEL,
+there were some interaction types in IntACT that could not be mapped directly, like 'gtpase reaction' or
 'aminoacylation reaction'.
-Therefore, other vocabularies like the Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
+Therefore, other vocabularies like the `Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
 `Molecular Process Ontology (MOP) <https://www.ebi.ac.uk/ols/ontologies/mop>`_ were used to find corresponding
 interaction terms. These terms were then annotated with the name, namespace and identifier.
 For negative protein modifications in which a group is split from the protein like `decarboxylation reaction
@@ -31,24 +31,24 @@ A very special case was that of the `dna strand elongation
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0701>`_ .
 
 Here, the target was a gene and to capture the notion of the DNA strand elogation process, the corresponding GO term
-was added as a :data:`pybel.dsl.GeneModification`. In the case of DNA or RNA cleavage, the target was set as the entity
-of :data:`pybel.dsl.Gene`or :data:`pybel.dsl.Rna`.
+was added as a :class:`pybel.dsl.GeneModification`. In the case of DNA or RNA cleavage, the target was set as the entity
+of :class:`pybel.dsl.Gene` or :class:`pybel.dsl.Rna`.
 For the relation `isomerase reaction
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1250>`_
 there was no corresponding term in BEL denoting this process. Therefore, the molecular process `isomerization
 <https://www.ebi.ac.uk/ols/ontologies/mop/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMOP_0000789>`_ from the
 `MOP <https://www.ebi.ac.uk/ols/ontologies/mop>`_ was used and annotated.
 
-As IntAct and BioGRID are both interaction databases, the general code from biogrid.py could be taken as an inital
-approach. Due to the higher granularity of IntACt concerning the interaction types, many modifications and special
+As IntACT and BioGRID are both interaction databases, the general code from biogrid.py could be taken as an initial
+approach. Due to the higher granularity of IntACT concerning the interaction types, many modifications and special
 cases as mentioned above had to be further investigated and were applied case-sensitive.
 
-Moreover, a very interesting type of information in IntAct is the negative interaction data which means that a target
-would not be activated by the source. This type of relations could also be mapped to negative BEL. In Machine Learning
+Moreover, a very interesting type of information in IntACT is the negative interaction data which means that a target
+would not be activated by the source. This type of relations could also be mapped to negative BEL. In machine learning
 tasks like link prediction in graphs these negative edges could be used as negative samples to enhance the prediction
 quality of the model.
 
-Complexes are also used in IntAct and documented with an internal IntAct ID. These complexes were not taken into account
+Complexes are also used in IntACT and documented with an internal IntACT ID. These complexes were not taken into account
 in this script here.
 
 +------------+------------+
