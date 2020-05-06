@@ -4,7 +4,7 @@
 
 Run with ``python -m bio2bel.sources.intact``
 
-`IntACt <https://www.ebi.ac.uk/intact/>`_ is a interaction database with information about interacting proteins,
+`IntAct <https://www.ebi.ac.uk/intact/>`_ is a interaction database with information about interacting proteins,
 their relation, and the experiments, in which these interactions were found.
 Among the interactions that are documented in IntAct are protein modifications, associations, direct interactions,
 binding interactions and cleavage reactions.
@@ -13,7 +13,7 @@ relation. The interactions in IntAct had a higher granularity than the interacti
 namespace of protein modifications :data:`pybel.language.pmod_namespace`, the post-translational protein modification
 can be identified very accurately. For example, the glycosylation of a protein can be described in BEL by
 :code:`pybel.dsl.ProteinModification('Glyco').  Although many protein modifications had corresponding terms in BEL,
-there were some interaction types in IntACT that could not be mapped directly, like 'gtpase reaction' or
+there were some interaction types in IntAct that could not be mapped directly, like 'gtpase reaction' or
 'aminoacylation reaction'.
 Therefore, other vocabularies like the `Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
 `Molecular Process Ontology (MOP) <https://www.ebi.ac.uk/ols/ontologies/mop>`_ were used to find corresponding
@@ -39,16 +39,16 @@ there was no corresponding term in BEL denoting this process. Therefore, the mol
 <https://www.ebi.ac.uk/ols/ontologies/mop/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMOP_0000789>`_ from the
 `MOP <https://www.ebi.ac.uk/ols/ontologies/mop>`_ was used and annotated.
 
-As IntACT and BioGRID are both interaction databases, the general code from biogrid.py could be taken as an initial
-approach. Due to the higher granularity of IntACT concerning the interaction types, many modifications and special
+As IntAct and BioGRID are both interaction databases, the general code from biogrid.py could be taken as an initial
+approach. Due to the higher granularity of IntAct concerning the interaction types, many modifications and special
 cases as mentioned above had to be further investigated and were applied case-sensitive.
 
-Moreover, a very interesting type of information in IntACT is the negative interaction data which means that a target
+Moreover, a very interesting type of information in IntAct is the negative interaction data which means that a target
 would not be activated by the source. This type of relations could also be mapped to negative BEL. In machine learning
 tasks like link prediction in graphs these negative edges could be used as negative samples to enhance the prediction
 quality of the model.
 
-Complexes are also used in IntACT and documented with an internal IntACT ID. These complexes were not taken into account
+Complexes are also used in IntAct and documented with an internal IntAct ID. These complexes were not taken into account
 in this script here.
 
 +------------+------------+
