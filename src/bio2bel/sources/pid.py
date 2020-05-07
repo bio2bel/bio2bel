@@ -7,7 +7,6 @@ from functools import lru_cache
 from itertools import product
 from typing import Iterable, Tuple
 
-from protmapper.uniprot_client import get_gene_name
 from pyobo import get_filtered_xrefs, get_name, get_name_id_mapping
 from pyobo.ndex_utils import CX, iterate_aspect
 from pyobo.sources.pid import get_obo, iter_networks
@@ -47,6 +46,11 @@ def _get_hgnc_entrez_mapping():
 
 def _map_hgnc_to_entrez(hgnc_id):
     return _get_hgnc_name_id_mapping().get(hgnc_id)
+
+
+def _get_gene_name(protein_id: str, web_fallback: bool = True):
+    from protmapper.uniprot_client import get_gene_name
+    return get_gene_name(protein_id,web_fallback=web_fallback)
 
 
 relation_to_adder = {
@@ -155,7 +159,7 @@ def get_graph_from_cx(network_uuid: str, cx: CX) -> BELGraph:  # noqa: C901
             name = node['n']
             hgnc_id = _get_hgnc_id_from_name(name)
             if hgnc_id:
-                name = get_gene_name(identifier)
+                name = _get_gene_name(identifier)
                 if name is None:
                     logger.warning('could not map uniprot to name')
             if identifier is None:
