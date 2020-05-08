@@ -34,7 +34,7 @@ If you find Bio2BEL useful for your work, please consider citing:
        <https://doi.org/10.1101/631812>`_. *bioRxiv*, 631812.
 
 .. |build| image:: https://travis-ci.com/bio2bel/bio2bel.svg?branch=master
-    :target: https://travis-ci.org/bio2bel/bio2bel
+    :target: https://travis-ci.com/bio2bel/bio2bel
     :alt: Build Status
 
 .. |coverage| image:: https://codecov.io/gh/bio2bel/bio2bel/coverage.svg?branch=master
