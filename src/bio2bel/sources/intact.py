@@ -12,7 +12,7 @@ These interactions were grouped according to their biological interpretation and
 relation. The interactions in IntAct had a higher granularity than the interactions in BioGRID. Due to the default BEL
 namespace of protein modifications :data:`pybel.language.pmod_namespace`, the post-translational protein modification
 can be identified very accurately. For example, the glycosylation of a protein can be described in BEL by
-:code:`pybel.dsl.ProteinModification('Glyco').  Although many protein modifications had corresponding terms in BEL,
+:code:`pybel.dsl.ProteinModification('Glyco')`.  Although many protein modifications had corresponding terms in BEL,
 there were some interaction types in IntAct that could not be mapped directly, like 'gtpase reaction' or
 'aminoacylation reaction'.
 Therefore, other vocabularies like the `Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
@@ -22,8 +22,7 @@ For negative protein modifications in which a group is split from the protein li
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1140>`_,
 the positive term `protein carboxylation <https://www.ebi.ac.uk/QuickGO/term/GO:0018214>`_ is taken and a interaction
 describing the decrease of the target is taken.
-In the case of `gtpase reaction
-<https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0883>`_ and
+In the case of `gtpase reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0883>`_ and
 `atpase reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0882>`_,
 the notion of the source protein taking on the ability to catalyze a GTP or ATP hydrolysis had to  be mentioned.
 Therefore, :func:`pybel.dsl.activity` was added as the subject_modifier of the source protein.
