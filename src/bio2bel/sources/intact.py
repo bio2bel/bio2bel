@@ -186,7 +186,7 @@ SUBJECT_ACTIVITIES = {
         name='phospholipase activity',
         namespace='GO',
         identifier='0004620',
-    )
+    ),
 }
 
 PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
@@ -253,7 +253,7 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
         name='phospholipase activity',
         namespace='GO',
         identifier='0004620',
-    )
+    ),
 }
 
 PROTEIN_DECREASES_MOD_DICT: Mapping[str, ProteinModification] = {
@@ -300,7 +300,6 @@ def _process_score(s: str, sep: str = '|', prefix: str = 'intact-miscore:') -> s
     for identifier in s.split(sep):
         identifier = identifier.strip()
         if identifier.startswith(prefix):
-            flag = True
             return identifier
 
 
