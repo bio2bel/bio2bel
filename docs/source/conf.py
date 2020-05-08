@@ -21,6 +21,9 @@
 import os
 import re
 import sys
+import warnings
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 sys.path.insert(0, os.path.abspath('../../src'))
 
