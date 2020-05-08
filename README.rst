@@ -33,7 +33,7 @@ If you find Bio2BEL useful for your work, please consider citing:
 .. [1] Hoyt, C. T., *et al.* (2019). `Integration of Structured Biological Data Sources using Biological Expression Language
        <https://doi.org/10.1101/631812>`_. *bioRxiv*, 631812.
 
-.. |build| image:: https://travis-ci.org/bio2bel/bio2bel.svg?branch=master
+.. |build| image:: https://travis-ci.com/bio2bel/bio2bel.svg?branch=master
     :target: https://travis-ci.org/bio2bel/bio2bel
     :alt: Build Status
 
