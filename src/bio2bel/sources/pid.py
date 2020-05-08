@@ -50,7 +50,7 @@ def _map_hgnc_to_entrez(hgnc_id):
 
 def _get_gene_name(protein_id: str, web_fallback: bool = True):
     from protmapper.uniprot_client import get_gene_name
-    return get_gene_name(protein_id,web_fallback=web_fallback)
+    return get_gene_name(protein_id, web_fallback=web_fallback)
 
 
 relation_to_adder = {
