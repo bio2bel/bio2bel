@@ -12,11 +12,11 @@ These interactions were grouped according to their biological interpretation and
 relation. The interactions in IntAct had a higher granularity than the interactions in BioGRID. Due to the default BEL
 namespace of protein modifications :data:`pybel.language.pmod_namespace`, the post-translational protein modification
 can be identified very accurately. For example, the glycosylation of a protein can be described in BEL by
-:code:`pybel.dsl.ProteinModification('Glyco')`.  Although many protein modifications had corresponding terms in BEL,
+:code:`pybel.dsl.ProteinModification('Glyco').  Although many protein modifications had corresponding terms in BEL,
 there were some interaction types in IntAct that could not be mapped directly, like `gtpase reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0883>`_
 or aminoacylation reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1143>`_.
 Therefore, other vocabularies like the `Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
-`Molecular Process Ontology (MOP) <https://www.ebi.ac.uk/ols/ontologies/mop>`_ were used to find corresponding
+`Molecular Process Ontology (go) <https://www.ebi.ac.uk/ols/ontologies/mop>`_ were used to find corresponding
 interaction terms. These terms were then annotated with the name, namespace and identifier.
 For negative protein modifications in which a group is split from the protein like `decarboxylation reaction
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1140>`_,
@@ -43,12 +43,12 @@ approach. Due to the higher granularity of IntAct concerning the interaction typ
 cases as mentioned above had to be further investigated and were applied case-sensitive.
 
 Moreover, a very interesting type of information in IntAct is the negative interaction data which means that a target
-would not be activated by the source. This type of relations could also be mapped to negative BEL. In machine learning
-tasks like link prediction in graphs these negative edges could be used as negative samples to enhance the prediction
-quality of the model.
+would not be activated by the source. A future improvement would be to map this type of relations to negative BEL.
+In machine learning tasks like link prediction in graphs these negative edges could be used as negative samples to
+enhance the prediction quality of the model.
 
 Complexes are also used in IntAct and documented with an internal IntAct ID. These complexes were not taken into account
-in this script here.
+in this module here.
 
 +------------+------------+
 | Key        | Value      |
@@ -173,17 +173,17 @@ INTACT_BINDS_ACTIONS = {
 SUBJECT_ACTIVITIES = {
     'psi-mi:"MI:0883"(gtpase reaction)': pybel.dsl.activity(
         name='GTPase activity',
-        namespace='GO',
+        namespace='go',
         identifier='0003924',
     ),
     'psi-mi:"MI:0882"(atpase reaction)': pybel.dsl.activity(
         name='ATPase activity',
-        namespace='GO',
+        namespace='go',
         identifier='0016887',
     ),
     'psi-mi:"MI:1146"(phospholipase reaction)': pybel.dsl.activity(
         name='phospholipase activity',
-        namespace='GO',
+        namespace='go',
         identifier='0004620',
     ),
 }
@@ -205,52 +205,52 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
     'psi-mi:"MI:0945"(oxidoreductase activity electron transfer reaction)': ProteinModification('Red'),
     'psi-mi:"MI:1250"(isomerase reaction)': ProteinModification(
         name='isomerization',
-        namespace='MOP',
+        namespace='mop',
         identifier='0000789',
     ),
     'psi-mi:"MI:1237"(proline isomerization reaction)': ProteinModification(
         name='protein peptidyl-prolyl isomerization',
-        namespace='GO',
+        namespace='go',
         identifier='0000413',
     ),
     'psi-mi:"MI:0193"(amidation reaction)': ProteinModification(
         name='protein amidation',
-        namespace='GO',
+        namespace='go',
         identifier='0018032',
     ),
     'psi-mi:"MI:1148"(ampylation reaction)': ProteinModification(
         name='protein adenylylation',
-        namespace='GO',
+        namespace='go',
         identifier='0018117',
     ),
     'psi-mi:"MI:0214"(myristoylation reaction)': ProteinModification(
         name='protein myristoylation',
-        namespace='GO',
+        namespace='go',
         identifier='0018377',
     ),
     'psi-mi:"MI:0211"(lipid addition)': ProteinModification(
         name='protein lipidation',
-        namespace='GO',
+        namespace='go',
         identifier='0006497',
     ),
     'psi-mi:"MI:1143"(aminoacylation reaction)': ProteinModification(
         name='tRNA aminoacylation',
-        namespace='GO',
+        namespace='go',
         identifier='0043039',
     ),
     'psi-mi:"MI:0883"(gtpase reaction)': ProteinModification(
         name='GTPase activity',
-        namespace='GO',
+        namespace='go',
         identifier='0003924',
     ),
     'psi-mi:"MI:0882"(atpase reaction)': ProteinModification(
         name='ATPase activity',
-        namespace='GO',
+        namespace='go',
         identifier='0016887',
     ),
     'psi-mi:"MI:1146"(phospholipase reaction)': ProteinModification(
         name='phospholipase activity',
-        namespace='GO',
+        namespace='go',
         identifier='0004620',
     ),
 }
@@ -510,7 +510,7 @@ def _add_row(
             variants=[
                 GeneModification(
                     name='DNA strand elongation',
-                    namespace='GO',
+                    namespace='go',
                     identifier='0022616',
                 ),
             ],
@@ -574,7 +574,7 @@ def _add_row(
             target_mod = target.with_variants(
                 pybel.dsl.ProteinModification(
                     name='lipid catabolic process',
-                    namespace='GO',
+                    namespace='go',
                     identifier='0016042',
                 ),
             )
@@ -593,7 +593,7 @@ def _add_row(
             target_mod = target.with_variants(
                 pybel.dsl.ProteinModification(
                     name='lipoprotein modification',
-                    namespace='GO',
+                    namespace='go',
                     identifier='0042160',
                 ),
             )
@@ -611,7 +611,7 @@ def _add_row(
             target_mod = target.with_variants(
                 pybel.dsl.ProteinModification(
                     name='protein formylation',
-                    namespace='GO',
+                    namespace='go',
                     identifier='0018256',
                 ),
             )
@@ -627,7 +627,7 @@ def _add_row(
             target_mod = target.with_variants(
                 pybel.dsl.ProteinModification(
                     name='protein amidation',
-                    namespace='GO',
+                    namespace='go',
                     identifier='0018032',
                 ),
             )
@@ -645,7 +645,7 @@ def _add_row(
             target_mod = target.with_variants(
                 pybel.dsl.ProteinModification(
                     name='protein carboxylation',
-                    namespace='GO',
+                    namespace='go',
                     identifier='0018214',
                 ),
             )
@@ -661,7 +661,7 @@ def _add_row(
             target_mod = target.with_variants(
                 pybel.dsl.ProteinModification(
                     name='amine binding',
-                    namespace='GO',
+                    namespace='go',
                     identifier='0043176',
                 ),
             )

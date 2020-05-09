@@ -12,18 +12,20 @@ The file downloaded from BioGRID is a zip archive containing a single file forma
 interaction and associated annotation data.
 The interaction types in BioGRID were in the `PSI-MI <https://psicquic.github.io/MITAB25Format.html>`_
 (Proteomics Standards Initiative - Molecular Interactions Controlled Vocabulary) format and were mapped to BEL
-relations. The final mapped relations in BEL included gene associations, protein associations and binding interactions.
+relations. The following table shows examples of how interaction types in BioGRID were mapped to BEL or other ontologies.
+
+| PSI-MI (BioGIRD)                                                       | Mapped BEL term                        | Source                     | Target                     |
+|------------------------------------------------------------------------|----------------------------------------|----------------------------|----------------------------|
+| psi-mi:"MI:0794"(synthetic genetic interaction defined by inequality)' | :code:`pybel.BELGraph.add_association` | :class:`pybel.dsl.Gene`    | :class:`pybel.dsl.Gene`    |
+| psi-mi:"MI:0915"(physical association)'                                | :code:`pybel.BELGraph.add_association` | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein` |
+| psi-mi:"MI:0407"(direct interaction)'                                  | :code:`pybel.BELGraph.add_binds`       | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein` |
+
+Summary statistics of the BEL graph generated in the BioGRID module:
 
 +------------+----------+
 | Key        | Value    |
 +============+==========+
 | Version    | v3.5.183 |
-+------------+----------+
-| Nodes      | 293030   |
-+------------+----------+
-| Edges      | 3127695  |
-+------------+----------+
-| Citations  | 9        |
 +------------+----------+
 | Components | 1225     |
 +------------+----------+
