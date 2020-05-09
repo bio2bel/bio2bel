@@ -20,18 +20,18 @@ or `aminoacylation reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=h
 
 
 Therefore, other vocabularies like the `Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
-`Molecular Process Ontology (go) <https://www.ebi.ac.uk/ols/ontologies/mop>`_ were used to find corresponding
+`Molecular Process Ontology (MOP) <https://www.ebi.ac.uk/ols/ontologies/mop>`_ were used to find corresponding
 interaction terms. These terms were then annotated with the name, namespace and identifier. The following tables shows
 examples of how the interactions from IntAct were mapped to BEL.
 
 +----------------------------------------------------+-----------------+----------------------------------------+----------------------------+---------------------------------------+----------------------------+-----------------------------------------+
 | PSI-MI (IntAct)                                    | Mapped Ontology | Mapped Ontology Term                   | Mapped Ontology Identifier | BEL Term                              | Source                     | Target                                  |
 +====================================================+=================+========================================+============================+=======================================+============================+=========================================+
-| 'psi-mi:"MI:1237"(proline isomerization reaction)' | GO              | protein peptidyl-prolyl isomerization' | 0000413                    | :class:`pybel.dsl.ProteinModification | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein.with_variants |
+| psi-mi:"MI:1237"(proline isomerization reaction) | GO              | protein peptidyl-prolyl isomerization' | 0000413                    | :class:`pybel.dsl.ProteinModification | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein.with_variants |
 +----------------------------------------------------+-----------------+----------------------------------------+----------------------------+---------------------------------------+----------------------------+-----------------------------------------+
-| 'psi-mi:"MI:0701"(dna strand elongation)'          | GO              | DNA strand elongation                  | 22616                      | :class:`pybel.dsl.GeneModification    | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Gene`                 |
+| psi-mi:"MI:0701"(dna strand elongation)          | GO              | DNA strand elongation                  | 22616                      | :class:`pybel.dsl.GeneModification    | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Gene`                 |
 +----------------------------------------------------+-----------------+----------------------------------------+----------------------------+---------------------------------------+----------------------------+-----------------------------------------+
-| 'psi-mi:"MI:1250"(isomerase reaction)'             | MOP             | isomerization                          | 789                        | :class:`pybel.dsl.ProteinModification | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein.with_variants |
+| psi-mi:"MI:1250"(isomerase reaction)             | MOP             | isomerization                          | 789                        | :class:`pybel.dsl.ProteinModification | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein.with_variants |
 +----------------------------------------------------+-----------------+----------------------------------------+----------------------------+---------------------------------------+----------------------------+-----------------------------------------+
 
 For negative protein modifications in which a group is split from the protein like `decarboxylation reaction
