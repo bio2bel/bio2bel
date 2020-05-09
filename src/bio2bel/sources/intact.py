@@ -9,7 +9,7 @@ their relation, and the experiments, in which these interactions were found.
 Among the interactions that are documented in IntAct are protein modifications, associations, direct interactions,
 binding interactions and cleavage reactions.
 These interactions were grouped according to their biological interpretation and mapped to the corresponding BEL
-relation. The interactions in IntAct had a higher granularity than the interactions in BioGRID. #
+relation. The interactions in IntAct had a higher granularity than the interactions in BioGRID.
 
 Due to the default BEL
 namespace of protein modifications :data:`pybel.language.pmod_namespace`, the post-translational protein modification
@@ -45,7 +45,7 @@ In the case of `gtpase reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?i
 the notion of the source protein taking on the ability to catalyze a GTP or ATP hydrolysis had to  be mentioned.
 Therefore, :func:`pybel.dsl.activity` was added as the subject_modifier of the source protein.
 A very special case was that of the `dna strand elongation
-<https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0701>`_ .
+<https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0701>`_.
 
 Here, the target was a gene and to capture the notion of the DNA strand elogation process, the corresponding GO term
 was added as a :class:`pybel.dsl.GeneModification`. In the case of DNA or RNA cleavage, the target was set as the entity
