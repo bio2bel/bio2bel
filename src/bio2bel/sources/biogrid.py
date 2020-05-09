@@ -14,7 +14,7 @@ The interaction types in BioGRID were in the `PSI-MI <https://psicquic.github.io
 (Proteomics Standards Initiative - Molecular Interactions Controlled Vocabulary) format and were mapped to BEL
 relations. The following table shows examples of how interaction types in BioGRID were mapped to BEL or other ontologies.
 
-| PSI-MI (BioGIRD)                                                       | Mapped BEL term                        | Source                     | Target                     |
+| PSI-MI (BioGIRD)                                                       | Mapped BEL Interaction                 | Source                     | Target                     |
 |------------------------------------------------------------------------|----------------------------------------|----------------------------|----------------------------|
 | psi-mi:"MI:0794"(synthetic genetic interaction defined by inequality)' | :code:`pybel.BELGraph.add_association` | :class:`pybel.dsl.Gene`    | :class:`pybel.dsl.Gene`    |
 | psi-mi:"MI:0915"(physical association)'                                | :code:`pybel.BELGraph.add_association` | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein` |

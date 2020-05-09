@@ -15,9 +15,19 @@ can be identified very accurately. For example, the glycosylation of a protein c
 :code:`pybel.dsl.ProteinModification('Glyco')`.  Although many protein modifications had corresponding terms in BEL,
 there were some interaction types in IntAct that could not be mapped directly, like `gtpase reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0883>`_
 or aminoacylation reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1143>`_.
+
+
 Therefore, other vocabularies like the `Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
 `Molecular Process Ontology (go) <https://www.ebi.ac.uk/ols/ontologies/mop>`_ were used to find corresponding
-interaction terms. These terms were then annotated with the name, namespace and identifier.
+interaction terms. These terms were then annotated with the name, namespace and identifier. The following tables shows
+examples of how the interactions from IntAct were mapped to BEL.
+
+| PSI-MI (IntAct)                                    | Mapped Ontology | Mapped Ontology Term                   | Mapped Ontology Identifier | BEL Term                              | Source                     | Target                                  |
+|----------------------------------------------------|-----------------|----------------------------------------|----------------------------|---------------------------------------|----------------------------|-----------------------------------------|
+| 'psi-mi:"MI:1237"(proline isomerization reaction)' | GO              | protein peptidyl-prolyl isomerization' | 0000413                    | :class:`pybel.dsl.ProteinModification | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein.with_variants |
+| 'psi-mi:"MI:0701"(dna strand elongation)'          | GO              | DNA strand elongation                  | 22616                      | :class:`pybel.dsl.GeneModification    | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Gene`                 |
+| 'psi-mi:"MI:1250"(isomerase reaction)'             | MOP             | isomerization                          | 789                        | :class:`pybel.dsl.ProteinModification | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein.with_variants |
+
 For negative protein modifications in which a group is split from the protein like `decarboxylation reaction
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1140>`_,
 the positive term `protein carboxylation <https://www.ebi.ac.uk/QuickGO/term/GO:0018214>`_ is taken and a interaction
@@ -49,6 +59,8 @@ enhance the prediction quality of the model.
 
 Complexes are also used in IntAct and documented with an internal IntAct ID. These complexes were not taken into account
 in this module here.
+
+Summary statistics of the BEL graph generated in the IntAct module:
 
 +------------+------------+
 | Key        | Value      |
