@@ -7,18 +7,26 @@ Run this script with ``python -m bio2bel.sources.biogrid``
 The interaction information contained in `BioGRID <https://thebiogrid.org>`_ can be categorized into protein
 interactions, genetic interactions, chemical associations, and post-translational modifications. BioGRID includes
 information from major model organisms and humans.
+
+
 The file downloaded from BioGRID is a zip archive containing a single file formatted in `PSI MITAB level 2.5
 <https://wiki.thebiogrid.org/doku.php/psi_mitab_file>`_ compatible Tab Delimited Text file format, containing all
 interaction and associated annotation data.
+
+
 The interaction types in BioGRID were in the `PSI-MI <https://psicquic.github.io/MITAB25Format.html>`_
 (Proteomics Standards Initiative - Molecular Interactions Controlled Vocabulary) format and were mapped to BEL
 relations. The following table shows examples of how interaction types in BioGRID were mapped to BEL or other ontologies.
 
-| PSI-MI (BioGIRD)                                                       | Mapped BEL Interaction                 | Source                     | Target                     |
-|------------------------------------------------------------------------|----------------------------------------|----------------------------|----------------------------|
++------------------------------------------------------------------------+----------------------------------------+----------------------------+----------------------------+
+| PSI-MI (BioGIRD)                                                       | Mapped BEL term                        | Source                     | Target                     |
++========================================================================+========================================+============================+============================+
 | psi-mi:"MI:0794"(synthetic genetic interaction defined by inequality)' | :code:`pybel.BELGraph.add_association` | :class:`pybel.dsl.Gene`    | :class:`pybel.dsl.Gene`    |
++------------------------------------------------------------------------+----------------------------------------+----------------------------+----------------------------+
 | psi-mi:"MI:0915"(physical association)'                                | :code:`pybel.BELGraph.add_association` | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein` |
++------------------------------------------------------------------------+----------------------------------------+----------------------------+----------------------------+
 | psi-mi:"MI:0407"(direct interaction)'                                  | :code:`pybel.BELGraph.add_binds`       | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein` |
++------------------------------------------------------------------------+----------------------------------------+----------------------------+----------------------------+
 
 Summary statistics of the BEL graph generated in the BioGRID module:
 

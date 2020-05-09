@@ -9,12 +9,14 @@ their relation, and the experiments, in which these interactions were found.
 Among the interactions that are documented in IntAct are protein modifications, associations, direct interactions,
 binding interactions and cleavage reactions.
 These interactions were grouped according to their biological interpretation and mapped to the corresponding BEL
-relation. The interactions in IntAct had a higher granularity than the interactions in BioGRID. Due to the default BEL
+relation. The interactions in IntAct had a higher granularity than the interactions in BioGRID. #
+
+Due to the default BEL
 namespace of protein modifications :data:`pybel.language.pmod_namespace`, the post-translational protein modification
 can be identified very accurately. For example, the glycosylation of a protein can be described in BEL by
 :code:`pybel.dsl.ProteinModification('Glyco')`.  Although many protein modifications had corresponding terms in BEL,
 there were some interaction types in IntAct that could not be mapped directly, like `gtpase reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0883>`_
-or aminoacylation reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1143>`_.
+or `aminoacylation reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1143>`_.
 
 
 Therefore, other vocabularies like the `Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
@@ -22,16 +24,22 @@ Therefore, other vocabularies like the `Gene Ontology (GO) <https://www.ebi.ac.u
 interaction terms. These terms were then annotated with the name, namespace and identifier. The following tables shows
 examples of how the interactions from IntAct were mapped to BEL.
 
++----------------------------------------------------+-----------------+----------------------------------------+----------------------------+---------------------------------------+----------------------------+-----------------------------------------+
 | PSI-MI (IntAct)                                    | Mapped Ontology | Mapped Ontology Term                   | Mapped Ontology Identifier | BEL Term                              | Source                     | Target                                  |
-|----------------------------------------------------|-----------------|----------------------------------------|----------------------------|---------------------------------------|----------------------------|-----------------------------------------|
++====================================================+=================+========================================+============================+=======================================+============================+=========================================+
 | 'psi-mi:"MI:1237"(proline isomerization reaction)' | GO              | protein peptidyl-prolyl isomerization' | 0000413                    | :class:`pybel.dsl.ProteinModification | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein.with_variants |
++----------------------------------------------------+-----------------+----------------------------------------+----------------------------+---------------------------------------+----------------------------+-----------------------------------------+
 | 'psi-mi:"MI:0701"(dna strand elongation)'          | GO              | DNA strand elongation                  | 22616                      | :class:`pybel.dsl.GeneModification    | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Gene`                 |
++----------------------------------------------------+-----------------+----------------------------------------+----------------------------+---------------------------------------+----------------------------+-----------------------------------------+
 | 'psi-mi:"MI:1250"(isomerase reaction)'             | MOP             | isomerization                          | 789                        | :class:`pybel.dsl.ProteinModification | :class:`pybel.dsl.Protein` | :class:`pybel.dsl.Protein.with_variants |
++----------------------------------------------------+-----------------+----------------------------------------+----------------------------+---------------------------------------+----------------------------+-----------------------------------------+
 
 For negative protein modifications in which a group is split from the protein like `decarboxylation reaction
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1140>`_,
 the positive term `protein carboxylation <https://www.ebi.ac.uk/QuickGO/term/GO:0018214>`_ is taken and a interaction
 describing the decrease of the target is taken.
+
+
 In the case of `gtpase reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0883>`_ and
 `atpase reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_0882>`_,
 the notion of the source protein taking on the ability to catalyze a GTP or ATP hydrolysis had to  be mentioned.
@@ -42,6 +50,8 @@ A very special case was that of the `dna strand elongation
 Here, the target was a gene and to capture the notion of the DNA strand elogation process, the corresponding GO term
 was added as a :class:`pybel.dsl.GeneModification`. In the case of DNA or RNA cleavage, the target was set as the entity
 of :class:`pybel.dsl.Gene` or :class:`pybel.dsl.Rna`.
+
+
 For the relation `isomerase reaction
 <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMI_1250>`_
 there was no corresponding term in BEL denoting this process. Therefore, the molecular process `isomerization
