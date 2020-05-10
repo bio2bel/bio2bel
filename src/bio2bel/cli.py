@@ -253,13 +253,13 @@ def belns():
     """Manage BEL namespaces."""
 
 
-@belns.command()
+@belns.command(name='write')
 @connection_option
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 @click.option('-d', '--directory', type=click.Path(file_okay=False, dir_okay=True), default=os.getcwd(),
               help='output directory')
 @click.option('-f', '--force', is_flag=True, help='Force re-download and re-population of resources')
-def write(connection, skip, directory, force):
+def write_belns(connection, skip, directory, force):
     """Write a BEL namespace names/identifiers to terminology store."""
     os.makedirs(directory, exist_ok=True)
     from .manager.namespace_manager import BELNamespaceManagerMixin
@@ -293,13 +293,13 @@ def bel():
     """Manage BEL."""
 
 
-@bel.command()
+@bel.command(name='write')
 @connection_option
 @click.option('-s', '--skip', multiple=True, help='Modules to skip. Can specify multiple.')
 @click.option('-d', '--directory', type=click.Path(file_okay=False, dir_okay=True), default=os.getcwd(),
               help='output directory')
 @click.option('--force', is_flag=True, help='Force overwrite if already exported')
-def nswrite(connection, skip, directory, force):  # noqa: F811
+def write_bel(connection, skip, directory, force):
     """Write all as BEL."""
     os.makedirs(directory, exist_ok=True)
     from .manager.bel_manager import BELManagerMixin
