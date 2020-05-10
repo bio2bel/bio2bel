@@ -35,6 +35,8 @@ Summary statistics of the BEL graph generated in the BioGRID module:
 +============+==========+
 | Version    | v3.5.183 |
 +------------+----------+
+| Nodes      | 293030   |
++------------+----------+
 | Components | 1225     |
 +------------+----------+
 | Density:   | 3.64E-05 |
