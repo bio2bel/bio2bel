@@ -299,7 +299,7 @@ def bel():
 @click.option('-d', '--directory', type=click.Path(file_okay=False, dir_okay=True), default=os.getcwd(),
               help='output directory')
 @click.option('--force', is_flag=True, help='Force overwrite if already exported')
-def write(connection, skip, directory, force):  # noqa: F811
+def nswrite(connection, skip, directory, force):  # noqa: F811
     """Write all as BEL."""
     os.makedirs(directory, exist_ok=True)
     from .manager.bel_manager import BELManagerMixin
