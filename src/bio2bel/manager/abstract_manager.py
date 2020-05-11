@@ -10,6 +10,7 @@ from functools import wraps
 from typing import List, Mapping, Type
 
 import click
+from pyobo.cli_utils import verbose_option
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
 
 from .cli_manager import CliMixin
@@ -306,6 +307,7 @@ def add_cli_populate(main: click.Group) -> click.Group:  # noqa: D202
     @main.command()
     @click.option('-r', '--reset', is_flag=True, help='Nuke database first')
     @click.option('-f', '--force', is_flag=True, help='Force overwrite if already populated')
+    @verbose_option
     @click.pass_obj
     def populate(manager: AbstractManager, reset, force):
         """Populate the database."""
