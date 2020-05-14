@@ -6,6 +6,7 @@ import hashlib
 import logging
 import os
 import shutil
+import subprocess
 import types
 from typing import Iterable, Mapping, Optional, Tuple, Type
 from urllib.parse import urlparse
@@ -113,9 +114,25 @@ def get_connection(module_name: str, connection: Optional[str] = None) -> str:
     return module_config.connection or config.connection
 
 
-def get_version() -> str:
-    """Get the software version of Bio2BEL."""
-    return VERSION
+def get_git_hash() -> str:
+    """Get the PyBEL git hash."""
+    with open(os.devnull, 'w') as devnull:
+        try:
+            ret = subprocess.check_output(  # noqa: S603,S607
+                ['git', 'rev-parse', 'HEAD'],
+                cwd=os.path.dirname(__file__),
+                stderr=devnull,
+            )
+        except subprocess.CalledProcessError:
+            return 'UNHASHED'
+        else:
+            return ret.strip().decode('utf-8')[:8]
+
+
+def get_version(with_git_hash: bool = False):
+    """Get the PyBEL version string, including a git hash."""
+    return f'{VERSION}-{get_git_hash()}' if with_git_hash else VERSION
+
 
 
 def get_bio2bel_modules() -> Mapping[str, types.ModuleType]:
