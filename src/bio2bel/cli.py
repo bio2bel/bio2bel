@@ -15,7 +15,8 @@ from .manager import AbstractManager, get_bio2bel_manager_classes
 from .manager.bel_manager import BELManagerMixin
 from .manager.namespace_manager import BELNamespaceManagerMixin
 from .models import Action, _make_session
-from .utils import clear_cache, get_version
+from .utils import clear_cache
+from .version import get_version
 
 logger = logging.getLogger(__name__)
 

@@ -36,7 +36,6 @@ Clone the repository from `GitHub <https://github.com/bio2bel/bio2bel>`_ and ins
    $ cd bio2bel
    $ python3 -m pip install -e .
 
-
 Testing
 -------
 Bio2BEL is tested with Python3 on Linux using `Travis CI <https://travis-ci.org/bio2bel/bio2bel>`_.
@@ -44,4 +43,5 @@ Bio2BEL is tested with Python3 on Linux using `Travis CI <https://travis-ci.org/
 
 from .downloading import make_df_getter, make_downloader  # noqa: F401
 from .manager import AbstractManager, get_bio2bel_manager_classes  # noqa: F401
-from .utils import ensure_path, get_data_dir, get_url_filename, get_version  # noqa: F401
+from .utils import ensure_path, get_data_dir, get_url_filename  # noqa: F401
+from .version import get_version  # noqa: F401

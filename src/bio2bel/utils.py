@@ -6,7 +6,6 @@ import hashlib
 import logging
 import os
 import shutil
-import subprocess
 import types
 from typing import Iterable, Mapping, Optional, Tuple, Type
 from urllib.parse import urlparse
@@ -15,7 +14,7 @@ from urllib.request import urlretrieve
 from easy_config import EasyConfig
 from pkg_resources import UnknownExtra, VersionConflict, iter_entry_points
 
-from .constants import BIO2BEL_DIR, DEFAULT_CONFIG_DIRECTORY, DEFAULT_CONFIG_PATHS, VERSION, config
+from .constants import BIO2BEL_DIR, DEFAULT_CONFIG_DIRECTORY, DEFAULT_CONFIG_PATHS, config
 
 __all__ = [
     'get_data_dir',
@@ -23,7 +22,6 @@ __all__ = [
     'get_url_filename',
     'ensure_path',
     'get_connection',
-    'get_version',
     'get_bio2bel_modules',
     'clear_cache',
 ]
@@ -112,27 +110,6 @@ def get_connection(module_name: str, connection: Optional[str] = None) -> str:
     module_config = module_config_cls.load()
 
     return module_config.connection or config.connection
-
-
-def get_git_hash() -> str:
-    """Get the PyBEL git hash."""
-    with open(os.devnull, 'w') as devnull:
-        try:
-            ret = subprocess.check_output(  # noqa: S603,S607
-                ['git', 'rev-parse', 'HEAD'],
-                cwd=os.path.dirname(__file__),
-                stderr=devnull,
-            )
-        except subprocess.CalledProcessError:
-            return 'UNHASHED'
-        else:
-            return ret.strip().decode('utf-8')[:8]
-
-
-def get_version(with_git_hash: bool = False):
-    """Get the PyBEL version string, including a git hash."""
-    return f'{VERSION}-{get_git_hash()}' if with_git_hash else VERSION
-
 
 
 def get_bio2bel_modules() -> Mapping[str, types.ModuleType]:
