@@ -270,7 +270,7 @@ def write_belns(connection, skip, directory, force):
         click.secho(name, fg='cyan', bold=True)
         if force:
             try:
-                click.echo(f'dropping')
+                click.echo('dropping')
                 manager.drop_all()
                 click.echo('clearing cache')
                 clear_cache(name)
