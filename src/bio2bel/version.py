@@ -15,7 +15,7 @@ VERSION = '0.3.7-dev'
 
 
 def get_git_hash() -> str:
-    """Get the PyBEL git hash."""
+    """Get the Bio2BEL git hash."""
     with open(os.devnull, 'w') as devnull:
         try:
             ret = subprocess.check_output(  # noqa: S603,S607
@@ -30,7 +30,7 @@ def get_git_hash() -> str:
 
 
 def get_version(with_git_hash: bool = False):
-    """Get the PyBEL version string, including a git hash."""
+    """Get the Bio2BEL version string, including a git hash."""
     return f'{VERSION}-{get_git_hash()}' if with_git_hash else VERSION
 
 
