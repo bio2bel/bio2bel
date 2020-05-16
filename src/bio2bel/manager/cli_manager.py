@@ -6,7 +6,7 @@ import logging
 
 import click
 
-from .. import get_version
+from ..version import get_version
 
 __all__ = [
     'CliMixin',
