@@ -3,7 +3,6 @@
 """PID Importer."""
 
 import logging
-from functools import lru_cache
 from itertools import product
 from typing import Iterable, Tuple
 
@@ -30,22 +29,12 @@ DIRECTORY = get_data_dir(MODULE_NAME)
 URL = 'https://github.com/NCIP/pathway-interaction-database/raw/master/download/NCI-Pathway-Info.xlsx'
 
 
-@lru_cache()
-def _get_hgnc_name_id_mapping():
-    return get_name_id_mapping('hgnc')
-
-
 def _get_hgnc_id_from_name(name):
-    return _get_hgnc_name_id_mapping().get(name)
-
-
-@lru_cache()
-def _get_hgnc_entrez_mapping():
-    return get_filtered_xrefs('hgnc', 'ncbigene')
+    return get_name_id_mapping('hgnc').get(name)
 
 
 def _map_hgnc_to_entrez(hgnc_id):
-    return _get_hgnc_name_id_mapping().get(hgnc_id)
+    return get_filtered_xrefs('hgnc', 'ncbigene').get(hgnc_id)
 
 
 def _get_gene_name(protein_id: str, web_fallback: bool = True):
