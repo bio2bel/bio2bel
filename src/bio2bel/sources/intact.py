@@ -21,8 +21,10 @@ or `aminoacylation reaction <https://www.ebi.ac.uk/ols/ontologies/mi/terms?iri=h
 
 Therefore, other vocabularies like the `Gene Ontology (GO) <https://www.ebi.ac.uk/QuickGO/>`_ or the
 `Molecular Process Ontology (MOP) <https://www.ebi.ac.uk/ols/ontologies/mop>`_ were used to find corresponding
-interaction terms. These terms were then annotated with the name, namespace and identifier. The following tables shows
-examples of how the interactions from IntAct were mapped to BEL.
+interaction terms. These terms were then annotated with the name, namespace and identifier.
+IntAct uses the `PSI-MI <https://psicquic.github.io/MITAB25Format.html>`_
+(Proteomics Standards Initiative - Molecular Interactions Controlled Vocabulary) format to identify interaction types
+The following tables shows examples of how the interactions from IntAct were mapped to BEL or other ontologies.
 
 +-------------+-------------+----------------------------------------------------------------------+-------------------------------------------------------------+
 | Source Type | Target Type | Interaction Type                                                     | BEL Example                                                 |
@@ -159,6 +161,16 @@ enhance the prediction quality of the model.
 
 IntAct also gives internal accession numbers to some complexes, but there are no mappings from IntAct to other
 preferred resources like ComplexPortal yet. Therefore, these complexes are not taken into account in this module here.
+For further information on this matter please follow the ongoing dicussion on
+`Twitter <https://twitter.com/cthoyt/status/1252345260740456453>_`.
+
+Next to IntAct, there are also other data resources that make use of the `PSI-MI <https://psicquic.github.io/MITAB25Format.html>`_
+format:
+
+- `BioGRID <https://thebiogrid.org>`_, `Article: <https://academic.oup.com/nar/article/41/D1/D816/1064185>`_
+-  Biomolecular Interaction Network Database (BIND), `Article: <https://academic.oup.com/database/article/doi/10.1093/database/baq037/461120>`_
+- `Human Protein Reference Database (HPRD) <http://www.hprd.org>`_, `Article: <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1347503/>`_
+- `Database of Interacting Proteins (DIP) <http://dip.doe-mbi.ucla.edu>`_, `Article: `<https://www.ncbi.nlm.nih.gov/pmc/articles/PMC102387/>`_
 
 Summary statistics of the BEL graph generated in the IntAct module:
 
@@ -848,6 +860,22 @@ def create_table():
             if tmp_df.empty:
                 continue
 
+            # add protein modification abbreviation
+            if interaction in PROTEIN_INCREASES_MOD_DICT:
+                prot_mod = PROTEIN_INCREASES_MOD_DICT[interaction]
+
+            elif interaction in PROTEIN_DECREASES_MOD_DICT:
+                prot_mod = PROTEIN_DECREASES_MOD_DICT[interaction]
+
+            else:
+                prot_mod = '-'
+
+            # add activities
+            if interaction in SUBJECT_ACTIVITIES:
+                activity = SUBJECT_ACTIVITIES[interaction]
+            else:
+                activity = '-'
+
             source = 'Protein'
             target = 'Protein'
 
@@ -878,6 +906,8 @@ def create_table():
                     'Target Type': target,
                     'Interaction Type': interaction,
                     'BEL Example': bel_example,
+                    'ProteinModification': prot_mod,
+                    'Activity': activity,
                 }
             )
 
@@ -888,5 +918,5 @@ def create_table():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    get_bel().summarize()
-
+    #get_bel().summarize()
+    create_table()
