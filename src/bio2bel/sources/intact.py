@@ -157,8 +157,8 @@ would not be activated by the source. A future improvement would be to map this 
 In machine learning tasks like link prediction in graphs these negative edges could be used as negative samples to
 enhance the prediction quality of the model.
 
-Complexes are also used in IntAct and documented with an internal IntAct ID. These complexes were not taken into account
-in this module here.
+IntAct also gives internal accession numbers to some complexes, but there are no mappings from IntAct to other
+preferred resources like ComplexPortal yet. Therefore, these complexes are not taken into account in this module here.
 
 Summary statistics of the BEL graph generated in the IntAct module:
 
@@ -887,7 +887,6 @@ def create_table():
 
 
 if __name__ == '__main__':
-    # logging.basicConfig(level=logging.INFO)
-    # get_bel().summarize()
+    logging.basicConfig(level=logging.INFO)
+    get_bel().summarize()
 
-   create_table()

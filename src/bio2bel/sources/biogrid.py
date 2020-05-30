@@ -310,10 +310,59 @@ def _add_my_row(
         raise ValueError(f'Unhandled BioGrid relation: {relation}')
 
 
+def create_table_biogrid():
+    df = get_processed_biogrid()
+
+    d = []
+    for interaction_set, bel_relation in zip(
+            [BIOGRID_BINDS_ACTIONS, BIOGRID_ASSOCIATION_ACTIONS, BIOGRID_GENE_ASSOCIATION],
+            ['hasComponent', 'association', 'association']
+    ):
+
+        for interaction in interaction_set:
+            tmp_df = df[df['#ID Interactor A'] == interaction]
+
+            if tmp_df.empty:
+                continue
+
+            source = 'Protein'
+            target = 'Protein'
+
+            source_type = 'p'
+            target_type = 'p'
+
+            if interaction in BIOGRID_GENE_ASSOCIATION:
+                source = 'Gene'
+                source_type = 'g'
+                target = 'Gene'
+                target_type = 'g'
+
+            source_identifier = tmp_df['#ID Interactor A'].iloc[0]
+
+            target_identifier = tmp_df['ID Interactor B'].iloc[0]
+
+            bel_example = f'{source_type}{source_identifier} {bel_relation} {target_type}{target_identifier}'
+
+            d.append(
+                {
+                    'Source Type': source,
+                    'Target Type': target,
+                    'Interaction Type': interaction,
+                    'BEL Example': bel_example,
+                }
+            )
+
+    biogrid_df = pd.DataFrame(d)
+
+    biogrid_df.to_csv('/Users/sophiakrix/Desktop/biogrid_df.csv')
+
+
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    """logging.basicConfig(level=logging.INFO)
     _graph = get_bel()
     _graph.summarize()
     import os
 
-    pybel.dump(_graph, os.path.expanduser('~/Desktop/biogrid.bel.nodelink.json'))
+    pybel.dump(_graph, os.path.expanduser('~/Desktop/biogrid.bel.nodelink.json'))"""
+
+    b = get_processed_biogrid()
