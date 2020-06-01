@@ -844,7 +844,7 @@ def _add_row(
         raise ValueError(f"Unspecified relation {relation} between {source} and {target}")
 
 
-def create_table():
+def _create_table():
     df = get_processed_intact_df()
 
     d = []

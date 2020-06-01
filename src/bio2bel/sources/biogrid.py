@@ -310,7 +310,7 @@ def _add_my_row(
         raise ValueError(f'Unhandled BioGrid relation: {relation}')
 
 
-def create_table_biogrid():
+def _create_table_biogrid():
     df = get_processed_biogrid()
 
     d = []
