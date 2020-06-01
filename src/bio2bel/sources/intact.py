@@ -917,6 +917,4 @@ def create_table():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    #get_bel().summarize()
     create_table()
