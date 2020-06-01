@@ -194,18 +194,18 @@ Summary statistics of the BEL graph generated in the IntAct module:
 
 import logging
 from collections import Counter
+from functools import lru_cache
+from typing import Mapping, Optional, Tuple
 from zipfile import ZipFile
 
 import pandas as pd
-import pybel.dsl
 import pyobo.xrefdb.sources.intact
-from functools import lru_cache
 from protmapper.uniprot_client import get_mnemonic
+from tqdm import tqdm
+
+import pybel.dsl
 from pybel import BELGraph
 from pybel.dsl import GeneModification, ProteinModification
-from tqdm import tqdm
-from typing import Mapping, Optional, Tuple
-
 from ..utils import ensure_path
 
 __all__ = [
