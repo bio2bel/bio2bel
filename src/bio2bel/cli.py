@@ -15,7 +15,8 @@ from .manager import AbstractManager, get_bio2bel_manager_classes
 from .manager.bel_manager import BELManagerMixin
 from .manager.namespace_manager import BELNamespaceManagerMixin
 from .models import Action, _make_session
-from .utils import clear_cache, get_version
+from .utils import clear_cache
+from .version import get_version
 
 logger = logging.getLogger(__name__)
 
@@ -269,7 +270,7 @@ def write_belns(connection, skip, directory, force):
         click.secho(name, fg='cyan', bold=True)
         if force:
             try:
-                click.echo(f'dropping')
+                click.echo('dropping')
                 manager.drop_all()
                 click.echo('clearing cache')
                 clear_cache(name)

@@ -14,7 +14,7 @@ from urllib.request import urlretrieve
 from easy_config import EasyConfig
 from pkg_resources import UnknownExtra, VersionConflict, iter_entry_points
 
-from .constants import BIO2BEL_DIR, DEFAULT_CONFIG_DIRECTORY, DEFAULT_CONFIG_PATHS, VERSION, config
+from .constants import BIO2BEL_DIR, DEFAULT_CONFIG_DIRECTORY, DEFAULT_CONFIG_PATHS, config
 
 __all__ = [
     'get_data_dir',
@@ -22,7 +22,6 @@ __all__ = [
     'get_url_filename',
     'ensure_path',
     'get_connection',
-    'get_version',
     'get_bio2bel_modules',
     'clear_cache',
 ]
@@ -111,11 +110,6 @@ def get_connection(module_name: str, connection: Optional[str] = None) -> str:
     module_config = module_config_cls.load()
 
     return module_config.connection or config.connection
-
-
-def get_version() -> str:
-    """Get the software version of Bio2BEL."""
-    return VERSION
 
 
 def get_bio2bel_modules() -> Mapping[str, types.ModuleType]:

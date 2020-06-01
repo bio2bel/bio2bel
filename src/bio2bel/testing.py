@@ -165,8 +165,9 @@ class AbstractTemporaryCacheClassMixin(TemporaryConnectionMixin):
         """
 
 
-def make_temporary_cache_class_mixin(manager_cls: Type[AbstractManager]) -> Type[
-    AbstractTemporaryCacheClassMixin]:  # noqa: D202
+def make_temporary_cache_class_mixin(
+    manager_cls: Type[AbstractManager],
+) -> Type[AbstractTemporaryCacheClassMixin]:  # noqa: D202
     """Build a testing class that has a Bio2BEL manager instance ready to go."""
 
     class TemporaryCacheClassMixin(AbstractTemporaryCacheClassMixin):
