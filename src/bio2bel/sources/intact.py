@@ -894,9 +894,9 @@ def _create_table():
                 target_type = 'r'
 
             source_identifier = tmp_df['#ID(s) interactor A'].iloc[0]
-            print('INTERACTOR A:', type(source_identifier), source_identifier)
+            logger.debug('INTERACTOR A: %s %s', type(source_identifier), source_identifier)
             target_identifier = tmp_df['ID(s) interactor B'].iloc[0]
-            print('INTERACTOR B:', type(target_identifier), target_identifier)
+            logger.debug('INTERACTOR B: %s %s', type(target_identifier), target_identifier)
 
             bel_example = f'{source_type}{source_identifier} {bel_relation} {target_type}{target_identifier}'
 
