@@ -316,7 +316,7 @@ def create_table_biogrid():
     d = []
     for interaction_set, bel_relation in zip(
             [BIOGRID_BINDS_ACTIONS, BIOGRID_ASSOCIATION_ACTIONS, BIOGRID_GENE_ASSOCIATION],
-            ['hasComponent', 'association', 'association']
+            ['hasComponent', 'association', 'association'],
     ):
 
         for interaction in interaction_set:

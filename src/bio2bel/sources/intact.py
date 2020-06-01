@@ -851,7 +851,7 @@ def create_table():
     for interaction_set, bel_relation in zip(
         [INTACT_INCREASES_ACTIONS, INTACT_DECREASES_ACTIONS, INTACT_ASSOCIATION_ACTIONS, INTACT_REGULATES_ACTIONS,
          INTACT_BINDS_ACTIONS],
-        ['increases', 'decreases', 'association', 'regulates', 'hasComponent']
+        ['increases', 'decreases', 'association', 'regulates', 'hasComponent'],
     ):
 
         for interaction in interaction_set:
@@ -884,7 +884,7 @@ def create_table():
 
             if interaction in [
                 'psi-mi:"MI:0701"(dna strand elongation)',
-                'psi-mi:"MI:0572"(dna cleavage)'
+                'psi-mi:"MI:0572"(dna cleavage)',
             ]:
                 target = 'Gene'
                 target_type = 'g'
@@ -900,16 +900,14 @@ def create_table():
 
             bel_example = f'{source_type}{source_identifier} {bel_relation} {target_type}{target_identifier}'
 
-            d.append(
-                {
-                    'Source Type': source,
-                    'Target Type': target,
-                    'Interaction Type': interaction,
-                    'BEL Example': bel_example,
-                    'ProteinModification': prot_mod,
-                    'Activity': activity,
-                }
-            )
+            d.append({
+                'Source Type': source,
+                'Target Type': target,
+                'Interaction Type': interaction,
+                'BEL Example': bel_example,
+                'ProteinModification': prot_mod,
+                'Activity': activity,
+            })
 
     intact_df = pd.DataFrame(d)
 
