@@ -532,13 +532,13 @@ def get_bel() -> BELGraph:
     graph = BELGraph(name=MODULE_NAME, version=VERSION)
     it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'mapping {MODULE_NAME}', unit_scale=True)
     for (
-            (source_prefix, source_id),
-            (target_prefix, target_id),
-            relation,
-            pubmed_id,
-            detection_method,
-            source_db,
-            confidence,
+        (source_prefix, source_id),
+        (target_prefix, target_id),
+        relation,
+        pubmed_id,
+        detection_method,
+        source_db,
+        confidence,
     ) in it:
         _add_row(
             graph,
@@ -556,16 +556,16 @@ def get_bel() -> BELGraph:
 
 
 def _add_row(
-        graph: BELGraph,
-        relation: str,
-        source_prefix: str,
-        source_id: str,
-        target_prefix: str,
-        target_id: str,
-        pubmed_id: str,
-        int_detection_method: str,
-        source_database: str,
-        confidence: str,
+    graph: BELGraph,
+    relation: str,
+    source_prefix: str,
+    source_id: str,
+    target_prefix: str,
+    target_id: str,
+    pubmed_id: str,
+    int_detection_method: str,
+    source_database: str,
+    confidence: str,
 ) -> None:  # noqa:C901
     """Add for every PubMed ID an edge with information about relationship type, source and target.
 
@@ -849,9 +849,9 @@ def create_table():
 
     d = []
     for interaction_set, bel_relation in zip(
-            [INTACT_INCREASES_ACTIONS, INTACT_DECREASES_ACTIONS, INTACT_ASSOCIATION_ACTIONS, INTACT_REGULATES_ACTIONS,
-             INTACT_BINDS_ACTIONS],
-            ['increases', 'decreases', 'association', 'regulates', 'hasComponent']
+        [INTACT_INCREASES_ACTIONS, INTACT_DECREASES_ACTIONS, INTACT_ASSOCIATION_ACTIONS, INTACT_REGULATES_ACTIONS,
+         INTACT_BINDS_ACTIONS],
+        ['increases', 'decreases', 'association', 'regulates', 'hasComponent']
     ):
 
         for interaction in interaction_set:
