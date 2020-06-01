@@ -164,13 +164,12 @@ preferred resources like ComplexPortal yet. Therefore, these complexes are not t
 For further information on this matter please follow the ongoing dicussion on
 `Twitter <https://twitter.com/cthoyt/status/1252345260740456453>_`.
 
-Next to IntAct, there are also other data resources that make use of the `PSI-MI <https://psicquic.github.io/MITAB25Format.html>`_
-format:
+Next to IntAct and BioGRID, there are also other data resources that make use of the
+`PSI-MI 2.5 format <https://psicquic.github.io/MITAB25Format.html>`_:
 
-- `BioGRID <https://thebiogrid.org>`_, `Article: <https://academic.oup.com/nar/article/41/D1/D816/1064185>`_
--  Biomolecular Interaction Network Database (BIND), `Article: <https://academic.oup.com/database/article/doi/10.1093/database/baq037/461120>`_
-- `Human Protein Reference Database (HPRD) <http://www.hprd.org>`_, `Article: <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1347503/>`_
-- `Database of Interacting Proteins (DIP) <http://dip.doe-mbi.ucla.edu>`_, `Article: `<https://www.ncbi.nlm.nih.gov/pmc/articles/PMC102387/>`_
+- Biomolecular Interaction Network Database (BIND) [bind]_
+- `Human Protein Reference Database (HPRD) <http://www.hprd.org>`_ [hprd]_
+- `Database of Interacting Proteins (DIP) <http://dip.doe-mbi.ucla.edu>`_ [dip]_
 
 Summary statistics of the BEL graph generated in the IntAct module:
 
@@ -190,6 +189,9 @@ Summary statistics of the BEL graph generated in the IntAct module:
 | Density:   | 1.29E-04   |
 +------------+------------+
 
+.. [bind] https://academic.oup.com/database/article/doi/10.1093/database/baq037/461120
+.. [hprd] https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1347503/
+.. [dip] https://www.ncbi.nlm.nih.gov/pmc/articles/PMC102387/
 """
 
 import logging
