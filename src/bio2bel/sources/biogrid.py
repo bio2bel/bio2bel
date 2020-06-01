@@ -343,14 +343,12 @@ def _create_table_biogrid():
 
             bel_example = f'{source_type}{source_identifier} {bel_relation} {target_type}{target_identifier}'
 
-            d.append(
-                {
-                    'Source Type': source,
-                    'Target Type': target,
-                    'Interaction Type': interaction,
-                    'BEL Example': bel_example,
-                }
-            )
+            d.append({
+                'Source Type': source,
+                'Target Type': target,
+                'Interaction Type': interaction,
+                'BEL Example': bel_example,
+            })
 
     biogrid_df = pd.DataFrame(d)
 
