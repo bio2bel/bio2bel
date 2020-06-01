@@ -32,7 +32,7 @@ class CompathPathwayMixin:
     #: The species for which the pathway is relevant
     species: SpeciesMixin
 
-    def get_gene_set(self) -> Set[str]:
+    def get_hgnc_symbols(self) -> Set[str]:
         """Return the set of HGNC gene symbols of human genes associated with the pathway (gene set)."""
         return {
             protein.hgnc_symbol
