@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
-"""Download and convert BioGRID to BEL.
+"""Download and convert `BioGRID <https://thebiogrid.org>`_ to BEL.
 
 Run this script with ``python -m bio2bel.sources.biogrid``
 
-The interaction information contained in `BioGRID <https://thebiogrid.org>`_ can be categorized into protein
+The interaction information contained in  can be categorized into protein
 interactions, genetic interactions, chemical associations, and post-translational modifications. BioGRID includes
 information from major model organisms and humans.
-
 
 The file downloaded from BioGRID is a zip archive containing a single file formatted in `PSI MITAB level 2.5
 <https://wiki.thebiogrid.org/doku.php/psi_mitab_file>`_ compatible Tab Delimited Text file format, containing all
 interaction and associated annotation data.
-
 
 The interaction types in BioGRID were in the `PSI-MI <https://psicquic.github.io/MITAB25Format.html>`_
 (Proteomics Standards Initiative - Molecular Interactions Controlled Vocabulary) format and were mapped to BEL
@@ -48,17 +46,20 @@ Summary statistics of the BEL graph generated in the BioGRID module:
 """
 
 import logging
+import os
 from functools import lru_cache
 from typing import Iterable, List, Optional, Tuple
 
+import click
 import pandas as pd
 import pyobo.sources.biogrid
+from pyobo.cli_utils import verbose_option
 from pyobo.identifier_utils import normalize_curie
 from tqdm import tqdm
 
 import pybel.dsl
 from pybel import BELGraph
-from ..utils import ensure_path
+from ..utils import ensure_path, get_data_dir
 
 __all__ = [
     'get_bel',
@@ -69,7 +70,7 @@ logger = logging.getLogger(__name__)
 EVIDENCE = 'From BioGRID'
 MODULE_NAME = 'biogrid'
 
-VERSION = '3.5.183'
+VERSION = '3.5.186'
 BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
 URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
 
@@ -135,6 +136,7 @@ UNIPROT_NCBIGENE_REMAPPING = {
     'P0DTC1': None,  # SARS-CoV2 protein https://swissmodel.expasy.org/repository/uniprot/P0DTC1
     # TODO checkme
     'P0DTD2': '1489679',  # SARS-CoV2 protein https://swissmodel.expasy.org/repository/uniprot/P0DTD2
+    'Q7TLC7': None,  # SARS-CoV protein
 }
 
 
@@ -239,7 +241,7 @@ def get_bel() -> BELGraph:
     """Get a BEL graph for BioGRID."""
     df = get_processed_biogrid()
     graph = BELGraph(name='BioGRID', version=VERSION)
-    it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'mapping {MODULE_NAME}', unit_scale=True)
+    it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'Convering {MODULE_NAME} to BEL', unit_scale=True)
     for source_ncbigene_id, target_ncbigene_id, relation, pubmed_id, detection_method, source_db, confidence in it:
         if pd.isna(source_ncbigene_id) or pd.isna(target_ncbigene_id):
             continue
@@ -350,17 +352,25 @@ def _create_table_biogrid():
                 'BEL Example': bel_example,
             })
 
-    biogrid_df = pd.DataFrame(d)
+    return pd.DataFrame(d)
 
-    biogrid_df.to_csv('/Users/sophiakrix/Desktop/biogrid_df.csv')
+
+@click.command()
+@verbose_option
+@click.option(
+    '-o', '--output',
+    default=os.path.join(get_data_dir(MODULE_NAME), 'biogrid.bel.nodelink.json.gz'),
+    show_default=True,
+)
+def main(output: Optional[str]):
+    """Convert and summarize BioGRID."""
+    click.echo('Converting')
+    graph = get_bel()
+    click.echo('Summarizing')
+    click.echo(graph.summary_str())
+    click.echo('Outputting')
+    pybel.dump(graph, output)
 
 
 if __name__ == '__main__':
-    """logging.basicConfig(level=logging.INFO)
-    _graph = get_bel()
-    _graph.summarize()
-    import os
-
-    pybel.dump(_graph, os.path.expanduser('~/Desktop/biogrid.bel.nodelink.json'))"""
-
-    b = get_processed_biogrid()
+    main()
