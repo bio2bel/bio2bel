@@ -46,6 +46,7 @@ Summary statistics of the BEL graph generated in the BioGRID module:
 """
 
 import logging
+import os
 from functools import lru_cache
 from typing import Iterable, List, Optional, TextIO, Tuple
 
@@ -58,7 +59,7 @@ from tqdm import tqdm
 
 import pybel.dsl
 from pybel import BELGraph
-from ..utils import ensure_path
+from ..utils import ensure_path, get_data_dir
 
 __all__ = [
     'get_bel',
@@ -69,7 +70,7 @@ logger = logging.getLogger(__name__)
 EVIDENCE = 'From BioGRID'
 MODULE_NAME = 'biogrid'
 
-VERSION = '3.5.183'
+VERSION = '3.5.186'
 BASE_URL = 'https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive'
 URL = f'{BASE_URL}/BIOGRID-{VERSION}/BIOGRID-ALL-{VERSION}.mitab.zip'
 
@@ -135,6 +136,7 @@ UNIPROT_NCBIGENE_REMAPPING = {
     'P0DTC1': None,  # SARS-CoV2 protein https://swissmodel.expasy.org/repository/uniprot/P0DTC1
     # TODO checkme
     'P0DTD2': '1489679',  # SARS-CoV2 protein https://swissmodel.expasy.org/repository/uniprot/P0DTD2
+    'Q7TLC7': None,  # SARS-CoV protein
 }
 
 
@@ -239,7 +241,7 @@ def get_bel() -> BELGraph:
     """Get a BEL graph for BioGRID."""
     df = get_processed_biogrid()
     graph = BELGraph(name='BioGRID', version=VERSION)
-    it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'mapping {MODULE_NAME}', unit_scale=True)
+    it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'Convering {MODULE_NAME} to BEL', unit_scale=True)
     for source_ncbigene_id, target_ncbigene_id, relation, pubmed_id, detection_method, source_db, confidence in it:
         if pd.isna(source_ncbigene_id) or pd.isna(target_ncbigene_id):
             continue
@@ -355,13 +357,19 @@ def _create_table_biogrid():
 
 @click.command()
 @verbose_option
-@click.option('-o', '--output')
+@click.option(
+    '-o', '--output',
+    default=os.path.join(get_data_dir(MODULE_NAME), 'biogrid.bel.nodelink.json.gz'),
+    show_default=True,
+)
 def main(output: Optional[str]):
     """Convert and summarize BioGRID."""
+    click.echo('Converting')
     graph = get_bel()
+    click.echo('Summarizing')
     click.echo(graph.summary_str())
-    if output is not None:
-        pybel.dump(graph, output)
+    click.echo('Outputting')
+    pybel.dump(graph, output)
 
 
 if __name__ == '__main__':
