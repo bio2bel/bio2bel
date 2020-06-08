@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 TestBase = declarative_base()
 
 NUMBER_TEST_MODELS = 5
-TEST_MODEL_ID_FORMAT = 'MODEL:{}'
+TEST_MODEL_ID_FORMAT = 'MODEL:{}'  # noqa:FS003
 TEST_MODEL_NAME_FORMAT = '{0}{0}{0}{0}{0}'
 
 
