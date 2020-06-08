@@ -12,3 +12,4 @@ Contributors
 - `Ben Gyori <https://github.com/bgyori>`_
 - `John Bachman <https://github.com/johnbachman>`_
 - `Bruce Schultz <https://github.com/brucetony>`_
+- `Sophia Krix <https://github.com/sophiakrix>`_
