@@ -4,17 +4,20 @@
 
 from __future__ import annotations
 
-import itertools as itt
 import logging
 import os
 import types
+import typing
 from collections import Counter
 from typing import Iterable, List, Mapping, Optional, Set, Tuple, Type
 
 import click
 from pyobo.io_utils import multidict
-from sqlalchemy import func
+from sqlalchemy import func, or_
+from tqdm import tqdm
 
+import pybel
+import pybel.dsl
 from pybel import BELGraph
 from pybel.manager.models import Namespace, NamespaceEntry
 from .exc import CompathManagerPathwayModelError, CompathManagerProteinModelError
@@ -89,13 +92,6 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         """List the proteins in the database."""
         return self._query_protein().all()
 
-    def get_protein_by_hgnc_symbol(self, hgnc_symbol: str) -> Optional[CompathProteinMixin]:
-        """Get a protein by its HGNC gene symbol.
-
-        :param hgnc_symbol: HGNC gene symbol
-        """
-        return self._query_protein().filter(self.protein_model.hgnc_symbol == hgnc_symbol).one_or_none()
-
     def summarize(self) -> Mapping[str, int]:
         """Summarize the database."""
         return {
@@ -103,53 +99,80 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
             'proteins': self.count_proteins(),
         }
 
-    def _query_proteins_in_hgnc_list(self, gene_set: Iterable[str]) -> List[CompathProteinMixin]:
+    def get_protein_by_hgnc_symbol(self, hgnc_symbol: str) -> Optional[CompathProteinMixin]:
+        """Get a protein by its HGNC gene symbol.
+
+        :param hgnc_symbol: HGNC gene symbol
+        """
+        return self._help_get_protein(self.protein_model.hgnc_symbol, hgnc_symbol)
+
+    def get_protein_by_hgnc_id(self, hgnc_id: str) -> Optional[CompathProteinMixin]:
+        """Get a protein by its HGNC gene identifier.
+
+        :param hgnc_id: HGNC gene identifier
+        """
+        return self._help_get_protein(self.protein_model.hgnc_id, hgnc_id)
+
+    def _help_get_protein(self, protein_column, query: str) -> Optional[CompathProteinMixin]:
+        return self._query_protein().filter(protein_column == query).one_or_none()
+
+    def get_proteins_by_hgnc_symbols(self, hgnc_symbols: Iterable[str]) -> List[CompathProteinMixin]:
         """Return the proteins in the database within the gene set query.
 
-        :param gene_set: hgnc symbol lists
-        :return: list of proteins models
+        :param hgnc_symbols: HGNC gene symbols
         """
-        return self._query_protein().filter(self.protein_model.hgnc_symbol.in_(gene_set)).all()
+        return self._help_get_proteins(self.protein_model.hgnc_symbol, hgnc_symbols)
 
-    def query_similar_hgnc_symbol(self, hgnc_symbol: str, top: Optional[int] = None) -> Optional[CompathPathwayMixin]:
-        """Filter genes by hgnc symbol.
+    def get_proteins_by_hgnc_ids(self, hgnc_ids: Iterable[str]) -> List[CompathProteinMixin]:
+        """Return the proteins in the database within the gene set query.
 
-        :param hgnc_symbol: hgnc_symbol to query
-        :param top: return only X entries
+        :param hgnc_ids: HGNC gene identifiers
         """
-        query = self._query_protein().filter(self.protein_model.hgnc_symbol.contains(hgnc_symbol))
+        return self._help_get_proteins(self.protein_model.hgnc_id, hgnc_ids)
 
-        if top:
-            query = query.limit(top)
+    def _help_get_proteins(self, protein_column, queries: Iterable[str]) -> List[CompathProteinMixin]:
+        return self._query_protein().filter(protein_column.in_(queries)).all()
 
-        return query.all()
+    def search_genes(self, query: str, *, limit: Optional[int] = None) -> Optional[CompathPathwayMixin]:
+        """Filter genes by HGNC gene symbol.
 
-    def query_similar_pathways(self, pathway_name: str, top: Optional[int] = None) -> List[Tuple[str, str]]:
-        """Filter pathways by name.
-
-        :param pathway_name: pathway name to query
-        :param top: return only X entries
+        :param query: part of an HGNC identifier or gene symbol
+        :param limit: limit number of results
         """
-        similar_pathways = self._query_pathway().filter(self.pathway_model.name.contains(pathway_name)).all()
+        _query = self._query_protein().filter(or_(
+            self.protein_model.hgnc_symbol.contains(query),
+            self.protein_model.hgnc_id.contains(query),
+        ))
 
-        similar_pathways = [
-            (pathway.resource_id, pathway.name)
-            for pathway in similar_pathways
-        ]
+        if limit:
+            _query = _query.limit(limit)
 
-        if top:
-            return similar_pathways[:top]
+        return _query.all()
 
-        return similar_pathways
+    def search_pathways(self, query: str, *, limit: Optional[int] = None) -> List[CompathPathwayMixin]:
+        """Return all pathways having the query in their names.
 
-    def query_gene(self, hgnc_gene_symbol: str) -> List[Tuple[str, str, int]]:
+        :param query: query string
+        :param limit: limit number of results
+        """
+        _query = self._query_pathway().filter(or_(
+            self.pathway_model.name.contains(query),
+            self.pathway_model.identifier.contains(query),
+        ))
+
+        if limit:
+            _query = _query.limit(limit)
+
+        return _query.all()
+
+    def query_hgnc_symbol(self, hgnc_symbol: str) -> List[Tuple[str, str, int]]:
         """Return the pathways associated with a gene.
 
-        :param hgnc_gene_symbol: HGNC gene symbol
+        :param hgnc_symbol: HGNC gene symbol
         :return: associated with the gene
         """
         # FIXME reimplement with better query
-        protein = self.get_protein_by_hgnc_symbol(hgnc_gene_symbol)
+        protein = self.get_protein_by_hgnc_symbol(hgnc_symbol)
         if protein is None:
             return []
 
@@ -160,26 +183,34 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
             pathway = self.get_pathway_by_id(pathway_id)
             if pathway is None:
                 continue
-            pathway_gene_set = pathway.get_gene_set()  # Pathway gene set
+            pathway_gene_set = pathway.get_hgnc_symbols()  # Pathway gene set
             enrichment_results.append((pathway_id, pathway.name, len(pathway_gene_set)))
 
         return enrichment_results
 
-    def query_gene_set(self, hgnc_gene_symbols: Iterable[str]) -> Mapping[str, Mapping]:
+    def get_pathways_by_hgnc_ids(self, hgnc_ids: Iterable[str]) -> Set[CompathPathwayMixin]:
+        """Get a set of pathways linked to a set of genes by HGNC identifiers."""
+        # TODO re-implement! This is terribly inefficient
+        return {
+            pathway
+            for protein in self.get_proteins_by_hgnc_ids(hgnc_ids)
+            for pathway in protein.pathways
+        }
+
+    def query_hgnc_symbols(self, hgnc_symbols: Iterable[str]) -> Mapping[str, Mapping]:
         """Calculate the pathway counter dictionary.
 
-        :param hgnc_gene_symbols: An iterable of HGNC gene symbols to be queried
+        :param hgnc_symbols: An iterable of HGNC gene symbols to be queried
         :return: Enriched pathways with mapped pathways/total
         """
-        proteins = self._query_proteins_in_hgnc_list(hgnc_gene_symbols)
-
-        pathways_lists = [
-            protein.get_pathways_ids()
-            for protein in proteins
-        ]
+        proteins = self.get_proteins_by_hgnc_symbols(hgnc_symbols)
 
         # Flat the pathways lists and applies Counter to get the number matches in every mapped pathway
-        pathway_counter = Counter(itt.chain.from_iterable(pathways_lists))
+        pathway_counter = Counter([
+            pathway
+            for protein in proteins
+            for pathway in protein.get_pathways_ids()
+        ])
 
         enrichment_results = {}
 
@@ -189,7 +220,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
                 logger.warning('could not find pathway %s', pathway_id)
                 continue
 
-            pathway_gene_set = pathway.get_gene_set()  # Pathway gene set
+            pathway_gene_set = pathway.get_hgnc_symbols()  # Pathway gene set
 
             enrichment_results[pathway_id] = {
                 "pathway_id": pathway_id,
@@ -202,27 +233,22 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         return enrichment_results
 
     def get_pathway_by_id(self, pathway_id: str) -> Optional[CompathPathwayMixin]:
-        """Get a pathway by its database-specific identifier. Not to be confused with the standard column called "id".
+        """Get a pathway by its database-specific identifier.
+
+        Not to be confused with the standard column called "id".
 
         :param pathway_id: Pathway identifier
         """
         return self._query_pathway().filter(self.pathway_model.identifier == pathway_id).one_or_none()
 
-    def get_pathway_by_name(self, pathway_name: str) -> Optional[CompathPathwayMixin]:
-        """Get a pathway by its database-specific name.
+    def get_pathways_by_name(self, pathway_name: str) -> List[CompathPathwayMixin]:
+        """Get a list of pathways by its database-specific name.
+
+        There might be multiple because of the same pathways in multiple species.
 
         :param pathway_name: Pathway name
         """
-        pathways = self._query_pathway().filter(self.pathway_model.name == pathway_name).all()
-
-        if not pathways:
-            return None
-
-        return pathways[0]
-
-    def get_all_pathways(self) -> List[CompathPathwayMixin]:
-        """Get all pathways stored in the database."""
-        return self._query_pathway().all()
+        return self._query_pathway().filter(self.pathway_model.name == pathway_name).all()
 
     def get_pathway_id_name_mapping(self) -> Mapping[str, str]:
         """Get all pathway identifiers to names."""
@@ -230,13 +256,13 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
 
     def get_all_pathway_names(self) -> List[str]:
         """Get all pathway names stored in the database."""
-        return self.session.query(self.pathway_model.name).all()
+        return [name for name, in self.session.query(self.pathway_model.name).all()]
 
     def get_all_hgnc_symbols(self) -> Set[str]:
         """Return the set of genes present in all Pathways."""
         return {
             gene.hgnc_symbol
-            for pathway in self.get_all_pathways()
+            for pathway in self.list_pathways()
             for gene in pathway.proteins
             if pathway.proteins
         }
@@ -271,46 +297,37 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
                 .all()  # noqa:C812
         )
 
-    def get_pathway_size_distribution(self) -> Mapping[str, int]:
+    def get_pathway_size_distribution(self) -> typing.Counter[str]:
         """Map pathway identifier to the size of each pathway."""
         return self._help_get_pathway_size_distribution(self.protein_model.hgnc_id)
 
-    def _help_get_pathway_size_distribution(self, protein_column):
-        return dict(
+    def _help_get_pathway_size_distribution(self, protein_column) -> typing.Counter[str]:
+        return Counter(dict(
             self.session
                 .query(self.pathway_model.identifier, func.count(protein_column))
                 .join(self.pathway_model.proteins)
                 .group_by(self.pathway_model.identifier)
                 .having(func.count(protein_column) > 0)
                 .all()  # noqa:C812
-        )
+        ))
 
-    def get_gene_size_distribution(self) -> Mapping[str, int]:
+    def get_hgnc_symbol_size_distribution(self) -> typing.Counter[str]:
+        """Map HGNC gene symbol to number of pathways associated with each."""
+        return self._help_get_gene_size_distribution(self.protein_model.hgnc_symbol)
+
+    def get_hgnc_id_size_distribution(self) -> typing.Counter[str]:
         """Map HGNC gene identifier to number of pathways associated with each."""
         return self._help_get_gene_size_distribution(self.protein_model.hgnc_id)
 
-    def _help_get_gene_size_distribution(self, protein_column):
-        return dict(
+    def _help_get_gene_size_distribution(self, protein_column) -> typing.Counter[str]:
+        return Counter(dict(
             self.session
                 .query(protein_column, func.count(self.pathway_model.identifier))
                 .join(self.protein_model.pathways)
                 .group_by(protein_column)
                 .having(func.count(protein_column) > 0)
                 .all()  # noqa:C812
-        )
-
-    def query_pathway_by_name(self, query: str, limit: Optional[int] = None) -> List[CompathPathwayMixin]:
-        """Return all pathways having the query in their names.
-
-        :param query: query string
-        :param limit: limit result query
-        """
-        q = self._query_pathway().filter(self.pathway_model.name.contains(query))
-
-        if limit:
-            q = q.limit(limit)
-
-        return q.all()
+        ))
 
     def _create_namespace_entry_from_model(self, model: CompathPathwayMixin, namespace: Namespace) -> NamespaceEntry:
         """Create a namespace entry from the model."""
@@ -357,7 +374,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         if pathway is None:
             return None
 
-        graph = BELGraph(name=f'{pathway.name} graph')
+        graph = BELGraph(name=str(pathway))
         pathway.add_to_bel_graph(graph)
         return graph
 
@@ -368,10 +385,32 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
             version='1.0.0',
         )
 
-        for pathway in self._query_pathway():
+        for pathway in tqdm(self._query_pathway(), total=self.count_pathways()):
             pathway.add_to_bel_graph(graph)
 
         return graph
+
+    def enrich_pathways(self, graph: BELGraph) -> None:
+        """Enrich all proteins belonging to pathway nodes in the graph."""
+        pathway_identifiers = {
+            node.identifier
+            for node in graph
+            if isinstance(node,
+                          pybel.dsl.BiologicalProcess) and node.namespace.lower() == self.module_name and node.identifier
+        }
+        for pathway_identifier in pathway_identifiers:
+            pathway = self.get_pathway_by_id(pathway_identifier)
+            pathway.add_to_bel_graph(graph)
+
+    def enrich_proteins(self, graph: BELGraph) -> None:
+        """Enrich all pathways associated with proteins in the graph."""
+        hgnc_ids = {
+            node.identifier
+            for node in graph
+            if isinstance(node, pybel.dsl.CentralDogma) and node.namespace.lower() == 'hgnc' and node.identifier
+        }
+        for pathway in self.get_pathways_by_hgnc_ids(hgnc_ids):
+            pathway.add_to_bel_graph(graph)
 
 
 def get_compath_modules() -> Mapping[str, types.ModuleType]:

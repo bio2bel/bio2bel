@@ -46,7 +46,7 @@ class ManagerMissingPathway(ManagerMissingFunctions):
         """Export as BEL."""
         pass
 
-    def query_gene_set(self, gene_set):
+    def query_hgnc_symbols(self, gene_set):
         """Find pathways with genes in the given set."""
         pass
 

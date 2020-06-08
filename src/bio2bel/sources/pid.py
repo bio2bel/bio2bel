@@ -243,6 +243,7 @@ class Pathway(Base, CompathPathwayMixin):
 
     __tablename__ = PATHWAY_TABLE
 
+    prefix = 'pid.pathway'
     id = Column(Integer, primary_key=True)  # noqa:A003
 
     identifier = Column(String(255), doc='HGNC gene family id of the protein')

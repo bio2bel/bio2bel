@@ -8,12 +8,21 @@ import click
 from easy_config import EasyConfig
 
 _USER_CONFIG_DIRECTORY = os.path.abspath(os.path.join(os.path.expanduser('~'), '.config'))
-DEFAULT_CONFIG_DIRECTORY = os.path.join(_USER_CONFIG_DIRECTORY, 'bio2bel')
 DEFAULT_CONFIG_PATHS = [
     'bio2bel.cfg',
-    os.path.join(DEFAULT_CONFIG_DIRECTORY, 'config.ini'),
-    os.path.join(DEFAULT_CONFIG_DIRECTORY, 'bio2bel.cfg'),
+    'bio2bel.ini',
+    'pybel.cfg',
+    'pybel.ini',
+    os.path.join(_USER_CONFIG_DIRECTORY, 'bio2bel.ini'),
+    os.path.join(_USER_CONFIG_DIRECTORY, 'bio2bel.cfg'),
+    os.path.join(_USER_CONFIG_DIRECTORY, 'bio2bel', 'config.ini'),
+    os.path.join(_USER_CONFIG_DIRECTORY, 'bio2bel', 'bio2bel.cfg'),
+    os.path.join(_USER_CONFIG_DIRECTORY, 'bio2bel', 'bio2bel.ini'),
+    os.path.join(_USER_CONFIG_DIRECTORY, 'pybel.ini'),
+    os.path.join(_USER_CONFIG_DIRECTORY, 'pybel.cfg'),
     os.path.join(_USER_CONFIG_DIRECTORY, 'pybel', 'config.ini'),
+    os.path.join(_USER_CONFIG_DIRECTORY, 'pybel', 'pybel.cfg'),
+    os.path.join(_USER_CONFIG_DIRECTORY, 'pybel', 'pybel.ini'),
 ]
 
 
