@@ -7,18 +7,19 @@ from __future__ import annotations
 import logging
 import os
 import types
+import typing
 from collections import Counter
 from typing import Iterable, List, Mapping, Optional, Set, Tuple, Type
 
 import click
+from pyobo.io_utils import multidict
 from sqlalchemy import func, or_
 from tqdm import tqdm
-import typing
+
 import pybel
 import pybel.dsl
 from pybel import BELGraph
 from pybel.manager.models import Namespace, NamespaceEntry
-from pyobo.io_utils import multidict
 from .exc import CompathManagerPathwayModelError, CompathManagerProteinModelError
 from .mixins import CompathPathwayMixin, CompathProteinMixin
 from .utils import write_dict
