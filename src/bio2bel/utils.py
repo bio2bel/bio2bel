@@ -7,14 +7,13 @@ import logging
 import os
 import shutil
 import types
-from typing import Iterable, Mapping, Optional, Tuple, Type
+from typing import Iterable, Mapping, Optional, Tuple
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
 
-from easy_config import EasyConfig
 from pkg_resources import UnknownExtra, VersionConflict, iter_entry_points
 
-from .constants import BIO2BEL_DIR, DEFAULT_CONFIG_DIRECTORY, DEFAULT_CONFIG_PATHS, config
+from .constants import BIO2BEL_DIR, config
 
 __all__ = [
     'get_data_dir',
@@ -66,23 +65,7 @@ def ensure_path(prefix: str, url: str, path: Optional[str] = None) -> str:
     return path
 
 
-class _AbstractModuleConfig(EasyConfig):
-    connection: str = None
-
-
-def get_module_config_cls(module_name: str) -> Type[_AbstractModuleConfig]:  # noqa: D202
-    """Build a module configuration class."""
-
-    class ModuleConfig(_AbstractModuleConfig):
-        NAME = f'bio2bel:{module_name}'
-        FILES = DEFAULT_CONFIG_PATHS + [
-            os.path.join(DEFAULT_CONFIG_DIRECTORY, module_name, 'config.ini'),
-        ]
-
-    return ModuleConfig
-
-
-def get_connection(module_name: str, connection: Optional[str] = None) -> str:
+def get_connection(*, connection: Optional[str] = None) -> str:
     """Return the SQLAlchemy connection string if it is set.
 
     Order of operations:
@@ -101,15 +84,7 @@ def get_connection(module_name: str, connection: Optional[str] = None) -> str:
     :param connection: get the SQLAlchemy connection string
     :return: The SQLAlchemy connection string based on the configuration
     """
-    # 1. Use given connection
-    if connection is not None:
-        return connection
-
-    module_name = module_name.lower()
-    module_config_cls = get_module_config_cls(module_name)
-    module_config = module_config_cls.load()
-
-    return module_config.connection or config.connection
+    return connection or config.connection
 
 
 def get_bio2bel_modules() -> Mapping[str, types.ModuleType]:

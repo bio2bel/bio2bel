@@ -42,7 +42,7 @@ class ConnectionManager:
 
         The remaining keyword arguments are passed to :func:`build_engine_session`.
 
-        :param Optional[str] connection:
+        :param connection:
         :param engine:
         :param session:
         """
@@ -82,7 +82,7 @@ class ConnectionManager:
 
         Wraps :func:`bio2bel.utils.get_connection` and passing this class's :data:`module_name` to it.
         """
-        return get_connection(cls.module_name, connection=connection)
+        return get_connection(connection=connection)
 
     def _store_populate(self):
         Action.store_populate(self.module_name, session=self.session)

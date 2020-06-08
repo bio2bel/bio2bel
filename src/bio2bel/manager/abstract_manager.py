@@ -330,6 +330,7 @@ def add_cli_drop(main: click.Group) -> click.Group:  # noqa: D202
     """Add a ``drop`` command to main :mod:`click` function."""
 
     @main.command()
+    @verbose_option
     @click.confirmation_option(prompt='Are you sure you want to drop the db?')
     @click.pass_obj
     def drop(manager):
@@ -347,6 +348,7 @@ def add_cli_cache(main: click.Group) -> click.Group:  # noqa: D202
         """Manage cached data."""
 
     @cache.command()
+    @verbose_option
     @click.pass_obj
     def locate(manager):
         """Print the location of the data directory."""
@@ -354,6 +356,7 @@ def add_cli_cache(main: click.Group) -> click.Group:  # noqa: D202
         click.echo(data_dir)
 
     @cache.command()
+    @verbose_option
     @click.pass_obj
     def ls(manager):
         """List files in the cache."""
@@ -363,6 +366,7 @@ def add_cli_cache(main: click.Group) -> click.Group:  # noqa: D202
             click.echo(path)
 
     @cache.command()
+    @verbose_option
     @click.pass_obj
     def clear(manager):
         """Clear all files from the cache."""
@@ -375,6 +379,7 @@ def add_cli_summarize(main: click.Group) -> click.Group:  # noqa: D202
     """Add a ``summarize`` command to main :mod:`click` function."""
 
     @main.command()
+    @verbose_option
     @click.pass_obj
     def summarize(manager: AbstractManager):
         """Summarize the contents of the database."""
