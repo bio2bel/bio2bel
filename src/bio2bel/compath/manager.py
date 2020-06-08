@@ -255,7 +255,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
 
     def get_all_pathway_names(self) -> List[str]:
         """Get all pathway names stored in the database."""
-        return self.session.query(self.pathway_model.name).all()
+        return [name for name, in self.session.query(self.pathway_model.name).all()]
 
     def get_all_hgnc_symbols(self) -> Set[str]:
         """Return the set of genes present in all Pathways."""
