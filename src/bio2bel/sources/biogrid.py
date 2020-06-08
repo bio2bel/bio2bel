@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
-"""Download and convert BioGRID to BEL.
+"""Download and convert `BioGRID <https://thebiogrid.org>`_ to BEL.
 
 Run this script with ``python -m bio2bel.sources.biogrid``
 
-The interaction information contained in `BioGRID <https://thebiogrid.org>`_ can be categorized into protein
+The interaction information contained in  can be categorized into protein
 interactions, genetic interactions, chemical associations, and post-translational modifications. BioGRID includes
 information from major model organisms and humans.
-
 
 The file downloaded from BioGRID is a zip archive containing a single file formatted in `PSI MITAB level 2.5
 <https://wiki.thebiogrid.org/doku.php/psi_mitab_file>`_ compatible Tab Delimited Text file format, containing all
 interaction and associated annotation data.
-
 
 The interaction types in BioGRID were in the `PSI-MI <https://psicquic.github.io/MITAB25Format.html>`_
 (Proteomics Standards Initiative - Molecular Interactions Controlled Vocabulary) format and were mapped to BEL
@@ -49,10 +47,12 @@ Summary statistics of the BEL graph generated in the BioGRID module:
 
 import logging
 from functools import lru_cache
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional, TextIO, Tuple
 
+import click
 import pandas as pd
 import pyobo.sources.biogrid
+from pyobo.cli_utils import verbose_option
 from pyobo.identifier_utils import normalize_curie
 from tqdm import tqdm
 
@@ -350,17 +350,19 @@ def _create_table_biogrid():
                 'BEL Example': bel_example,
             })
 
-    biogrid_df = pd.DataFrame(d)
+    return pd.DataFrame(d)
 
-    biogrid_df.to_csv('/Users/sophiakrix/Desktop/biogrid_df.csv')
+
+@click.command()
+@verbose_option
+@click.option('-o', '--output')
+def main(output: Optional[str]):
+    """Convert and summarize BioGRID."""
+    graph = get_bel()
+    click.echo(graph.summary_str())
+    if output is not None:
+        pybel.dump(graph, output)
 
 
 if __name__ == '__main__':
-    """logging.basicConfig(level=logging.INFO)
-    _graph = get_bel()
-    _graph.summarize()
-    import os
-
-    pybel.dump(_graph, os.path.expanduser('~/Desktop/biogrid.bel.nodelink.json'))"""
-
-    b = get_processed_biogrid()
+    main()
