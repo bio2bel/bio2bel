@@ -48,7 +48,7 @@ Summary statistics of the BEL graph generated in the BioGRID module:
 import logging
 import os
 from functools import lru_cache
-from typing import Iterable, List, Optional, TextIO, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 import click
 import pandas as pd

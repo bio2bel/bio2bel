@@ -6,6 +6,7 @@ import pandas as pd
 
 URL = 'http://cgga.org.cn:9091/circRNADisease/download/2017-12-25.txt'
 
+
 def _get_df():
     df = pd.read_csv(
         URL,
