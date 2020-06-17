@@ -201,6 +201,7 @@ from typing import Mapping, Optional, Tuple
 from zipfile import ZipFile
 
 import pandas as pd
+import pyobo
 import pyobo.xrefdb.sources.intact
 from protmapper.uniprot_client import get_entrez_id, get_mnemonic
 from tqdm import tqdm
@@ -447,36 +448,39 @@ def _map_reactome(identifier):
 
 
 _unhandled = Counter()
+_logged_unhandled = set()
 
-
-def _process_interactor(s: str) -> Optional[Tuple[str, str]]:
+def _process_interactor(s: str) -> Optional[Tuple[str, str, Optional[str]]]:
     if s.startswith('uniprotkb:'):
         uniprot_id = s[len('uniprotkb:'):]
         try:
-            entrez_id = get_entrez_id(uniprot_id)
+            ncbigene_id = get_entrez_id(uniprot_id)
         except Exception:
-            entrez_id = None
-        if entrez_id:
-            return 'ncbigene', entrez_id
-        return 'uniprot', uniprot_id
+            ncbigene_id = None
+        if ncbigene_id:
+            return 'ncbigene', ncbigene_id, pyobo.get_name('ncbigene', ncbigene_id)
+        return 'uniprot', uniprot_id, get_mnemonic(uniprot_id)
     if s.startswith('chebi:"CHEBI:'):
-        return 'chebi', s[len('chebi:"CHEBI:'):-1]
+        chebi_id = s[len('chebi:"CHEBI:'):-1]
+        return 'chebi', chebi_id, pyobo.get_name('chebi', chebi_id)
     if s.startswith('chembl target:'):
-        return 'chembl.target', s[len('chembl target:'):-1]
+        return 'chembl.target', s[len('chembl target:'):-1], None
     if s.startswith('intact:'):
         prefix, identifier = 'intact', s[len('intact:'):]
 
         complexportal_identifier = _map_complexportal(identifier)
         if complexportal_identifier is not None:
-            return 'complexportal', complexportal_identifier
+            return 'complexportal', complexportal_identifier, None
 
         reactome_identifier = _map_reactome(identifier)
         if reactome_identifier is not None:
-            return 'reactome', reactome_identifier
+            return 'reactome', reactome_identifier, None
 
         _unhandled[prefix] += 1
         logger.debug('could not find complexportal/reactome mapping for %s:%s', prefix, identifier)
-        return prefix, identifier
+        return prefix, identifier, None
+    if s.startswith('intenz:'):
+        return 'eccode', s[len('intenz:'):], None
 
     """
     Counter({'chebi': 9534,
@@ -496,8 +500,9 @@ def _process_interactor(s: str) -> Optional[Tuple[str, str]]:
          'emdb': 2})
     """
     _unhandled[s.split(':')[0]] += 1
-    logger.warning('unhandled identifier: %s', s)
-    return
+    if s not in _logged_unhandled:
+        logger.warning('unhandled identifier: %s', s)
+        _logged_unhandled.add(s)
 
 
 def get_processed_intact_df() -> pd.DataFrame:
@@ -541,36 +546,55 @@ def get_bel() -> BELGraph:
     graph = BELGraph(name=MODULE_NAME, version=VERSION)
     it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'mapping {MODULE_NAME}', unit_scale=True)
     for (
-        (source_prefix, source_id),
-        (target_prefix, target_id),
+        (source_prefix, source_id, source_name),
+        (target_prefix, target_id, target_name),
         relation,
         pubmed_id,
         detection_method,
         source_db,
         confidence,
     ) in it:
-        _add_row(
-            graph,
-            relation=relation,
-            source_prefix=source_prefix,
-            source_id=source_id,
-            target_prefix=target_prefix,
-            target_id=target_id,
-            pubmed_id=pubmed_id,
-            int_detection_method=detection_method,
-            source_database=source_db,
-            confidence=confidence,
-        )
+        try:
+            _add_row(
+                graph,
+                relation=relation,
+                source_prefix=source_prefix,
+                source_id=source_id,
+                source_name=source_name,
+                target_prefix=target_prefix,
+                target_id=target_id,
+                target_name=target_name,
+                pubmed_id=pubmed_id,
+                int_detection_method=detection_method,
+                source_database=source_db,
+                confidence=confidence,
+            )
+        except (AttributeError, ValueError, TypeError):
+            logger.exception(
+                '%s:%s ! %s (%s) %s:%s ! %s',
+                source_prefix, source_id, source_name,
+                relation,
+                target_prefix, target_id, target_name,
+             )
+            continue
+
     return graph
 
+
+NAMESPACE_TO_DSL = {
+    'chebi': pybel.dsl.Abundance,
+    'complexportal': pybel.dsl.NamedComplexAbundance,
+}
 
 def _add_row(
     graph: BELGraph,
     relation: str,
     source_prefix: str,
     source_id: str,
+    source_name: Optional[str],
     target_prefix: str,
     target_id: str,
+    target_name: Optional[str],
     pubmed_id: str,
     int_detection_method: str,
     source_database: str,
@@ -603,22 +627,14 @@ def _add_row(
     # map double spaces to single spaces in relation string
     relation = ' '.join(relation.split())
 
-    if source_prefix == 'uniprot':
-        source_name = get_mnemonic(source_id)
-    else:
-        source_name = None
-
-    if target_prefix == 'uniprot':
-        target_name = get_mnemonic(target_id)
-    else:
-        target_name = None
-
-    source = pybel.dsl.Protein(
+    source_dsl = NAMESPACE_TO_DSL.get(source_prefix, pybel.dsl.Protein)
+    source = source_dsl(
         namespace=source_prefix,
         identifier=source_id,
         name=source_name,
     )
-    target = pybel.dsl.Protein(
+    target_dsl = NAMESPACE_TO_DSL.get(target_prefix, pybel.dsl.Protein)
+    target = target_dsl(
         namespace=target_prefix,
         identifier=target_id,
         name=target_name,
