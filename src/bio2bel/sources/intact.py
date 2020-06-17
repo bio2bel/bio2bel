@@ -202,7 +202,7 @@ from zipfile import ZipFile
 
 import pandas as pd
 import pyobo.xrefdb.sources.intact
-from protmapper.uniprot_client import get_mnemonic
+from protmapper.uniprot_client import get_entrez_id, get_mnemonic
 from tqdm import tqdm
 
 import pybel.dsl
@@ -451,7 +451,14 @@ _unhandled = Counter()
 
 def _process_interactor(s: str) -> Optional[Tuple[str, str]]:
     if s.startswith('uniprotkb:'):
-        return 'uniprot', s[len('uniprotkb:'):]
+        uniprot_id = s[len('uniprotkb:'):]
+        try:
+            entrez_id = get_entrez_id(uniprot_id)
+        except Exception:
+            entrez_id = None
+        if entrez_id:
+            return 'ncbigene', entrez_id
+        return 'uniprot', uniprot_id
     if s.startswith('chebi:"CHEBI:'):
         return 'chebi', s[len('chebi:"CHEBI:'):-1]
     if s.startswith('chembl target:'):
@@ -911,9 +918,7 @@ def _create_table():
                 'Activity': activity,
             })
 
-    intact_df = pd.DataFrame(d)
-
-    intact_df.to_csv('/Users/sophiakrix/Desktop/intact_df.csv')
+    # intact_df = pd.DataFrame(d)
 
 
 if __name__ == '__main__':
