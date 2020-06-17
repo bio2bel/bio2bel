@@ -397,7 +397,7 @@ INTACT_OMIT_INTERACTIONS = {
 EVIDENCE = 'From IntAct'
 
 MODULE_NAME = 'intact'
-VERSION = '2020-03-31'
+VERSION = '2020-04-30'
 URL = f'ftp://ftp.ebi.ac.uk/pub/databases/intact/{VERSION}/psimitab/intact.zip'
 
 
@@ -543,7 +543,7 @@ def get_processed_intact_df() -> pd.DataFrame:
 def get_bel() -> BELGraph:
     """Get BEL graph."""
     df = get_processed_intact_df()
-    graph = BELGraph(name=MODULE_NAME, version=VERSION)
+    graph = BELGraph(name='IntAct', version=VERSION)
     it = tqdm(df[COLUMNS].values, total=len(df.index), desc=f'mapping {MODULE_NAME}', unit_scale=True)
     for (
         (source_prefix, source_id, source_name),
