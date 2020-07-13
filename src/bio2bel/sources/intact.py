@@ -450,6 +450,7 @@ def _map_reactome(identifier):
 _unhandled = Counter()
 _logged_unhandled = set()
 
+
 def _process_interactor(s: str) -> Optional[Tuple[str, str, Optional[str]]]:
     if s.startswith('uniprotkb:'):
         uniprot_id = s[len('uniprotkb:'):]
@@ -575,7 +576,7 @@ def get_bel() -> BELGraph:
                 source_prefix, source_id, source_name,
                 relation,
                 target_prefix, target_id, target_name,
-             )
+            )
             continue
 
     return graph
@@ -585,6 +586,7 @@ NAMESPACE_TO_DSL = {
     'chebi': pybel.dsl.Abundance,
     'complexportal': pybel.dsl.NamedComplexAbundance,
 }
+
 
 def _add_row(
     graph: BELGraph,
