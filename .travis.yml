@@ -24,7 +24,6 @@ jobs:
     # test stage
     - stage: test
       env: TOXENV=py
-matrix:
   allow_failures:
     - env: TOXENV=mypy
     - env: TOXENV=xenon
