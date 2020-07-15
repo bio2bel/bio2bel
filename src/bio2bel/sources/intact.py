@@ -323,13 +323,17 @@ PROTEIN_INCREASES_MOD_DICT: Mapping[str, ProteinModification] = {
     'psi-mi:"MI:0217"(phosphorylation reaction)': ProteinModification('Ph'),
     'psi-mi:"MI:0566"(sumoylation reaction)': ProteinModification('Sumo'),
     'psi-mi:"MI:0213"(methylation reaction)': ProteinModification('Me'),
-    'psi-mi:"MI:0556"(transglutamination reaction)': ProteinModification('Gln'),
+    'psi-mi:"MI:0556"(transglutamination reaction)': ProteinModification(
+        namespace='mi', identifier='0556', name='transglutamination reaction',
+    ),
     'psi-mi:"MI:0220"(ubiquitination reaction)': ProteinModification('Ub'),
     'psi-mi:"MI:0192"(acetylation reaction)': ProteinModification('Ac'),
     'psi-mi:"MI:0557"(adp ribosylation reaction)': ProteinModification('ADPRib'),
     'psi-mi:"MI:0567"(neddylation reaction)': ProteinModification('Nedd'),
     'psi-mi:"MI:0210"(hydroxylation reaction)': ProteinModification('Hy'),
-    'psi-mi:"MI:0945"(oxidoreductase activity electron transfer reaction)': ProteinModification('Red'),
+    'psi-mi:"MI:0945"(oxidoreductase activity electron transfer reaction)': ProteinModification(
+        namespace='mi', identifier='0945', name='oxidoreductase activity electron transfer reaction',
+    ),
     'psi-mi:"MI:1250"(isomerase reaction)': ProteinModification(
         name='isomerization',
         namespace='mop',
