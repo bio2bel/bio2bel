@@ -621,7 +621,7 @@ def _add_row(
     :return: None
     """
     if pubmed_id is None:
-        return
+        pubmed_id = 'database', 'intact'
 
     annotations = {
         'psi-mi': relation,

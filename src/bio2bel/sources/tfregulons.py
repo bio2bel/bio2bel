@@ -113,7 +113,7 @@ def _add_rows(df: pd.DataFrame, graph: BELGraph) -> None:
         if 'pmids' in row:
             citations = [pmid.strip() for pmid in row['pmids'].split(',')]
         else:
-            citations = ['31340985']
+            citations = [('database', 'tfregulons')]
 
         evidence = 'From TFregulons'
 
