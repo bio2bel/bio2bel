@@ -3,6 +3,7 @@
 """Exporter for TFregulons."""
 
 import logging
+from functools import lru_cache
 from typing import Set
 
 import pandas as pd
@@ -20,9 +21,14 @@ URL = f'https://github.com/saezlab/DoRothEA/blob/master/data/' \
       f'TFregulons/consensus/table/database_normal_{VERSION}.csv.zip?raw=true'
 
 
+@lru_cache()
 def get_df() -> pd.DataFrame:
     """Get the TFregulons dataframe."""
     path = ensure_path(MODULE, URL)
+    return _read_df(path)
+
+
+def _read_df(path) -> pd.DataFrame:
     df = pd.read_csv(
         path,
         compression='zip',
@@ -57,9 +63,6 @@ def get_df() -> pd.DataFrame:
     return df
 
 
-_df = None
-
-
 def get_hgnc_ids(graph: BELGraph) -> Set[str]:
     """Get HGNC identifiers for nodes in the graph."""
     return {
@@ -72,7 +75,7 @@ def get_hgnc_ids(graph: BELGraph) -> Set[str]:
 def get_bel() -> BELGraph:
     """Get the entirety of TFregulons as BEL."""
     graph = BELGraph(name='TFRegulons')
-    df = _get_df()
+    df = get_df()
     _add_rows(df, graph)
     return graph
 
@@ -80,16 +83,9 @@ def get_bel() -> BELGraph:
 def enrich_graph(graph: BELGraph) -> None:
     """Enrich a graph with transcription factors effecting the genes/rnas/proteins in the graph."""
     hgnc_ids = get_hgnc_ids(graph)
-    df = _get_df()
+    df = get_df()
     df = df[df['target_hgnc_id'].isin(hgnc_ids)]
     _add_rows(df, graph)
-
-
-def _get_df() -> pd.DataFrame:
-    global _df
-    if _df is None:
-        _df = get_df()
-    return _df
 
 
 def _add_rows(df: pd.DataFrame, graph: BELGraph) -> None:
