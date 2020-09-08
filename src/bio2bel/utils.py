@@ -11,6 +11,7 @@ from typing import Iterable, Mapping, Optional, Tuple
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
 
+import requests
 from pkg_resources import UnknownExtra, VersionConflict, iter_entry_points
 
 from .constants import BIO2BEL_DIR, config
@@ -51,7 +52,7 @@ def get_url_filename(url: str) -> str:
     return os.path.basename(parse_result.path)
 
 
-def ensure_path(prefix: str, url: str, path: Optional[str] = None) -> str:
+def ensure_path(prefix: str, url: str, path: Optional[str] = None, use_requests: bool = False) -> str:
     """Download a file if it doesn't exist."""
     if path is None:
         path = get_url_filename(url)
@@ -60,7 +61,12 @@ def ensure_path(prefix: str, url: str, path: Optional[str] = None) -> str:
 
     if not os.path.exists(path):
         logger.info('downloading %s to %s', url, path)
-        urlretrieve(url, path)  # noqa:S310
+        if use_requests:
+            res = requests.get(url)
+            with open(path, 'wb') as file:
+                file.write(res.content)
+        else:
+            urlretrieve(url, path)  # noqa:S310
 
     return path
 
