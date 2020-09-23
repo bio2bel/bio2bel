@@ -5,6 +5,7 @@
 import hashlib
 import logging
 import os
+import pathlib
 import shutil
 import types
 from typing import Iterable, Mapping, Optional, Tuple
@@ -27,6 +28,8 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
+
+S3Client = 'botocore.client.BaseClient'
 
 
 def get_data_dir(module_name: str) -> str:
@@ -52,7 +55,15 @@ def get_url_filename(url: str) -> str:
     return os.path.basename(parse_result.path)
 
 
-def ensure_path(prefix: str, url: str, path: Optional[str] = None, use_requests: bool = False) -> str:
+def ensure_path(
+    prefix: str,
+    url: str,
+    *,
+    path: Optional[str] = None,
+    use_requests: bool = False,
+    bucket: Optional[str] = None,
+    s3_client: Optional[S3Client] = None,
+) -> str:
     """Download a file if it doesn't exist."""
     if path is None:
         path = get_url_filename(url)
@@ -60,7 +71,15 @@ def ensure_path(prefix: str, url: str, path: Optional[str] = None, use_requests:
     path = prefix_directory_join(prefix, path)
 
     if not os.path.exists(path):
-        logger.info('downloading %s to %s', url, path)
+        if bucket is not None:  # try downloading from AWS if available
+            s3_client = _ensure_s3_client(s3_client)
+            s3_key = _get_s3_key(prefix, path)
+            if not _has_file(s3_client, bucket=bucket, key=s3_key):
+                logger.info('downloading from AWS (bucket=%s): %s to %s', bucket, s3_key, path)
+                s3_client.download_file(bucket, s3_key, path)
+                return path
+
+        logger.info('downloading from source %s to %s', url, path)
         if use_requests:
             res = requests.get(url)
             with open(path, 'wb') as file:
@@ -68,7 +87,40 @@ def ensure_path(prefix: str, url: str, path: Optional[str] = None, use_requests:
         else:
             urlretrieve(url, path)  # noqa:S310
 
+    if bucket is not None:
+        s3_client = _ensure_s3_client(s3_client)
+        s3_key = _get_s3_key(prefix, path)
+        if _has_file(s3_client, bucket=bucket, key=s3_key):
+            logger.debug('already available on S3. Not uploading again.')
+            return path
+
+        logger.info('uploading to AWS (bucket=%s): %s to %s', bucket, path, s3_key)
+        s3_client.upload_file(path, bucket, s3_key)
+
     return path
+
+
+def _get_s3_key(prefix: str, path: str) -> str:
+    path = pathlib.Path(path)
+    return os.path.join(prefix, path.name)
+
+
+def _has_file(s3_client: S3Client, *, bucket: str, key: str) -> bool:
+    from botocore.errorfactory import ClientError
+
+    try:
+        s3_client.head_object(Bucket=bucket, Key=key)
+    except ClientError:
+        return False
+    else:
+        return True
+
+
+def _ensure_s3_client(s3_client: Optional[S3Client]) -> S3Client:
+    if s3_client is None:
+        import boto3
+        s3_client = boto3.client('s3')
+    return s3_client
 
 
 def get_connection(*, connection: Optional[str] = None) -> str:
