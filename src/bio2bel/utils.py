@@ -61,20 +61,24 @@ def ensure_path(
     *,
     path: Optional[str] = None,
     use_requests: bool = False,
+    force: bool = False,
     bucket: Optional[str] = None,
     s3_client: Optional[S3Client] = None,
 ) -> str:
-    """Download a file if it doesn't exist."""
+    """Download a file if it doesn't exist.
+
+    :param force: If set to true, will re-download from source and re-upload to S3
+    """
     if path is None:
         path = get_url_filename(url)
 
     path = prefix_directory_join(prefix, path)
 
-    if not os.path.exists(path):
+    if not os.path.exists(path) or force:
         if bucket is not None:  # try downloading from AWS if available
             s3_client = _ensure_s3_client(s3_client)
             s3_key = _get_s3_key(prefix, path)
-            if not _has_file(s3_client, bucket=bucket, key=s3_key):
+            if not _has_file(s3_client, bucket=bucket, key=s3_key) and not force:
                 logger.info('downloading from AWS (bucket=%s): %s to %s', bucket, s3_key, path)
                 s3_client.download_file(bucket, s3_key, path)
                 return path
@@ -90,7 +94,7 @@ def ensure_path(
     if bucket is not None:
         s3_client = _ensure_s3_client(s3_client)
         s3_key = _get_s3_key(prefix, path)
-        if _has_file(s3_client, bucket=bucket, key=s3_key):
+        if _has_file(s3_client, bucket=bucket, key=s3_key) and not force:
             logger.debug('already available on S3. Not uploading again.')
             return path
 
