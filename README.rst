@@ -1,7 +1,7 @@
 Bio2BEL |build| |coverage| |docs| |zenodo|
 ==========================================
 Bio2BEL is a project aimed at bringing biological databases and other structured knowledge sources in a wide variety
-of schemata into the unified framework of `Biological Expression Language <http://http://openbel.org/>`_ [1]_.
+of schemata into the unified framework of `Biological Expression Language <http://openbel.org/>`_ [1]_.
 
 Two important places to look:
 
