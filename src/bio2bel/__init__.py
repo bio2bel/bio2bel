@@ -3,7 +3,7 @@
 """Bio2BEL is a project aimed at integrating biological databases and other structured knowledge sources.
 
 Because they come from a wide variety of schemata, this package provides tools for converting them into the unified
-framework of `Biological Expression Language <http://http://openbel.org/>`_.
+framework of `Biological Expression Language <https://biological-expression-language.github.io/>`_.
 
 This package provides guidelines, tutorials, and tools for making standardized ``bio2bel`` packages as well as a
 unifying framework for integrating them.
