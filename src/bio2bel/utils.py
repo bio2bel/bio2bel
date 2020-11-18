@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 from urllib.request import urlretrieve
 
 import requests
+from botocore.client import BaseClient
 from pkg_resources import UnknownExtra, VersionConflict, iter_entry_points
 
 from .constants import BIO2BEL_DIR, config
@@ -28,8 +29,6 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
-
-S3Client = 'botocore.client.BaseClient'
 
 
 def get_data_dir(module_name: str) -> str:
@@ -63,7 +62,7 @@ def ensure_path(
     use_requests: bool = False,
     force: bool = False,
     bucket: Optional[str] = None,
-    s3_client: Optional[S3Client] = None,
+    s3_client: Optional[BaseClient] = None,
 ) -> str:
     """Download a file if it doesn't exist.
 
@@ -109,7 +108,7 @@ def _get_s3_key(prefix: str, path: str) -> str:
     return os.path.join(prefix, path.name)
 
 
-def _has_file(s3_client: S3Client, *, bucket: str, key: str) -> bool:
+def _has_file(s3_client: BaseClient, *, bucket: str, key: str) -> bool:
     from botocore.errorfactory import ClientError
 
     try:
@@ -120,7 +119,7 @@ def _has_file(s3_client: S3Client, *, bucket: str, key: str) -> bool:
         return True
 
 
-def _ensure_s3_client(s3_client: Optional[S3Client]) -> S3Client:
+def _ensure_s3_client(s3_client: Optional[BaseClient]) -> BaseClient:
     if s3_client is None:
         import boto3
         s3_client = boto3.client('s3')

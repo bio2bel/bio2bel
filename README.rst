@@ -15,7 +15,7 @@ Download the latest stable code from `PyPI <https://pypi.org/project/bio2bel>`_ 
 
 .. code-block:: sh
 
-   $ python3 -m pip install bio2bel
+   $ python -m pip install bio2bel
 
 or get the latest from GitHub with:
 
@@ -23,7 +23,7 @@ or get the latest from GitHub with:
 
    $ git clone https://github.com/bio2bel/bio2bel.git
    $ cd bio2bel
-   $ python3 -m pip install -e .
+   $ python -m pip install -e .
 
 or check the `installation instructions <http://bio2bel.readthedocs.io/en/latest/#installation>`_.
 

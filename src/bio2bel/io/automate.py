@@ -10,7 +10,7 @@ import types
 from contextlib import redirect_stdout
 from typing import Any, Mapping, Optional, Tuple
 
-from pybel import BELGraph, from_nodelink_gz, to_nodelink_gz, to_tsv
+from pybel import BELGraph, from_nodelink_gz, to_nodelink_gz, to_triples_file
 from ..manager.bel_manager import BELManagerMixin
 from ..utils import get_data_dir
 
@@ -42,7 +42,7 @@ def ensure_tsv(name: str, *, manager_kwargs: Optional[Mapping[str, Any]] = None)
     if os.path.exists(path):
         return path
     graph = ensure_graph(name, manager_kwargs=manager_kwargs)
-    to_tsv(graph, path)
+    to_triples_file(graph, path)
     return path
 
 

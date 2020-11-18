@@ -33,7 +33,8 @@ connection_option = click.option(
 commands = {}
 for name, manager_cls in MANAGERS.items():
     commands[name] = manager_cls.get_cli()
-    commands[name].help = f'*Manage {name}'
+    # can not use single asterick, causes documentation build failure
+    commands[name].help = f'# Manage {name}'
 
 main = click.Group(commands=commands)
 main.help = f'Bio2BEL Command Line Utilities on {sys.executable}\nBio2BEL v{get_version()}'
