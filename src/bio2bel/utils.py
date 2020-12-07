@@ -127,7 +127,7 @@ def _ensure_s3_client(s3_client: Optional[BaseClient]) -> BaseClient:
     return s3_client
 
 
-def get_connection(*, connection: Optional[str] = None) -> str:
+def get_connection(connection: Optional[str] = None) -> str:
     """Return the SQLAlchemy connection string if it is set.
 
     Order of operations:
@@ -142,7 +142,6 @@ def get_connection(*, connection: Optional[str] = None) -> str:
     6. Check the bio2bel config file for default
     7. Fall back to standard default cache connection
 
-    :param module_name: The name of the module to get the configuration for
     :param connection: get the SQLAlchemy connection string
     :return: The SQLAlchemy connection string based on the configuration
     """
