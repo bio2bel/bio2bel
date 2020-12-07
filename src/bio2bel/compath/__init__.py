@@ -6,5 +6,8 @@ This package provides guidelines, tutorials, and tools for making standardized `
 unifying framework for integrating them.
 """
 
-from .manager import CompathManager, get_compath_manager_classes, get_compath_modules  # noqa: F401
+from .manager import (  # noqa: F401
+    CompathManager, get_compath_manager_classes, get_compath_managers,
+    get_compath_modules, iter_compath_managers,
+)
 from .mixins import CompathPathwayMixin, CompathProteinMixin  # noqa: F401

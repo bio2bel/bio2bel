@@ -86,7 +86,7 @@ class MockConnectionMixin(TemporaryConnectionMixin):
             """Get the connection enclosed by this class."""
             return self.connection
 
-        self.mock_global_connection = mock.patch('bio2bel.models.get_global_connection', mock_connection)
+        self.mock_global_connection = mock.patch('bio2bel.models.get_connection', mock_connection)
         self.mock_module_connection = mock.patch('bio2bel.utils.get_connection', mock_connection)
 
 

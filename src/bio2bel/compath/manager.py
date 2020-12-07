@@ -9,6 +9,7 @@ import os
 import types
 import typing
 from collections import Counter
+from functools import lru_cache
 from typing import Iterable, List, Mapping, Optional, Set, Tuple, Type
 
 import click
@@ -32,6 +33,8 @@ from ..utils import _get_managers, _get_modules
 __all__ = [
     'CompathManager',
     'get_compath_manager_classes',
+    'iter_compath_managers',
+    'get_compath_managers',
 ]
 
 logger = logging.getLogger(__name__)
@@ -133,7 +136,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
     def _help_get_proteins(self, protein_column, queries: Iterable[str]) -> List[CompathProteinMixin]:
         return self._query_protein().filter(protein_column.in_(queries)).all()
 
-    def search_genes(self, query: str, *, limit: Optional[int] = None) -> Optional[CompathPathwayMixin]:
+    def search_genes(self, query: str, *, limit: Optional[int] = None) -> List[CompathProteinMixin]:
         """Filter genes by HGNC gene symbol.
 
         :param query: part of an HGNC identifier or gene symbol
@@ -156,7 +159,7 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         :param limit: limit number of results
         """
         _query = self._query_pathway().filter(or_(
-            self.pathway_model.name.contains(query),
+            self.pathway_model.name.ilike(f'%{query}%'),
             self.pathway_model.identifier.contains(query),
         ))
 
@@ -395,8 +398,11 @@ class CompathManager(AbstractManager, BELNamespaceManagerMixin, BELManagerMixin,
         pathway_identifiers = {
             node.identifier
             for node in graph
-            if isinstance(node,
-                          pybel.dsl.BiologicalProcess) and node.namespace.lower() == self.module_name and node.identifier
+            if (
+                isinstance(node, pybel.dsl.BiologicalProcess)
+                and node.namespace.lower() == self.module_name
+                and node.identifier
+            )
         }
         for pathway_identifier in pathway_identifiers:
             pathway = self.get_pathway_by_id(pathway_identifier)
@@ -418,6 +424,18 @@ def get_compath_modules() -> Mapping[str, types.ModuleType]:
     return dict(_get_modules('compath'))
 
 
+@lru_cache()
 def get_compath_manager_classes() -> Mapping[str, Type[CompathManager]]:
     """Get all ComPath manager classes."""
     return dict(_get_managers('compath'))
+
+
+def iter_compath_managers(*args, **kwargs) -> Iterable[Tuple[str, CompathManager]]:
+    """Iterate over ComPath managers."""
+    for name, cls in _get_managers('compath'):
+        yield name, cls(*args, **kwargs)
+
+
+def get_compath_managers(*args, **kwargs) -> Mapping[str, CompathManager]:
+    """Get instantiated ComPath classes."""
+    return dict(iter_compath_managers(*args, **kwargs))

@@ -16,7 +16,8 @@ import requests
 from botocore.client import BaseClient
 from pkg_resources import UnknownExtra, VersionConflict, iter_entry_points
 
-from .constants import BIO2BEL_DIR, config
+import pybel.config
+from .constants import BIO2BEL_HOME
 
 __all__ = [
     'get_data_dir',
@@ -38,7 +39,7 @@ def get_data_dir(module_name: str) -> str:
     :return: The module's data directory
     """
     module_name = module_name.lower()
-    data_dir = os.path.join(BIO2BEL_DIR, module_name)
+    data_dir = os.path.join(BIO2BEL_HOME, module_name)
     os.makedirs(data_dir, exist_ok=True)
     return data_dir
 
@@ -126,7 +127,7 @@ def _ensure_s3_client(s3_client: Optional[BaseClient]) -> BaseClient:
     return s3_client
 
 
-def get_connection(*, connection: Optional[str] = None) -> str:
+def get_connection(connection: Optional[str] = None) -> str:
     """Return the SQLAlchemy connection string if it is set.
 
     Order of operations:
@@ -141,11 +142,10 @@ def get_connection(*, connection: Optional[str] = None) -> str:
     6. Check the bio2bel config file for default
     7. Fall back to standard default cache connection
 
-    :param module_name: The name of the module to get the configuration for
     :param connection: get the SQLAlchemy connection string
     :return: The SQLAlchemy connection string based on the configuration
     """
-    return connection or config.connection
+    return connection or pybel.config.connection
 
 
 def get_bio2bel_modules() -> Mapping[str, types.ModuleType]:

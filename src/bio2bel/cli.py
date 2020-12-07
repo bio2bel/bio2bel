@@ -10,7 +10,7 @@ from typing import TextIO
 import click
 from tqdm import tqdm
 
-from .constants import config
+from pybel import config
 from .manager import AbstractManager, get_bio2bel_manager_classes
 from .manager.bel_manager import BELManagerMixin
 from .manager.namespace_manager import BELNamespaceManagerMixin
@@ -30,13 +30,17 @@ connection_option = click.option(
     help='Database connection string.',
 )
 
-commands = {}
-for name, manager_cls in MANAGERS.items():
-    commands[name] = manager_cls.get_cli()
-    # can not use single asterick, causes documentation build failure
-    commands[name].help = f'# Manage {name}'
 
-main = click.Group(commands=commands)
+def _get_commands():
+    rv = {}
+    for name, manager_cls in MANAGERS.items():
+        rv[name] = manager_cls.get_cli()
+        # can not use single asterick, causes documentation build failure
+        rv[name].help = f'# Manage {name}'
+    return rv
+
+
+main = click.Group(commands=_get_commands())
 main.help = f'Bio2BEL Command Line Utilities on {sys.executable}\nBio2BEL v{get_version()}'
 
 

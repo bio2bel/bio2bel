@@ -11,8 +11,8 @@ from flask import Blueprint, Flask, render_template
 from flask_admin import Admin
 from pkg_resources import VersionConflict, iter_entry_points
 
-from bio2bel.constants import DEFAULT_CACHE_CONNECTION
 from bio2bel.manager.connection_manager import build_engine_session
+from pybel import config
 
 log = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ def create_application(connection: Optional[str] = None) -> Flask:
     flask_bootstrap.Bootstrap(app)
     Admin(app)
 
-    connection = connection or DEFAULT_CACHE_CONNECTION
+    connection = connection or config.connection
     engine, session = build_engine_session(connection)
 
     for name, add_admin in add_admins.items():
