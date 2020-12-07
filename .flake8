@@ -23,6 +23,7 @@ ignore =
     E501
     # ignore binary operator line breaks
     W504
+    W503
 
 # flake8-import-order
 application-import-names =
