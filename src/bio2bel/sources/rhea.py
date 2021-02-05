@@ -29,112 +29,73 @@ NAMESPACE = "http://rdf.rhea-db.org/"
 RH_NAMESPACE = rdflib.Namespace("http://rdf.rhea-db.org/")
 RH_PREFIX = 'rh'
 
-CH_NAMESPACE = rdflib.Namespace("http://purl.obolibrary.org/obo/CHEBI_")
+CH_NAMESPACE = "http://purl.obolibrary.org/obo/CHEBI_"
 
 CHEBI = 'CHEBI'
-POLYMER = 'POLYMER'
 
 
-def _build_query(expression):
+def _build_query(expression: str):
     return rdflib.plugins.sparql.prepareQuery(expression, initNs={RH_PREFIX: RH_NAMESPACE})
 
 
-def id_and_swap(g, reaction_uri):
-    """Given the URI of a reaction, return the base ID for that reaction (the nondirectional version) if it exists, as well as the initial direction."""
-    q = _build_query('SELECT ?base_rxn WHERE {?base_rxn ?relation ?id . FILTER (?relation IN (rh:directionalReaction, rh:bidirectionalReaction))}')
-    result = list(g.query(q, initBindings={'id': reaction_uri}))
-
-    def uri_to_id(uri):
-        """Convert a resource URI to an ID"""
-        return uri.replace(RH_NAMESPACE, RH_PREFIX + ":")
-
-    if result:
-        base_uri = result[0][0]
-        swap = _should_swap(g, base_uri, reaction_uri)
-        return uri_to_id(base_uri), swap
-    else:
-        return uri_to_id(reaction_uri), False
-
-
-def _should_swap(g, base_uri, reaction_uri):
-    """Returns the direction of the specified reaction (whether the base reaction's order should be swapped for the current reaction)"""
-    # First determine whether the specific reaction is a directional or bidirectional variant
-    bidirectional_q = _build_query('SELECT ?type WHERE {?base ?type ?rxn}')
-    result = list(g.query(bidirectional_q, initBindings={'base': base_uri, 'rxn': reaction_uri}))
-    if 'bidirectional' in result[0][0]:
-        return False
-    # If not bidirectional, determine whether the directional order matches what's set
-    equations = []
-    for uri in (base_uri, reaction_uri):
-        order_q = _build_query('SELECT ?equation WHERE {?uri rh:equation ?equation}')
-        result = list(g.query(order_q, initBindings={'uri': uri}))
-        eq = str(result[0][0])
-        # Retrieve the first half of the equation (the part before the = or =>) for later comparison
-        first_half = eq.split('=')[0]
-        equations.append(first_half)
-    # Rhea represents nondirectional reactions as A + B = C + D
-    # and directional reactions as A + B => C + D OR C + D => A + B, depending on the reaction direction
-    # If the first half of the base equation matches the first half of the directional reaction equation (A + B and A + B), no swap is necessary
-    # But if the halves don't match (A + B and C + D), a swap IS necessary
-    if equations[0] == equations[1]:
-        return False
-    else:
-        return True
-
-
-def participants(g, base_id):
+def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef):
     """Return a list of PyBEL dsl nodes in format [reactants, products] for a given reaction."""
     participants = []
+    # Repeat for each side of the reaction, reactants and products
     for suffix in ('_L', '_R'):
-        # Get the ID for the given side of a reaction (rh:10348 ---> rh:10348_L)
-        side_id = base_id + suffix
-        q = _build_query(
-            "SELECT ?compound ?name ?accession WHERE {" + side_id + """ rh:contains ?participant .
-                ?participant rh:compound ?compound .
-                ?compound rh:name ?name .
-                ?compound rh:accession ?accession .
-            }""")
-        result = list(map(lambda x: _to_pybel(g, x), g.query(q)))
-        participants.append(result)
-    return participants
-
-
-def _to_pybel(g, participant):
-    """Convert a given participant to PyBEL."""
-    uri, name, accession = participant
-    name = str(name)
-    node = None
-    if CHEBI in accession:
-        # Accessions are formatted like "CHEBI:85007"
-        # To access the identifier, remove "CHEBI:"
-        identifier = accession.replace(CHEBI + ':', '')
-        node = dsl.Abundance(namespace=CHEBI, name=name, identifier=identifier)
-    elif POLYMER in accession:
-        # To access the CHEBI identifier, use the rh:underlyingChebi property
-        q = _build_query('SELECT ?chebi WHERE { ?uri rh:underlyingChebi ?chebi }')
-        result = list(g.query(q, initBindings={'uri': uri}))
-        identifier = result[0][0]
-        node = dsl.Abundance(namespace=CHEBI, name=name, identifier=identifier)
-    else:
-        # Otherwise, this node is a rh:GenericCompound (either a polypeptide, polynucleotide, or heteropolysaccharide)
-        # GenericCompounds don't have a CHEBI identifier, but their rh:ReactivePart subcomponents do
-        # So, we take the ReactivePart to be the main part of the node, and use xrefs to indicate the compound it's part of
+        # Get the URI for the given side of a reaction (http://...10348 ---> http://...10348_L)
+        side_uri = reaction_uri + suffix
+        # Prepare a query that finds for each reaction side, the following information for each participant:
+        # the name of the compound, the CHEBI ID of the compound (if it's a small molecule or a polymer) or of each reactivePart of a genericCompound (polypeptide/polynucleotide)
         q = _build_query(
             """
-            SELECT ?reactivepart ?chebi WHERE {
-                ?uri rh:reactivePart ?part .
-                ?part rh:name ?reactivepart .
-                ?part rh:chebi ?chebi
+            SELECT ?compound_name ?chebi ?reactivePart WHERE {
+                ?side rh:contains ?participant .
+                ?participant rh:compound ?compound .
+                ?compound rh:name ?compound_name .
+                OPTIONAL {
+                    ?compound rh:reactivePart ?part_id .
+                    ?part_id rh:chebi ?chebi .
+                    ?part_id rh:name ?reactivePart .
+                } .
+                OPTIONAL {?compound rh:chebi ?chebi} .
+                OPTIONAL {?compound rh:underlyingChebi ?chebi}
             }
             """
         )
-        result = list(g.query(q, initBindings={'uri': uri}))
-        reactive_part = str(result[0][0])
-        # remove namespace from identifier: 'http://purl.obolibrary.org/obo/CHEBI_58210' ----> '58210'
-        identifier = result[0][1].replace(CH_NAMESPACE, '')
-        extra_reference = {'compound': name, 'comment': 'The "name" property of this node represents the reactive part of the compound "' + name + '."'}
-        node = dsl.Abundance(namespace=CHEBI, name=reactive_part, identifier=identifier, xrefs=[extra_reference])
-    return node
+        result = g.query(q, initBindings={'side': side_uri})
+        # Get an iterable of the compounds (no need to remove duplicates since dictionary keys must be unique)
+        compounds = map(lambda x: x[0], result)
+        # Create a dictionary that will contain the nodes associated with a compound (for GenericCompounds with multiple ReactiveParts)
+        # Goal: for compounds with multiple ReactiveParts, link those reactiveParts together so they can easily be crafted into a ComplexAbundance later
+        nodes_by_compound = {c: [] for c in compounds}
+        for r in set(result):
+            compound_name, chebi_uri, reactivePart_name = r
+            # Based on the way the OPTIONAL modifier works, the SELECT query may return ?compound_name entries by themselves, without any ?chebi information
+            if not chebi_uri:
+                continue
+            # Remove the namespace from the chebi_uri to access the identifier
+            identifier = chebi_uri.replace(CH_NAMESPACE, '')
+            # Use the compound name if no reactive part is available
+            name = reactivePart_name if reactivePart_name else compound_name
+            # Build an abundance node, and append it to the node list under the correct compound
+            node = dsl.Abundance(namespace=CHEBI, name=name, identifier=identifier)
+            nodes_by_compound[compound_name].append(node)
+
+        # Now, create a list of nodes by itself that will be appended to in the next loop
+        nodes = []
+        for compound, node_list in nodes_by_compound.items():
+            if len(node_list) == 1:
+                nodes.append(node_list[0])
+                continue
+            else:
+                # If there are multiple nodes, there must be multiple reactiveParts
+                # We represent that as a complexAbundance with name 'compound'
+                complex_abundance = dsl.ComplexAbundance(node_list, name=compound)
+                nodes.append(complex_abundance)
+
+        participants.append(nodes)
+    return participants
 
 
 def get_bel() -> pybel.BELGraph:
@@ -147,22 +108,22 @@ def get_bel() -> pybel.BELGraph:
         g.parse(file=f)
 
     # Get a list of all the reactions in the database
+    # (the bidirectionalReaction criterion is added to ensure that we only recieve the nondirectional version of a given reaction)
     rxns = g.query(_build_query(
         """
         SELECT ?reaction ?reactionEquation WHERE {
             ?reaction rh:equation ?reactionEquation .
+            ?reaction rh:bidirectionalReaction ?bdr
         }
         """
     ))
     rv = pybel.BELGraph(name='Rhea', version=VERSION)
-    # Get the reactants
+    # Loop over reactions, adding reaction nodes to rv as we go
+    # Rather than converting to a set (time-consuming), just let the PyBEL graph handle the occasional duplicate
     for i, (reaction_uri, _) in enumerate(rxns):
-        # Get the base ID for the given reaction (meaning the nondirectional, generic version) if it exists
-        # as well as a boolean indicating whether the reactants and products should be swapped to reflect the direction of the given reaction
-        base_id, swap = id_and_swap(g, reaction_uri)
-        reactants, products = participants(g, base_id)
-        if swap:
-            reactants, products = products, reactants
+        # Retrieve the reactants and products of the reaction
+        reactants, products = participants(g, reaction_uri)
+        # Add a reaction node to the BELGraph
         rv.add_reaction(reactants, products)
     return rv
 
