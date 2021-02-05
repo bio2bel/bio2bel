@@ -5,9 +5,10 @@
 import gzip
 import logging
 
+import rdflib
+
 from ..utils import ensure_path
 
-import rdflib
 import pybel
 import pybel.dsl as dsl
 
@@ -61,7 +62,7 @@ def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef):
                 OPTIONAL {?compound rh:chebi ?chebi} .
                 OPTIONAL {?compound rh:underlyingChebi ?chebi}
             }
-            """
+            """,
         )
         result = g.query(q, initBindings={'side': side_uri})
         # Get an iterable of the compounds (no need to remove duplicates since dictionary keys must be unique)
@@ -70,14 +71,14 @@ def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef):
         # Goal: for compounds with multiple ReactiveParts, link those reactiveParts together so they can easily be crafted into a ComplexAbundance later
         nodes_by_compound = {c: [] for c in compounds}
         for r in set(result):
-            compound_name, chebi_uri, reactivePart_name = r
+            compound_name, chebi_uri, reactive_part_name = r
             # Based on the way the OPTIONAL modifier works, the SELECT query may return ?compound_name entries by themselves, without any ?chebi information
             if not chebi_uri:
                 continue
             # Remove the namespace from the chebi_uri to access the identifier
             identifier = chebi_uri.replace(CH_NAMESPACE, '')
             # Use the compound name if no reactive part is available
-            name = reactivePart_name if reactivePart_name else compound_name
+            name = reactive_part_name if reactive_part_name else compound_name
             # Build an abundance node, and append it to the node list under the correct compound
             node = dsl.Abundance(namespace=CHEBI, name=name, identifier=identifier)
             nodes_by_compound[compound_name].append(node)
@@ -115,12 +116,12 @@ def get_bel() -> pybel.BELGraph:
             ?reaction rh:equation ?reactionEquation .
             ?reaction rh:bidirectionalReaction ?bdr
         }
-        """
+        """,
     ))
     rv = pybel.BELGraph(name='Rhea', version=VERSION)
     # Loop over reactions, adding reaction nodes to rv as we go
     # Rather than converting to a set (time-consuming), just let the PyBEL graph handle the occasional duplicate
-    for i, (reaction_uri, _) in enumerate(rxns):
+    for (reaction_uri, _) in rxns:
         # Retrieve the reactants and products of the reaction
         reactants, products = participants(g, reaction_uri)
         # Add a reaction node to the BELGraph
