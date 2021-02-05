@@ -7,10 +7,9 @@ import logging
 
 import rdflib
 
-from ..utils import ensure_path
-
 import pybel
 import pybel.dsl as dsl
+from ..utils import ensure_path
 
 __all__ = [
     'get_bel',
