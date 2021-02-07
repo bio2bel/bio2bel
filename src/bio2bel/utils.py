@@ -14,9 +14,9 @@ from urllib.request import urlretrieve
 import requests
 from botocore.client import BaseClient
 from pkg_resources import UnknownExtra, VersionConflict, iter_entry_points
+from pystow.utils import name_from_url
 
 import pybel.config
-from pystow.utils import name_from_url
 from .constants import BIO2BEL_MODULE
 
 __all__ = [
