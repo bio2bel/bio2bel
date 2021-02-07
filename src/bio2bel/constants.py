@@ -25,7 +25,8 @@ DEFAULT_CONFIG_PATHS = [
     os.path.join(_USER_CONFIG_DIRECTORY, 'pybel', 'pybel.ini'),
 ]
 
-BIO2BEL_HOME = pystow.get('bio2bel')
+BIO2BEL_MODULE = pystow.module('bio2bel')
+BIO2BEL_HOME = BIO2BEL_MODULE.base
 
 directory_option = click.option(
     '-d', '--directory',
