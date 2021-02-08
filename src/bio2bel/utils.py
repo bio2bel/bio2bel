@@ -9,20 +9,19 @@ import pathlib
 import shutil
 import types
 from typing import Iterable, Mapping, Optional, Tuple
-from urllib.parse import urlparse
 from urllib.request import urlretrieve
 
 import requests
 from botocore.client import BaseClient
 from pkg_resources import UnknownExtra, VersionConflict, iter_entry_points
+from pystow.utils import name_from_url
 
 import pybel.config
-from .constants import BIO2BEL_HOME
+from .constants import BIO2BEL_MODULE
 
 __all__ = [
     'get_data_dir',
     'prefix_directory_join',
-    'get_url_filename',
     'ensure_path',
     'get_connection',
     'get_bio2bel_modules',
@@ -38,21 +37,12 @@ def get_data_dir(module_name: str) -> str:
     :param module_name: The name of the module. Ex: 'chembl'
     :return: The module's data directory
     """
-    module_name = module_name.lower()
-    data_dir = os.path.join(BIO2BEL_HOME, module_name)
-    os.makedirs(data_dir, exist_ok=True)
-    return data_dir
+    return BIO2BEL_MODULE.get(module_name.lower())
 
 
 def prefix_directory_join(prefix: str, *parts: str) -> str:
     """Join the parts onto the prefix directory."""
     return os.path.join(get_data_dir(prefix), *parts)
-
-
-def get_url_filename(url: str) -> str:
-    """Get the URL's file name."""
-    parse_result = urlparse(url)
-    return os.path.basename(parse_result.path)
 
 
 def ensure_path(
@@ -70,7 +60,7 @@ def ensure_path(
     :param force: If set to true, will re-download from source and re-upload to S3
     """
     if path is None:
-        path = get_url_filename(url)
+        path = name_from_url(url)
 
     path = prefix_directory_join(prefix, path)
 

@@ -9,7 +9,7 @@ from typing import Iterable, Tuple
 from pyobo import get_filtered_xrefs, get_name, get_name_id_mapping
 from pyobo.ndex_utils import CX, iterate_aspect
 from pyobo.sources.pid import get_obo, iter_networks
-from pyobo.struct.typedef import pathway_has_part
+from pyobo.struct.typedef import has_part
 from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 from sqlalchemy.orm import relationship
@@ -277,7 +277,7 @@ class Manager(CompathManager):
                 hgnc_symbol=reference.name,
             )
             for term in obo
-            for reference in term.get_relationships(pathway_has_part)
+            for reference in term.get_relationships(has_part)
         }
         logger.info('extracted %d proteins from pid.pathway', len(x))
 
@@ -287,7 +287,7 @@ class Manager(CompathManager):
                 name=term.name,
                 proteins=[
                     x[reference.identifier]
-                    for reference in term.get_relationships(pathway_has_part)
+                    for reference in term.get_relationships(has_part)
                 ],
             )
             self.session.add(pathway)
