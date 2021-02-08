@@ -4,6 +4,7 @@
 
 import gzip
 import logging
+from typing import Any, Dict, List, Tuple
 
 import rdflib
 
@@ -21,10 +22,6 @@ MODULE_NAME = 'rhea'
 VERSION = '116'  # released on 2020-12-02
 URL = 'ftp://ftp.expasy.org/databases/rhea/rdf/rhea.rdf.gz'
 
-# Prefix/namespace for SPARQL queries
-PREFIX = "rh"
-NAMESPACE = "http://rdf.rhea-db.org/"
-
 # Strings used in RDF parsing
 RH_NAMESPACE = rdflib.Namespace("http://rdf.rhea-db.org/")
 RH_PREFIX = 'rh'
@@ -34,15 +31,15 @@ CH_NAMESPACE = "http://purl.obolibrary.org/obo/CHEBI_"
 CHEBI = 'CHEBI'
 
 
-def _build_query(expression: str):
+def _build_query(expression: str) -> rdflib.plugins.sparql.sparql.Query:
     return rdflib.plugins.sparql.prepareQuery(expression, initNs={RH_PREFIX: RH_NAMESPACE})
 
 
-def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef):
-    """Return a list of PyBEL dsl nodes in format [reactants, products] for a given reaction."""
-    participants = []
+def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[List[dsl.BaseEntity], List[dsl.BaseEntity]]:
+    """Return a list of PyBEL dsl nodes in format (reactants, products) for a given reaction."""
+    participants: Tuple[List[Any], List[Any]] = ([], [])
     # Repeat for each side of the reaction, reactants and products
-    for suffix in ('_L', '_R'):
+    for i, suffix in enumerate(('_L', '_R')):
         # Get the URI for the given side of a reaction (http://...10348 ---> http://...10348_L)
         side_uri = reaction_uri + suffix
         # Prepare a query that finds for each reaction side, the following information for each participant:
@@ -68,7 +65,7 @@ def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef):
         compounds = map(lambda x: x[0], result)
         # Create a dictionary that will contain the nodes associated with a compound (for GenericCompounds with multiple ReactiveParts)
         # Goal: for compounds with multiple ReactiveParts, link those reactiveParts together so they can easily be crafted into a ComplexAbundance later
-        nodes_by_compound = {c: [] for c in compounds}
+        nodes_by_compound: Dict[str, List[dsl.BaseEntity]] = {c: [] for c in compounds}
         for r in set(result):
             compound_name, chebi_uri, reactive_part_name = r
             # Based on the way the OPTIONAL modifier works, the SELECT query may return ?compound_name entries by themselves, without any ?chebi information
@@ -82,19 +79,17 @@ def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef):
             node = dsl.Abundance(namespace=CHEBI, name=name, identifier=identifier)
             nodes_by_compound[compound_name].append(node)
 
-        # Now, create a list of nodes by itself that will be appended to in the next loop
-        nodes = []
         for compound, node_list in nodes_by_compound.items():
+            node = None
             if len(node_list) == 1:
-                nodes.append(node_list[0])
-                continue
+                node = node_list[0]
             else:
                 # If there are multiple nodes, there must be multiple reactiveParts
                 # We represent that as a complexAbundance with name 'compound'
-                complex_abundance = dsl.ComplexAbundance(node_list, name=compound)
-                nodes.append(complex_abundance)
+                node = dsl.ComplexAbundance(node_list, name=compound)
+            # Append the node to the corresponding list in participants
+            participants[i].append(node)
 
-        participants.append(nodes)
     return participants
 
 
