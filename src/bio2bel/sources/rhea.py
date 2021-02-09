@@ -2,7 +2,6 @@
 
 """Convert Rhea to BEL."""
 
-import gzip
 import logging
 from typing import Any, Dict, List, Tuple
 
@@ -10,7 +9,7 @@ import rdflib
 
 import pybel
 import pybel.dsl as dsl
-from ..utils import ensure_path
+from bio2bel.constants import BIO2BEL_MODULE
 
 __all__ = [
     'get_bel',
@@ -32,7 +31,11 @@ CHEBI = 'CHEBI'
 
 
 def _build_query(expression: str) -> rdflib.plugins.sparql.sparql.Query:
-    return rdflib.plugins.sparql.prepareQuery(expression, initNs={RH_PREFIX: RH_NAMESPACE})
+    # rdflib.plugins.sparql.prepareQuery(expression, initNs={RH_PREFIX: RH_NAMESPACE})
+    # The above line is broken for some reason, with error:
+    #   AttributeError: module 'rdflib.plugins' has no attribute 'sparql'
+    # So instead, we'll just replace() the prefix with the namespace
+    return expression.replace(RH_PREFIX, RH_NAMESPACE)
 
 
 def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[List[dsl.BaseEntity], List[dsl.BaseEntity]]:
@@ -96,12 +99,7 @@ def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[Lis
 def get_bel() -> pybel.BELGraph:
     """Get the Rhea data."""
     # Parse the RDF file
-    gz_path = ensure_path(MODULE_NAME, URL)
-    logger.info('reading Rhea from %s', gz_path)
-    with gzip.open(gz_path) as f:
-        g = rdflib.Graph()
-        g.parse(file=f)
-
+    g = BIO2BEL_MODULE.ensure_rdf('rhea', url=URL)
     # Get a list of all the reactions in the database
     # (the bidirectionalReaction criterion is added to ensure that we only recieve the nondirectional version of a given reaction)
     rxns = g.query(_build_query(
