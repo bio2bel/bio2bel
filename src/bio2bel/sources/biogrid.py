@@ -53,7 +53,7 @@ from typing import Iterable, List, Optional, Tuple
 import click
 import pandas as pd
 import pyobo.sources.biogrid
-from pyobo.cli_utils import verbose_option
+from more_click import verbose_option
 from pyobo.identifier_utils import normalize_curie
 from tqdm import tqdm
 

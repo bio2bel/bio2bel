@@ -10,7 +10,7 @@ from functools import wraps
 from typing import List, Mapping, Type
 
 import click
-from pyobo.cli_utils import verbose_option
+from more_click import verbose_option
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
 
 from .cli_manager import CliMixin

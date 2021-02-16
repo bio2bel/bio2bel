@@ -6,7 +6,7 @@ import os
 from abc import ABC, abstractmethod
 
 import click
-from pyobo.cli_utils import verbose_option
+from more_click import verbose_option
 
 import pybel
 from pybel import to_indra_statements
