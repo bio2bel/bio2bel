@@ -82,7 +82,7 @@ def _participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[Li
                 logger.debug(
                     f'Encountered compound {compound} with multiple ReactiveParts {node_list} ...skipped.\n\
                     PyBEL currently has no easy way to represent this type of entity, since the groupings contain meaningful information like stoichiometry and catalysis.\n \
-                    See: https://www.rhea-db.org/rhea/24960.'
+                    See: https://www.rhea-db.org/rhea/24960.',
                 )
                 continue
             # Append the node to the corresponding list in participants
@@ -103,7 +103,7 @@ def get_bel() -> pybel.BELGraph:
             ?reaction rh:equation ?reactionEquation .
             ?reaction rh:bidirectionalReaction ?bdr
         }
-        """
+        """,
     )
     rv = pybel.BELGraph(name='Rhea', version=VERSION)
     # Loop over reactions, adding reaction nodes to rv as we go
