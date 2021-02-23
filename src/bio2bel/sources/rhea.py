@@ -30,15 +30,7 @@ CH_NAMESPACE = "http://purl.obolibrary.org/obo/CHEBI_"
 CHEBI = 'CHEBI'
 
 
-def _build_query(expression: str) -> rdflib.plugins.sparql.sparql.Query:
-    # rdflib.plugins.sparql.prepareQuery(expression, initNs={RH_PREFIX: RH_NAMESPACE})
-    # The above line is broken for some reason, with error:
-    #   AttributeError: module 'rdflib.plugins' has no attribute 'sparql'
-    # So instead, we'll just replace() the prefix with the namespace
-    return expression.replace(RH_PREFIX, RH_NAMESPACE)
-
-
-def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[List[dsl.BaseEntity], List[dsl.BaseEntity]]:
+def _participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[List[dsl.BaseEntity], List[dsl.BaseEntity]]:
     """Return a list of PyBEL dsl nodes in format (reactants, products) for a given reaction."""
     participants: Tuple[List[Any], List[Any]] = ([], [])
     # Repeat for each side of the reaction, reactants and products
@@ -47,8 +39,7 @@ def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[Lis
         side_uri = reaction_uri + suffix
         # Prepare a query that finds for each reaction side, the following information for each participant:
         # the name of the compound, the CHEBI ID of the compound (if it's a small molecule or a polymer) or of each reactivePart of a genericCompound (polypeptide/polynucleotide)
-        q = _build_query(
-            """
+        q = """
             SELECT ?compound_name ?chebi ?reactivePart WHERE {
                 ?side rh:contains ?participant .
                 ?participant rh:compound ?compound .
@@ -61,8 +52,7 @@ def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[Lis
                 OPTIONAL {?compound rh:chebi ?chebi} .
                 OPTIONAL {?compound rh:underlyingChebi ?chebi}
             }
-            """,
-        )
+            """
         result = g.query(q, initBindings={'side': side_uri})
         # Get an iterable of the compounds (no need to remove duplicates since dictionary keys must be unique)
         compounds = map(lambda x: x[0], result)
@@ -88,8 +78,13 @@ def participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[Lis
                 node = node_list[0]
             else:
                 # If there are multiple nodes, there must be multiple reactiveParts
-                # We represent that as a complexAbundance with name 'compound'
-                node = dsl.ComplexAbundance(node_list, name=compound)
+                # We have no idea how to handle this for the moment... skip it!
+                logger.debug(
+                    f'Encountered compound {compound} with multiple ReactiveParts {node_list} ...skipped.\n\
+                    PyBEL currently has no easy way to represent this type of entity, since the groupings contain meaningful information like stoichiometry and catalysis.\n \
+                    See: https://www.rhea-db.org/rhea/24960.'
+                )
+                continue
             # Append the node to the corresponding list in participants
             participants[i].append(node)
 
@@ -102,20 +97,20 @@ def get_bel() -> pybel.BELGraph:
     g = BIO2BEL_MODULE.ensure_rdf('rhea', url=URL)
     # Get a list of all the reactions in the database
     # (the bidirectionalReaction criterion is added to ensure that we only recieve the nondirectional version of a given reaction)
-    rxns = g.query(_build_query(
+    rxns = g.query(
         """
         SELECT ?reaction ?reactionEquation WHERE {
             ?reaction rh:equation ?reactionEquation .
             ?reaction rh:bidirectionalReaction ?bdr
         }
-        """,
-    ))
+        """
+    )
     rv = pybel.BELGraph(name='Rhea', version=VERSION)
     # Loop over reactions, adding reaction nodes to rv as we go
     # Rather than converting to a set (time-consuming), just let the PyBEL graph handle the occasional duplicate
     for (reaction_uri, _) in rxns:
         # Retrieve the reactants and products of the reaction
-        reactants, products = participants(g, reaction_uri)
+        reactants, products = _participants(g, reaction_uri)
         # Add a reaction node to the BELGraph
         rv.add_reaction(reactants, products)
     return rv
