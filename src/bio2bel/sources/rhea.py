@@ -57,7 +57,8 @@ def _participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[Li
         # Get an iterable of the compounds (no need to remove duplicates since dictionary keys must be unique)
         compounds = map(lambda x: x[0], result)
         # Create a dictionary that will contain the nodes associated with a compound (for GenericCompounds with multiple ReactiveParts)
-        # Goal: for compounds with multiple ReactiveParts, link those reactiveParts together so they can easily be crafted into a ComplexAbundance later
+        # Goal: for compounds with multiple ReactiveParts, link those reactiveParts together so they can easily be handled later
+        #   For now, we will ignore these compounds.
         nodes_by_compound: Dict[str, List[dsl.BaseEntity]] = {c: [] for c in compounds}
         for r in set(result):
             compound_name, chebi_uri, reactive_part_name = r
