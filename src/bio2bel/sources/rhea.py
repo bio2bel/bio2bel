@@ -9,8 +9,8 @@ import bioversions
 import rdflib
 
 import pybel
-from pybel import dsl
 from bio2bel.constants import BIO2BEL_MODULE
+from pybel import dsl
 
 __all__ = [
     'get_bel',
@@ -32,9 +32,9 @@ CHEBI = 'CHEBI'
 
 def get_bel() -> pybel.BELGraph:
     """Get the Rhea data."""
-    VERSION = bioversions.get_version('rhea')
+    version = bioversions.get_version('rhea')
     # Parse the RDF file
-    g = BIO2BEL_MODULE.ensure_rdf('rhea', VERSION, url=URL)
+    g = BIO2BEL_MODULE.ensure_rdf('rhea', version, url=URL)
     # Get a list of all the reactions in the database
     # (the bidirectionalReaction criterion is added to ensure that we only recieve the nondirectional version of a given reaction)
     rxns = g.query(
@@ -45,7 +45,7 @@ def get_bel() -> pybel.BELGraph:
         }
         """,
     )
-    rv = pybel.BELGraph(name='Rhea', version=VERSION)
+    rv = pybel.BELGraph(name='Rhea', version=version)
     # Loop over reactions, adding reaction nodes to rv as we go
     # Rather than converting to a set (time-consuming), just let the PyBEL graph handle the occasional duplicate
     for (reaction_uri, _) in rxns:
