@@ -9,7 +9,7 @@ import bioversions
 import rdflib
 
 import pybel
-import pybel.dsl as dsl
+from pybel import dsl
 from bio2bel.constants import BIO2BEL_MODULE
 
 __all__ = [
