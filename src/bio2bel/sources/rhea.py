@@ -3,8 +3,9 @@
 """Convert Rhea to BEL."""
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List
 
+import bioversions
 import rdflib
 
 import pybel
@@ -18,7 +19,7 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 MODULE_NAME = 'rhea'
-VERSION = '116'  # released on 2020-12-02
+VERSION = bioversions.get_version('rhea')
 URL = 'ftp://ftp.expasy.org/databases/rhea/rdf/rhea.rdf.gz'
 
 # Strings used in RDF parsing
@@ -30,11 +31,37 @@ CH_NAMESPACE = "http://purl.obolibrary.org/obo/CHEBI_"
 CHEBI = 'CHEBI'
 
 
-def _participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[List[dsl.BaseEntity], List[dsl.BaseEntity]]:
+def get_bel() -> pybel.BELGraph:
+    """Get the Rhea data."""
+    # Parse the RDF file
+    g = BIO2BEL_MODULE.ensure_rdf('rhea', VERSION, url=URL)
+    # Get a list of all the reactions in the database
+    # (the bidirectionalReaction criterion is added to ensure that we only recieve the nondirectional version of a given reaction)
+    rxns = g.query(
+        """
+        SELECT ?reaction ?reactionEquation WHERE {
+            ?reaction rh:equation ?reactionEquation .
+            ?reaction rh:bidirectionalReaction ?bdr
+        }
+        """,
+    )
+    rv = pybel.BELGraph(name='Rhea', version=VERSION)
+    # Loop over reactions, adding reaction nodes to rv as we go
+    # Rather than converting to a set (time-consuming), just let the PyBEL graph handle the occasional duplicate
+    for (reaction_uri, _) in rxns:
+        # Retrieve the reactants and products of the reaction
+        participants = _participants(g, reaction_uri)
+        reactants, products = participants['reactants'], participants['products']
+        # Add a reaction node to the BELGraph
+        rv.add_reaction(reactants, products)
+    return rv
+
+
+def _participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Dict[str, List[dsl.BaseEntity]]:
     """Return a list of PyBEL dsl nodes in format (reactants, products) for a given reaction."""
-    participants: Tuple[List[Any], List[Any]] = ([], [])
+    participants: Dict[str, List[dsl.BaseEntity]] = {'reactants': [], 'products': []}
     # Repeat for each side of the reaction, reactants and products
-    for i, suffix in enumerate(('_L', '_R')):
+    for suffix in ('_L', '_R'):
         # Get the URI for the given side of a reaction (http://...10348 ---> http://...10348_L)
         side_uri = reaction_uri + suffix
         # Prepare a query that finds for each reaction side, the following information for each participant:
@@ -87,34 +114,10 @@ def _participants(g: rdflib.Graph, reaction_uri: rdflib.term.URIRef) -> Tuple[Li
                 )
                 continue
             # Append the node to the corresponding list in participants
-            participants[i].append(node)
+            reaction_side = 'reactants' if suffix == '_L' else 'products'
+            participants[reaction_side].append(node)
 
     return participants
-
-
-def get_bel() -> pybel.BELGraph:
-    """Get the Rhea data."""
-    # Parse the RDF file
-    g = BIO2BEL_MODULE.ensure_rdf('rhea', url=URL)
-    # Get a list of all the reactions in the database
-    # (the bidirectionalReaction criterion is added to ensure that we only recieve the nondirectional version of a given reaction)
-    rxns = g.query(
-        """
-        SELECT ?reaction ?reactionEquation WHERE {
-            ?reaction rh:equation ?reactionEquation .
-            ?reaction rh:bidirectionalReaction ?bdr
-        }
-        """,
-    )
-    rv = pybel.BELGraph(name='Rhea', version=VERSION)
-    # Loop over reactions, adding reaction nodes to rv as we go
-    # Rather than converting to a set (time-consuming), just let the PyBEL graph handle the occasional duplicate
-    for (reaction_uri, _) in rxns:
-        # Retrieve the reactants and products of the reaction
-        reactants, products = _participants(g, reaction_uri)
-        # Add a reaction node to the BELGraph
-        rv.add_reaction(reactants, products)
-    return rv
 
 
 if __name__ == '__main__':
