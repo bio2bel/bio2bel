@@ -19,7 +19,6 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 MODULE_NAME = 'rhea'
-VERSION = bioversions.get_version('rhea')
 URL = 'ftp://ftp.expasy.org/databases/rhea/rdf/rhea.rdf.gz'
 
 # Strings used in RDF parsing
@@ -33,6 +32,7 @@ CHEBI = 'CHEBI'
 
 def get_bel() -> pybel.BELGraph:
     """Get the Rhea data."""
+    VERSION = bioversions.get_version('rhea')
     # Parse the RDF file
     g = BIO2BEL_MODULE.ensure_rdf('rhea', VERSION, url=URL)
     # Get a list of all the reactions in the database
@@ -51,9 +51,8 @@ def get_bel() -> pybel.BELGraph:
     for (reaction_uri, _) in rxns:
         # Retrieve the reactants and products of the reaction
         participants = _participants(g, reaction_uri)
-        reactants, products = participants['reactants'], participants['products']
         # Add a reaction node to the BELGraph
-        rv.add_reaction(reactants, products)
+        rv.add_reaction(participants['reactants'], participants['products'])
     return rv
 
 
