@@ -57,7 +57,7 @@ def get_bel() -> pybel.BELGraph:
             participants['products'],
             namespace='RHEA',
             name=reaction_equation,
-            identifier=reaction_id
+            identifier=reaction_id,
         )
         rv.add_node_from_data(reaction)
     return rv
