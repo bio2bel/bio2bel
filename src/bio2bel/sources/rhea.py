@@ -18,7 +18,6 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 
-MODULE_NAME = 'rhea'
 URL = 'ftp://ftp.expasy.org/databases/rhea/rdf/rhea.rdf.gz'
 
 # Strings used in RDF parsing
@@ -39,20 +38,28 @@ def get_bel() -> pybel.BELGraph:
     # (the bidirectionalReaction criterion is added to ensure that we only recieve the nondirectional version of a given reaction)
     rxns = g.query(
         """
-        SELECT ?reaction ?reactionEquation WHERE {
+        SELECT ?reaction ?id ?reactionEquation WHERE {
             ?reaction rh:equation ?reactionEquation .
-            ?reaction rh:bidirectionalReaction ?bdr
+            ?reaction rh:bidirectionalReaction ?bdr .
+            ?reaction rh:id ?id
         }
         """,
     )
-    rv = pybel.BELGraph(name='Rhea', version=version)
+    rv = pybel.BELGraph(name='rhea', version=version)
     # Loop over reactions, adding reaction nodes to rv as we go
     # Rather than converting to a set (time-consuming), just let the PyBEL graph handle the occasional duplicate
-    for (reaction_uri, _) in rxns:
+    for (reaction_uri, reaction_id, reaction_equation) in rxns:
         # Retrieve the reactants and products of the reaction
         participants = _participants(g, reaction_uri)
         # Add a reaction node to the BELGraph
-        rv.add_reaction(participants['reactants'], participants['products'])
+        reaction = dsl.Reaction(
+            participants['reactants'],
+            participants['products'],
+            namespace='RHEA',
+            name=reaction_equation,
+            identifier=reaction_id
+        )
+        rv.add_node_from_data(reaction)
     return rv
 
 
