@@ -16,9 +16,7 @@ from .. import ensure_path
 logger = logging.getLogger(__name__)
 
 MODULE = 'tfregulons'
-VERSION = '20180915'
-URL = f'https://github.com/saezlab/DoRothEA/blob/master/data/' \
-      f'TFregulons/consensus/table/database_normal_{VERSION}.csv.zip?raw=true'
+URL = 'https://github.com/saezlab/dorothea/blob/deprecated/data/TFregulons/consensus/table/database_normal_20180915.csv.zip?raw=true'
 
 
 @lru_cache()
