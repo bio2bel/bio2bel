@@ -9,10 +9,11 @@ from typing import Callable, Optional, TextIO
 
 import click
 import obonet
+from bel_resources import write_namespace
+from bel_resources.obo import convert_obo_graph_to_belanno
 from networkx import MultiDiGraph, read_gpickle, write_gpickle
-from pyobo import get_obo_graph
 
-from bel_resources.obo import convert_obo_graph_to_belanno, convert_obo_graph_to_belns
+import pyobo
 from pybel.constants import BELNS_ENCODING_STR
 from .downloading import make_downloader
 from .utils import get_data_dir, get_namespace_hash
@@ -82,33 +83,35 @@ directory_option = click.option(
 @click.option('-e', '--encoding', default=BELNS_ENCODING_STR, show_default=True)
 def belns(keyword: str, directory: str, encoding: Optional[str]):
     """Write as a BEL namespace."""
-    graph = get_obo_graph(keyword)
+    mapping = pyobo.get_id_name_mapping(keyword)
 
-    items = {}
-    mapping = {}
-    for node, data in graph.nodes(data=True):
-        items[data['name']] = encoding
-        mapping[node] = data['name']
-
-    namespace_hash = get_namespace_hash(items.items())
+    namespace_hash = get_namespace_hash(mapping.items())
     with open(os.path.join(directory, f'{keyword}.belns.md5'), 'w') as file:
         print(namespace_hash, file=file)  # noqa:T001
 
     with open(os.path.join(directory, f'{keyword}.belns.mapping'), 'w') as file:
         json.dump(mapping, file, indent=2)
 
-    outputs = [
-        (os.path.join(directory, f'{keyword}.belns'), False),
-        (os.path.join(directory, f'{keyword}-names.belns'), True),
-    ]
-    for path, use_names in outputs:
-        with open(path, 'w') as file:
-            convert_obo_graph_to_belns(
-                graph,
-                file=file,
-                encoding=encoding,
-                use_names=use_names,
-            )
+    with open(os.path.join(directory, f'{keyword}.belns'), 'w') as file:
+        write_namespace(
+            values={
+                identifier: encoding
+                for identifier in mapping
+            },
+            namespace_name=keyword,
+            namespace_keyword=keyword,
+            file=file
+        )
+    with open(os.path.join(directory, f'{keyword}-names.belns'), 'w') as file:
+        write_namespace(
+            values={
+                name: encoding
+                for name in mapping.values()
+            },
+            namespace_name=keyword,
+            namespace_keyword=keyword,
+            file=file
+        )
 
 
 @main.command()
