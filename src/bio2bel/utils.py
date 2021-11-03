@@ -37,7 +37,7 @@ def get_data_dir(module_name: str) -> str:
     :param module_name: The name of the module. Ex: 'chembl'
     :return: The module's data directory
     """
-    return BIO2BEL_MODULE.get(module_name.lower())
+    return BIO2BEL_MODULE.join(module_name.lower())
 
 
 def prefix_directory_join(prefix: str, *parts: str) -> str:
